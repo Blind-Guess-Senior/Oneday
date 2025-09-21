@@ -294,13 +294,15 @@
 - [ ] 群魔 #科幻 
 - [ ] 发条女孩 #轻小说 
 - [ ] 雨森润奈湿度很高 #轻小说 
+- [ ] 神的记事本 #轻小说 
+- [ ] 丹特里安的书架 #轻小说 
 
 
 
 # 科学类
 
 - [ ] Hands-On Design Patterns with C++: Solve common C++ problems with modern design patterns and build robust applications
-- [ ] 
+- [ ]                                                                                                                                                                                                                        
 
 # 漫画
 
