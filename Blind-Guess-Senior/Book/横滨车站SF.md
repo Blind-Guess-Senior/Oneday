@@ -1,7 +1,6 @@
 ---
 status: 未完成
-country: 中
-author: 日
-tags:
-  - 科幻
+country: 日
+category: [书籍]
+tags: [科幻]
 ---
