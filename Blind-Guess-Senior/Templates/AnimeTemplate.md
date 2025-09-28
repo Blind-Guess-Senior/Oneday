@@ -1,6 +1,7 @@
 ---
 status:
 release:
+type:
 score:
 year:
 month:
