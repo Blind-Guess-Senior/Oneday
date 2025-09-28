@@ -1,6 +1,5 @@
 ---
 status:
-release:
 score:
 year: 2025
 month:
