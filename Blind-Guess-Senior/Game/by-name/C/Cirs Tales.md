@@ -1,3 +1,13 @@
+---
+status: 已放弃
+score: 3
+year:
+month:
+category:
+  - 游戏
+tags:
+  - JRPG
+---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
 	小项评分更新 2025.9.9

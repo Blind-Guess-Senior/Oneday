@@ -1,3 +1,13 @@
+---
+status: 进行中
+score: 7
+year:
+month:
+category:
+  - 游戏
+tags:
+  - FPS
+---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
 
