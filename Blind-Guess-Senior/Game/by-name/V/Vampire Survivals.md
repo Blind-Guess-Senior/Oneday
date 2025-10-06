@@ -1,3 +1,14 @@
+---
+status: 进行中
+score: 8
+year: 2024
+month: 12
+category:
+  - 游戏
+tags:
+  - Rougelike
+  - 类幸存者
+---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
 

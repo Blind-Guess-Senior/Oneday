@@ -1,3 +1,14 @@
+---
+status: 进行中
+score: 7
+year: 2025
+month: 6
+category:
+  - 游戏
+tags:
+  - Rougelike
+  - ARPG
+---
 	编辑于 2025.6.17
 	小项评分更新 2025.9.8
 
