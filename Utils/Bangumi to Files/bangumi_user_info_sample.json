@@ -1,0 +1,20 @@
+{
+  "username": "",
+  "access_token": "",
+  "series_tags": [
+  ],
+  "mediaType": [
+    "TV",
+    "剧场版",
+    "OVA"
+  ],
+  "status": [
+    "",
+    "未完成",
+    "已完成",
+    "进行中",
+    "",
+    "已放弃"
+  ],
+  "Anime_store_pos": ""
+}
