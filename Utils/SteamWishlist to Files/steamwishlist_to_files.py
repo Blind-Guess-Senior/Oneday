@@ -7,10 +7,10 @@ from soupsieve.util import lower
 '''
 Pre info
 '''
-with open("appids.ignoredtxt") as f:
+with open("appids.ignoredtxt", encoding='utf-8') as f:  # 添加UTF-8编码
     appids = [int(appid) for appid in f.read().splitlines()]
 
-with open("steam_user_info.json") as f:
+with open("steam_user_info.json", encoding='utf-8') as f:  # 添加UTF-8编码
     user_info = json.load(f)
 
 store_dir = user_info['Game_store_pos']
