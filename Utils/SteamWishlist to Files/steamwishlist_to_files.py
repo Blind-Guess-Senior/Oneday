@@ -27,7 +27,7 @@ def write_yaml(appname):
     first_letter = filename.upper()[0]
     if filename.startswith('The '):
         first_letter = filename[len('The '):].upper()[0]
-    if first_letter.isdigit():
+    if not first_letter.isalpha():
         first_letter = "-"
     dir_path = os.path.join(store_dir, 'by-name', str(first_letter))
     file_path = os.path.join(dir_path, filename)
