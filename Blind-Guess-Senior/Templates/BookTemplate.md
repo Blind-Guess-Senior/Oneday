@@ -3,7 +3,7 @@ status:
 country:
 author:
 score:
-year: 2025
+year:
 month:
 category:
   - 书籍
