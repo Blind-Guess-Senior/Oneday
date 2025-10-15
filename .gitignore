@@ -5,3 +5,5 @@ Temp/
 
 bangumi_user_info.json
 update_records.json
+steam_user_info.json
+*.ignoredtxt
