@@ -1,17 +1,14 @@
 ---
 status: 已完成
-release: 2005
-type: TV
+country: 日
+author: 虚渊玄
 score: 7
-year: 2025
-month: 10
+year: 2023
+month: 7
 category:
-  - 动漫
+  - 书籍
 tags:
-  - 漫改
+  - 轻小说
   - 奇幻
-  -
 ---
 7/10 不虚此行
-
-
