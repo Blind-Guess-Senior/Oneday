@@ -1,0 +1,4 @@
+{
+  "Game_store_pos": "../../YourFolder/Game",
+  "Template": "---\nstatus:未完成\nscore:\nyear:\nmonth:\ncategory:\n  - 游戏\ntags:\n---\n"
+}
