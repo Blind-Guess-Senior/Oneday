@@ -23,32 +23,32 @@
 ## 提名
 
 ### ==年度游戏== 
- 无限机兵
- Hollow Knight: Silksong
- 14 Minesweeper Variants
+ 无限机兵 | [[无限机兵]]
+ Hollow Knight: Silksong | [[Hollow Knight- Silksong]]
+ 14 Minesweeper Variants | [[14 Minesweeper Variants]]
  
 ### ==年度独立==
- 无限机兵
- Hollow Knight: Silksong
- 14 Minesweeper Variants
- Blasphemous
+ 无限机兵 | [[无限机兵]]
+ Hollow Knight: Silksong | [[Hollow Knight- Silksong]]
+ 14 Minesweeper Variants | [[14 Minesweeper Variants]]
+ Blasphemous | [[Blasphemous]]
  
 ### ==最佳创意==
- Monument Valley
- Hollow Knight: Silksong
- 14 Minesweeper Variants
- DOTA 2
+ Monument Valley | [[Monument Valley]]
+ Hollow Knight: Silksong | [[Hollow Knight- Silksong]]
+ 14 Minesweeper Variants | [[14 Minesweeper Variants]]
+ DOTA 2 | [[DOTA 2]]
  
 ### ==最佳艺术==
- Monument Valley
- Hollow Knight: Silksong
- Blasphemous
+ Monument Valley | [[Monument Valley]]
+ Hollow Knight: Silksong | [[Hollow Knight- Silksong]]
+ Blasphemous | [[Blasphemous]]
  
 ### ==最佳叙事==
  
 ### ==最佳演出==
- Monument Valley
- Blasphemous
+ Monument Valley | [[Monument Valley]]
+ Blasphemous | [[Blasphemous]]
  
 
 
@@ -91,38 +91,38 @@
 ## 提名
 
 ### ==年度作品==
- 《接触》
- 《献给阿尔吉侬的花束》
- 《无限回归者讲述故事》
+ 《接触》 | [[接触]]
+ 《献给阿尔吉侬的花束》 | [[献给阿尔吉侬的花束]]
+ 《无限回归者讲述故事》 | [[无限回归者讲述故事]]
  
 ### ==年度科学作品==
  
 ### ==年度漫画
  
 ### ==最佳文学==
- 《接触》
- 《献给阿尔吉侬的花束》
+ 《接触》 | [[接触]]
+ 《献给阿尔吉侬的花束》 | [[献给阿尔吉侬的花束]]
  
 ### ==最佳推理悬疑==
  
 ### ==最佳科幻==
- 《接触》
- 《献给阿尔吉侬的花束》
+ 《接触》 | [[接触]]
+ 《献给阿尔吉侬的花束》 | [[献给阿尔吉侬的花束]]
  
 ### ==最佳奇幻==
 	
 ### ==最佳轻小说==
- 《放学后的异世界咖啡馆》
+ 《放学后的异世界咖啡馆》 | [[放学后的异世界咖啡馆]]
  
 ### ==最佳网文==
- 《无限回归者讲述故事》
- 《我成为了背叛女主角们的幕后黑手》
- 《那個反派想要活下去》
+ 《无限回归者讲述故事》 | [[无限回归者讲述故事]]
+ 《我成为了背叛女主角们的幕后黑手》 | [[我成为了背叛女主角们的幕后黑手]]
+ 《那個反派想要活下去》 | [[那個反派想要活下去]]
  
 ### ==最佳短篇==
- 《榜样》（《地球上最后的敲门声》）
- 《穹顶》（《穹顶之下》）
- 《致凤凰的信》（《穹顶之下》）
+ 《榜样》 | [[地球上最后的敲门声]]
+ 《穹顶》 | [[穹顶之下]]
+ 《致凤凰的信》 | [[穹顶之下]]
  
 ### 年度粪作
  

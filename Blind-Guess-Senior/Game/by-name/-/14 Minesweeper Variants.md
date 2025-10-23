@@ -1,6 +1,6 @@
 ---
-status: 未完成
-score:
+status: 进行中
+score: 10
 year:
 month:
 category:
