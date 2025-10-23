@@ -1,5 +1,5 @@
 ---
-status:未完成
+status: 未完成
 score:
 year:
 month:
