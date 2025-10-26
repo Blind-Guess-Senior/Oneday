@@ -2,7 +2,7 @@
 # Without Country Book
 ```dataview
 LIST
-FROM "Blind-Guess-Senior"
+FROM "Blind-Guess-Senior/Book"
 WHERE !country
 WHERE contains(category, "书籍") OR contains(category, "漫画")
 ```
@@ -11,7 +11,7 @@ WHERE contains(category, "书籍") OR contains(category, "漫画")
 
 ```dataview
 LIST
-FROM "Blind-Guess-Senior"
+FROM "Blind-Guess-Senior/Book"
 WHERE !author
 WHERE contains(category, "书籍") OR contains(category, "漫画")
 ```
@@ -20,7 +20,7 @@ WHERE contains(category, "书籍") OR contains(category, "漫画")
 
 ```dataview
 LIST
-FROM "Blind-Guess-Senior"
+FROM "Blind-Guess-Senior/Book"
 WHERE !tags
 WHERE contains(category, "书籍") OR contains(category, "漫画")
 ```
