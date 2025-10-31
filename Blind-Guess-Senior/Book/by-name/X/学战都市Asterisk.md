@@ -1,12 +1,12 @@
 ---
 status: 未完成
 country: 日
-author: 森见登美彦
+author: 三屋咲悠
 score:
 year:
 month:
 category:
   - 书籍
 tags:
-  - 文学
+  - 轻小说
 ---

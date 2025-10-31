@@ -5,7 +5,7 @@ const pages = dv.pages('"Blind-Guess-Senior"')
 
 const sortedGroups = pages
   .sort(g => g.key, 'desc')
-  .slice(0, 3);
+  .slice(0, 5);
 
 for (let group of sortedGroups) {
   dv.header(3, group.key);
