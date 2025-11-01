@@ -1,12 +1,12 @@
 ---
-status: 未完成
+status:
 score:
 year:
 month:
 category:
   - 游戏
 tags:
-  - JRPG
+  - ACT
 ---
 
 

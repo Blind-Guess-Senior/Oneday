@@ -6,7 +6,8 @@ month:
 category:
   - 游戏
 tags:
-  - JRPG
+  - 沙盒
+  - 生存
 ---
 
 

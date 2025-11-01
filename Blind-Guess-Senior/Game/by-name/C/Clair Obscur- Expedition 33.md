@@ -6,7 +6,8 @@ month:
 category:
   - 游戏
 tags:
-  - JRPG
+  - RPG
+  - 回合制
 ---
 
 

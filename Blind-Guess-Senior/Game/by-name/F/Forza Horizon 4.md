@@ -6,7 +6,9 @@ month:
 category:
   - 游戏
 tags:
-  - JRPG
+  - 赛车
+  - 竞速
+  - 开放世界
 ---
 
 

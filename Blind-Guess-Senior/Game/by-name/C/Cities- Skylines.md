@@ -6,7 +6,9 @@ month:
 category:
   - 游戏
 tags:
-  - JRPG
+  - 策略
+  - 模拟经营
+  - 城市规划
 ---
 
 

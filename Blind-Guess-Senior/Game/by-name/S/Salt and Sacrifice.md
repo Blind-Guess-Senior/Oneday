@@ -6,6 +6,9 @@ month:
 category:
   - 游戏
 tags:
+  - 类银河城
+  - 类魂
+  - ARPG
 ---
 
 

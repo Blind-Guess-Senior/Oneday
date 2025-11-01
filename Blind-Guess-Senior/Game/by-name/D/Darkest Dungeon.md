@@ -6,7 +6,8 @@ month:
 category:
   - 游戏
 tags:
-  - JRPG
+  - Rougelike
+  - 卡牌
 ---
 
 

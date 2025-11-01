@@ -6,7 +6,8 @@ month:
 category:
   - 游戏
 tags:
-  - JRPG
+  - ARPG
+  - 类魂
 ---
 
 

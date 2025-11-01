@@ -6,7 +6,8 @@ month:
 category:
   - 游戏
 tags:
-  - JRPG
+  - 恐怖
+  - 解谜
 ---
 
 

@@ -1,12 +1,11 @@
 ---
-status: 未完成
+status: 进行中
 score:
 year:
 month:
 category:
   - 游戏
 tags:
-  - JRPG
 ---
 
 

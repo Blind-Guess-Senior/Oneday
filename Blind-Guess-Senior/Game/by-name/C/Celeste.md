@@ -6,7 +6,7 @@ month:
 category:
   - 游戏
 tags:
-  - JRPG
+  - 平台跳跃
 ---
 
 

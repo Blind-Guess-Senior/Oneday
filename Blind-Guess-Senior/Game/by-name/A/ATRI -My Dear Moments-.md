@@ -6,7 +6,7 @@ month:
 category:
   - 游戏
 tags:
-  - JRPG
+  - 视觉小说
 ---
 
 
