@@ -1,5 +1,9 @@
 ---
 status: 进行中
+developer:
+  - Valve
+publisher:
+  - Valve
 score: 7
 year:
 month:

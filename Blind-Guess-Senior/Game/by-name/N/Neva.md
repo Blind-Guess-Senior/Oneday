@@ -1,5 +1,9 @@
 ---
 status: 全成就
+developer:
+  - Nomada Studio
+publisher:
+  - Devolver Digital
 score: 7
 year: 2024
 month: 11

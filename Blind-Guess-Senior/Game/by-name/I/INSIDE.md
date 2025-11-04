@@ -1,5 +1,9 @@
 ---
 status: 已完成
+developer:
+  - Playdead
+publisher:
+  - Playdead
 score: 10
 year: 2023
 month: 9

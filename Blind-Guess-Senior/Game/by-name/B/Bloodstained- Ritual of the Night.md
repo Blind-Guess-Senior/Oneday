@@ -1,5 +1,9 @@
 ---
 status: 全成就
+developer:
+  - ArtPlay
+publisher:
+  - 505 Games
 score: 8
 year: 2024
 month: 12
@@ -8,6 +12,9 @@ category:
 tags:
   - 类银河城
 ---
+续：
+[[Bloodstained- The Scarlet Engagement]] 
+
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
 

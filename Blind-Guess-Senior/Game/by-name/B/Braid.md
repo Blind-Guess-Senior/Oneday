@@ -6,6 +6,10 @@ month:
 category:
   - 游戏
 tags:
+developer:
+  - Thekla, Inc.
+publisher:
+  - Thekla, Inc.
 ---
 
 

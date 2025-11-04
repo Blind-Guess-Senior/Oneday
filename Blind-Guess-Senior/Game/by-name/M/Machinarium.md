@@ -1,5 +1,9 @@
 ---
 status: 全成就
+developer:
+  - Amanita Design
+publisher:
+  - Amanita Design
 score: 10
 year: 2023
 month: 7

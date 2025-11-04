@@ -9,5 +9,6 @@ tags:
   - ARPG
   - 魂
 ---
-
+衍生作：
+[[Elden Ring NightReign]] 
 

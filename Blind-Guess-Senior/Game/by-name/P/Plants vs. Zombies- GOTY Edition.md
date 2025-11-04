@@ -1,5 +1,10 @@
 ---
 status: 已完成
+developer:
+  - PopCap Games, Inc.
+publisher:
+  - PopCap Games, Inc.
+  - Electronic Arts
 score: 10
 year:
 month:

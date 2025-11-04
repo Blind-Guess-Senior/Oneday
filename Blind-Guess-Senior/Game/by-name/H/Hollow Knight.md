@@ -1,5 +1,9 @@
 ---
 status: 已完成
+developer:
+  - Team Cherry
+publisher:
+  - Team Cherry
 score: 10
 year: 2022
 month: 10
@@ -8,6 +12,9 @@ category:
 tags:
   - 类银河城
 ---
+续：
+[[Hollow Knight- Silksong]] 
+
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
 

@@ -1,5 +1,9 @@
 ---
 status: 进行中
+developer:
+  - Weather Factory
+publisher:
+  - Weather Factory
 score:
 year:
 month:

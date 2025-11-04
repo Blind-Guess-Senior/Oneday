@@ -1,5 +1,9 @@
 ---
 status: 已完成
+developer:
+  - Ska Studios
+publisher:
+  - Ska Studios
 score: 8
 year: 2022
 month: 12
@@ -10,6 +14,9 @@ tags:
   - 类魂
   - ARPG
 ---
+续：
+[[Salt and Sacrifice]] 
+
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
 

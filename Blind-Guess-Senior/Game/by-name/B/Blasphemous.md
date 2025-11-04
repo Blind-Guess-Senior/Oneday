@@ -1,5 +1,9 @@
 ---
 status: 已完成
+developer:
+  - The Game Kitchen
+publisher:
+  - Team17
 score: 8
 year: 2025
 month: 8

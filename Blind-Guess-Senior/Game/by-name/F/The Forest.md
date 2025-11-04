@@ -1,5 +1,9 @@
 ---
 status: 进行中
+developer:
+  - Endnight Games Ltd
+publisher:
+  - Endnight Games Ltd
 score: 5
 year: 2024
 month: 12

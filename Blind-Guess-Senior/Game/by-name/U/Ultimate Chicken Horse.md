@@ -1,5 +1,9 @@
 ---
 status: 已完成
+developer:
+  - Clever Endeavour Games
+publisher:
+  - Clever Endeavour Games
 score: 6
 year: 2025
 month: 2

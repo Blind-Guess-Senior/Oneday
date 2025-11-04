@@ -6,6 +6,24 @@ month:
 category:
   - 游戏
 tags:
+developer:
+  - Team Ladybug
+  - WSS playground
+publisher:
+  - WSS playground
+  - PLAYISM
 ---
+
+
+```
+美术 /4
+音乐 /4
+剧情 /4
+玩法 /4
+体验 /4
+```
+
+
+
 
 

@@ -9,6 +9,9 @@ tags:
   - Rougelike
   - ARPG
 ---
+系列原作：
+[[Elden Ring]] 
+
 	编辑于 2025.6.17
 	小项评分更新 2025.9.8
 

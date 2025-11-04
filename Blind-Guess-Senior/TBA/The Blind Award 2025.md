@@ -28,18 +28,18 @@
 ### ==年度游戏== 
  无限机兵 | [[无限机兵]] | [[无限机兵★★★]] 
  Hollow Knight: Silksong | [[Hollow Knight- Silksong]] | [[Hollow Knight-Silksong★★★★★]] 
- 14 Minesweeper Variants | [[14 Minesweeper Variants]] 
+ 14 Minesweeper Variants | [[14种扫雷变体]] 
  
 ### ==年度独立==
  无限机兵 | [[无限机兵]] | [[无限机兵★★★]] 
  Hollow Knight: Silksong | [[Hollow Knight- Silksong]] 
- 14 Minesweeper Variants | [[14 Minesweeper Variants]] 
+ 14 Minesweeper Variants | [[14种扫雷变体]] 
  Blasphemous | [[Blasphemous]] 
  
 ### ==最佳创意==
  Monument Valley | [[Monument Valley]] 
  Hollow Knight: Silksong | [[Hollow Knight- Silksong]] | [[Hollow Knight-Silksong★★★★★]] 
- 14 Minesweeper Variants | [[14 Minesweeper Variants]] 
+ 14 Minesweeper Variants | [[14种扫雷变体]] 
  DOTA 2 | [[DOTA 2]] 
  
 ### ==最佳艺术==

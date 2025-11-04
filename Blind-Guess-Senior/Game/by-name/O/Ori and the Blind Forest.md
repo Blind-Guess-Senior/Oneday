@@ -1,5 +1,9 @@
 ---
 status: 已完成
+developer:
+  - Moon Studios GmbH
+publisher:
+  - Xbox Game Studios
 score: 9
 year: 2023
 month: 9
@@ -8,6 +12,9 @@ category:
 tags:
   - 类银河城
 ---
+续：
+[[Ori and the Will of the Wisps]] 
+
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
 

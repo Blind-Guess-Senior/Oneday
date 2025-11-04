@@ -1,5 +1,9 @@
 ---
 status: 进行中
+developer:
+  - No Brakes Games
+publisher:
+  - Curve Games
 score: 8
 year: 2020
 month: 11

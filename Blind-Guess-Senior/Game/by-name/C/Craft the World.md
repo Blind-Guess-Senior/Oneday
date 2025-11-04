@@ -1,5 +1,9 @@
 ---
 status: 进行中
+developer:
+  - Dekovir Entertainment
+publisher:
+  - Dekovir Ltd
 score: 9
 year:
 month:

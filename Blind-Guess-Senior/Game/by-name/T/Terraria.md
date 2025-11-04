@@ -1,5 +1,9 @@
 ---
 status: 已完成
+developer:
+  - Re-Logic
+publisher:
+  - Re-Logic
 score: 10
 year: 2023
 month: 12

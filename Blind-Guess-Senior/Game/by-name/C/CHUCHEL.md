@@ -1,5 +1,9 @@
 ---
 status: 已完成
+developer:
+  - Amanita Design
+publisher:
+  - Amanita Design
 score: 5
 year: 2025
 month: 5

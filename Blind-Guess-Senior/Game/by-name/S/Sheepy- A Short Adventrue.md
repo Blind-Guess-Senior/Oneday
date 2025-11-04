@@ -1,5 +1,9 @@
 ---
 status: 已完成
+developer:
+  - MrSuicideSheep
+publisher:
+  - MrSuicideSheep
 score: 8
 year: 2024
 month: 2

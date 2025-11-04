@@ -1,5 +1,9 @@
 ---
 status: 全成就
+developer:
+  - ustwo games
+publisher:
+  - ustwo games
 score: 10
 year: 2025
 month: 7
