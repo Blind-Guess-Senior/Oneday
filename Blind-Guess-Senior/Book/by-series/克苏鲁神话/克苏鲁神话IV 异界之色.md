@@ -1,5 +1,5 @@
 ---
-status: 已完成
+status: 未完成
 country: 美
 author: H.P.洛夫克拉夫特
 score:
