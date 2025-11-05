@@ -1,5 +1,9 @@
 ---
 status: 进行中
+developer:
+  - poncle
+publisher:
+  - poncle
 score: 8
 year: 2024
 month: 12
