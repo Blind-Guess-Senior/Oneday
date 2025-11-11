@@ -1,5 +1,10 @@
 ---
 status: 进行中
+developer:
+  - FromSoftware, Inc.
+publisher:
+  - FromSoftware, Inc.
+  - BANDAI NAMCO Entertainment
 score: 7
 year: 2025
 month: 6

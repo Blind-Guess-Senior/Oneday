@@ -10,4 +10,6 @@ month:
 category:
   - 游戏
 tags:
+  - ARPG
+  - Cyberpunk
 ---

@@ -48,6 +48,7 @@
  Blasphemous | [[Blasphemous]] 
  
 ### ==最佳叙事==
+ Eternal Senia | [[Eternal Senia]] | [[Eternal Senia★★★]] 
  
 ### ==最佳演出==
  Monument Valley | [[Monument Valley]] 
