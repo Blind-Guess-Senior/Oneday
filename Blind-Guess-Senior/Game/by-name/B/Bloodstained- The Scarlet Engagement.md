@@ -14,6 +14,7 @@ tags:
 前：
 [[Bloodstained- Ritual of the Night]] 
 
+TBA 2025 *提名* **==最受期待==** [[The Blind Award 2025#游戏提名]] 
 
 ```
 美术 /4
