@@ -62,7 +62,9 @@
  Phonopolis | [[Phonopolis]] 
  Bloodstained: The Scarlet Engagement | [[Bloodstained- The Scarlet Engagement]] 
  Terraria V1.4.5 | [[Terraria]] | [[Terraria★★★★★]] 
- 
+ Denshattack! | [[Denshattack!]] 
+ 昭和米国物语 | [[昭和米国物语]] 
+ 影之刃：零 | [[影之刃：零]] 
 
 
 # 书籍
@@ -102,7 +104,7 @@
 ### ==年度角色==
  虚位以待
  
-### ==热血不息==
+### ==沸腾==
  虚位以待
  
 ### ==心之蛀==
@@ -160,11 +162,10 @@
  加藤惠 | [[Blind-Guess-Senior/Book/by-name/L/路人女主的养成方法|路人女主的养成方法]] 
  乌丸黑衣 | [[国王的求婚]] 
  
-### ==热血不息==
+### ==沸腾==
  
 ### ==心之蛀==
  《无限回归者讲述故事》 | [[无限回归者讲述故事]] 
- 《那個反派想要活下去》 | [[那個反派想要活下去]] 
  《波态生物》 | [[最后的火星人]] 
  
 ### ==美好的存在证明==
