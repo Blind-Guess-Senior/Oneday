@@ -58,7 +58,7 @@
 ### ==最受期待==
  Slay the Spire 2 | [[Slay the Spire 2]] 
  The Expanse: Osiris Reborn | [[The Expanse- Osiris Reborn]] 
- No Rest for the Wicked | [[No Rest for the Wicked]] | 
+ No Rest for the Wicked | [[No Rest for the Wicked]] 
  Phonopolis | [[Phonopolis]] 
  Bloodstained: The Scarlet Engagement | [[Bloodstained- The Scarlet Engagement]] 
  Terraria V1.4.5 | [[Terraria]] | [[Terraria★★★★★]] 
@@ -161,8 +161,10 @@
 ### ==年度角色==
  加藤惠 | [[Blind-Guess-Senior/Book/by-name/L/路人女主的养成方法|路人女主的养成方法]] 
  乌丸黑衣 | [[国王的求婚]] 
+ 悠 | [[放学后的异世界咖啡馆]] 
  
 ### ==沸腾==
+ 《放学后的异世界咖啡馆》 | [[放学后的异世界咖啡馆]] 
  
 ### ==心之蛀==
  《无限回归者讲述故事》 | [[无限回归者讲述故事]] 
@@ -170,6 +172,38 @@
  
 ### ==美好的存在证明==
  《放学后的异世界咖啡馆》 | [[放学后的异世界咖啡馆]] 
+
+
+# 其他
  
+### ==年度音乐==
+ 虚位以待
+ 
+### ==年度动漫==
+ 虚位以待
+
+## 其他提名
+ 
+### ==年度音乐==
+ 白夜 - Reol - 白夜
+ 带我去找夜生活 - 告五人 - 带我去找夜生活
+ 多分、風。 - サカナクション - 834.194
+ 南京夜无电波讯号 - 花水r,洛天依 - 黑色磁带
+ 僕らはそれを愛と呼んだ - あたらよ - 僕らはそれを愛と呼んだ
+ To Your Oblivion - Mili - To Your Oblivion
+ アンノウン・マザーグース - wowaka,初音ミク - Re:Start
+ 春嵐 - john,初音ミク - ROSE
+ 僕が死のうと思ったのは - 中島美嘉 - 僕が死のうと思ったのは
+ 妄想感傷代償連盟 - DECO27,初音ミク - 妄想感傷代償連盟
+ スパークル - 幾田りら - スパークル
+ チェリーポップ - DECO27,初音ミク - チェリーポップ
+ 光の螺旋律 - kukui - 光の螺旋律
+
+### ==年度动漫==
+ 天降之物 发条女神之哀叹 | [[天降之物 发条女神之哀叹]] 
+ 蔷薇少女 梦之终结 | [[蔷薇少女 梦之终结]] 
+
+
+
 
 
