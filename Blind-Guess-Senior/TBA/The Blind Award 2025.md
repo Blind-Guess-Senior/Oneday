@@ -10,7 +10,10 @@
 ### ==最佳创意==
  虚位以待
  
-### ==最佳艺术==
+### ==最佳美术==
+ 虚位以待
+ 
+### ==最佳音乐==
  虚位以待
  
 ### ==最佳叙事==
@@ -42,8 +45,12 @@
  14 Minesweeper Variants | [[14种扫雷变体]] 
  DOTA 2 | [[DOTA 2]] 
  
-### ==最佳艺术==
+### ==最佳美术==
  Monument Valley | [[Monument Valley]] 
+ Hollow Knight: Silksong | [[Hollow Knight- Silksong]] | [[Hollow Knight-Silksong★★★★★]] 
+ Blasphemous | [[Blasphemous]] 
+ 
+### ==最佳音乐==
  Hollow Knight: Silksong | [[Hollow Knight- Silksong]] | [[Hollow Knight-Silksong★★★★★]] 
  Blasphemous | [[Blasphemous]] 
  
@@ -64,7 +71,7 @@
  Terraria V1.4.5 | [[Terraria]] | [[Terraria★★★★★]] 
  Denshattack! | [[Denshattack!]] 
  昭和米国物语 | [[昭和米国物语]] 
- 影之刃：零 | [[影之刃：零]] 
+ 影之刃零 | [[影之刃零]] 
 
 
 # 书籍
