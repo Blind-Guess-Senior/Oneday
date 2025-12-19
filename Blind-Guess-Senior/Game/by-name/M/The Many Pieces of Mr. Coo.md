@@ -1,5 +1,11 @@
 ---
 status: 已完成
+developer:
+  - Gammera Nest
+  - Nacho Rodríguez
+publisher:
+  - Meridiem Games
+  - Astrolabe Games
 score: 4
 year: 2024
 month: 12
@@ -8,12 +14,6 @@ category:
 tags:
   - 指向点击
   - 解谜
-developer:
-  - Gammera Nest
-  - Nacho Rodríguez
-publisher:
-  - Meridiem Games
-  - Astrolabe Games
 ---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
