@@ -2,28 +2,30 @@
 # 游戏
 
 ### ==年度游戏== 
- 虚位以待
+ Hollow Knight: Silksong | [[Hollow Knight- Silksong]] | [[Hollow Knight-Silksong★★★★★]] 
  
 ### ==年度独立==
- 虚位以待
+ Hollow Knight: Silksong | [[Hollow Knight- Silksong]] 
  
 ### ==最佳创意==
- 虚位以待
+ 14 Minesweeper Variants | [[14种扫雷变体]] 
  
 ### ==最佳美术==
- 虚位以待
+ Hollow Knight: Silksong | [[Hollow Knight- Silksong]] | [[Hollow Knight-Silksong★★★★★]] 
  
 ### ==最佳音乐==
- 虚位以待
+ Blasphemous | [[Blasphemous]] 
  
 ### ==最佳叙事==
  虚位以待
  
 ### ==最佳演出==
- 虚位以待
+ Hollow Knight: Silksong | [[Hollow Knight- Silksong]] | [[Hollow Knight-Silksong★★★★★]] 
  
 ### ==最受期待==
- 虚位以待
+ Denshattack! | [[Denshattack!]] 
+ 影之刃零 | [[影之刃零]] 
+ Terraria V1.4.5 | [[Terraria]] | [[Terraria★★★★★]] 
 
 
 ## 游戏提名
@@ -77,7 +79,7 @@
 # 书籍
 
 ### ==年度作品==
- 虚位以待
+ 《放学后的异世界咖啡馆》 | [[放学后的异世界咖啡馆]] 
  
 ### ==年度科学作品==
  虚位以待
@@ -86,22 +88,22 @@
  虚位以待
  
 ### ==最佳文学==
- 虚位以待
+ 《献给阿尔吉侬的花束》 | [[献给阿尔吉侬的花束]] 
  
 ### ==最佳网文&轻小说==
- 虚位以待
+ 《无限回归者讲述故事》 | [[无限回归者讲述故事]] 
  
 ### ==最佳推理悬疑==
  虚位以待
  
 ### ==最佳科幻奇幻==
- 虚位以待
+ 《接触》 | [[接触]] 
  
 ### ==最佳短篇==
- 虚位以待
+ 《致凤凰的信》 | [[穹顶之下]] 
 
 ### ==最受期待（未完结）==
- 虚位以待
+ 《败犬女主太多了！》 | [[Blind-Guess-Senior/Book/by-name/B/败犬女主太多了！|败犬女主太多了！]] 
  
 ### 年度粪作
  虚位以待
@@ -109,16 +111,16 @@
 ## 副奖项
  
 ### ==年度角色==
- 虚位以待
+ 加藤惠 | [[Blind-Guess-Senior/Book/by-name/L/路人女主的养成方法|路人女主的养成方法]] 
  
 ### ==沸腾==
- 虚位以待
+ 《放学后的异世界咖啡馆》 | [[放学后的异世界咖啡馆]] 
  
 ### ==心之蛀==
- 虚位以待
+ 《无限回归者讲述故事》 | [[无限回归者讲述故事]] 
  
 ### ==美好的存在证明==
- 虚位以待
+ 《放学后的异世界咖啡馆》 | [[放学后的异世界咖啡馆]] 
 
 ## 书籍提名
 
