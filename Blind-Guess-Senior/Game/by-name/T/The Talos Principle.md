@@ -12,6 +12,9 @@ category:
   - 游戏
 tags:
 ---
+重制版：
+[[The Talos Principle- Reawakened]] 
+
 
 
 ```

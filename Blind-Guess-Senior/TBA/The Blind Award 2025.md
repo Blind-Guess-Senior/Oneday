@@ -8,7 +8,7 @@
  Hollow Knight: Silksong | [[Hollow Knight- Silksong]] 
  
 ### ==最佳创意==
- 14 Minesweeper Variants | [[14种扫雷变体]] 
+ 14种扫雷变体 | [[14种扫雷变体]] 
  
 ### ==最佳美术==
  Hollow Knight: Silksong | [[Hollow Knight- Silksong]] | [[Hollow Knight-Silksong★★★★★]] 
@@ -33,18 +33,18 @@
 ### ==年度游戏== 
  无限机兵 | [[无限机兵]] | [[无限机兵★★★]] 
  Hollow Knight: Silksong | [[Hollow Knight- Silksong]] | [[Hollow Knight-Silksong★★★★★]] 
- 14 Minesweeper Variants | [[14种扫雷变体]] 
+ 14种扫雷变体 | [[14种扫雷变体]] 
  
 ### ==年度独立==
  无限机兵 | [[无限机兵]] | [[无限机兵★★★]] 
  Hollow Knight: Silksong | [[Hollow Knight- Silksong]] 
- 14 Minesweeper Variants | [[14种扫雷变体]] 
+ 14种扫雷变体 | [[14种扫雷变体]] 
  Blasphemous | [[Blasphemous]] 
  
 ### ==最佳创意==
  Monument Valley | [[Monument Valley]] 
  Hollow Knight: Silksong | [[Hollow Knight- Silksong]] | [[Hollow Knight-Silksong★★★★★]] 
- 14 Minesweeper Variants | [[14种扫雷变体]] 
+ 14种扫雷变体 | [[14种扫雷变体]] 
  DOTA 2 | [[DOTA 2]] 
  
 ### ==最佳美术==
@@ -187,8 +187,8 @@
  
 ### ==年度音乐==
  白夜 - Reol - 白夜
- 南京夜无电波讯号 - 花水r,洛天依 - 黑色磁带
- 妄想感傷代償連盟 - DECO27,初音ミク - 妄想感傷代償連盟
+ 南京夜无电波讯号 - 花水r, 洛天依 - 黑色磁带
+ 妄想感傷代償連盟 - DECO27, 初音ミク - 妄想感傷代償連盟
  
 ### ==年度动漫==
  蔷薇少女 梦之终结 | [[蔷薇少女 梦之终结]] 
@@ -199,15 +199,15 @@
  白夜 - Reol - 白夜
  带我去找夜生活 - 告五人 - 带我去找夜生活
  多分、風。 - サカナクション - 834.194
- 南京夜无电波讯号 - 花水r,洛天依 - 黑色磁带
+ 南京夜无电波讯号 - 花水r, 洛天依 - 黑色磁带
  僕らはそれを愛と呼んだ - あたらよ - 僕らはそれを愛と呼んだ
  To Your Oblivion - Mili - To Your Oblivion
- アンノウン・マザーグース - wowaka,初音ミク - Re:Start
+ アンノウン・マザーグース - wowaka, 初音ミク - Re:Start
  春嵐 - john,初音ミク - ROSE
  僕が死のうと思ったのは - 中島美嘉 - 僕が死のうと思ったのは
- 妄想感傷代償連盟 - DECO27,初音ミク - 妄想感傷代償連盟
+ 妄想感傷代償連盟 - DECO27, 初音ミク - 妄想感傷代償連盟
  スパークル - 幾田りら - スパークル
- チェリーポップ - DECO27,初音ミク - チェリーポップ
+ チェリーポップ - DECO27, 初音ミク - チェリーポップ
  光の螺旋律 - kukui - 光の螺旋律
 
 ### ==年度动漫==

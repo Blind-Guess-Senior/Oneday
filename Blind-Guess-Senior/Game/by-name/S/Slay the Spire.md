@@ -1,5 +1,9 @@
 ---
-status: 已完成
+status: 全成就
+developer:
+  - Mega Crit
+publisher:
+  - Mega Crit
 score: 10
 year: 2025
 month: 2

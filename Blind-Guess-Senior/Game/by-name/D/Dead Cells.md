@@ -13,7 +13,10 @@ tags:
   - Rougelike
   - ACT
 ---
-
+TBA 2026 *提名* **==年度游戏==** [[The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==年度独立==** [[The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==最佳美术==** [[The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==最佳音乐==** [[The Blind Award 2026#游戏提名]] 
 
 ```
 美术 /4
