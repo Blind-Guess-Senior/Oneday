@@ -5,8 +5,8 @@ developer:
 publisher:
   - Valve
 score: 7
-year:
-month:
+year: 2024
+month: 7
 category:
   - 游戏
 tags:
@@ -24,4 +24,7 @@ tags:
 玩法 3/4 Great
 体验 2/4 Average
 ```
+
+draft: 平衡性，地图设计，开创性
+
 

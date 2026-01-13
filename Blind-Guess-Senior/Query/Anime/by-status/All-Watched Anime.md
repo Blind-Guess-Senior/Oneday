@@ -6,7 +6,7 @@ TABLE WITHOUT ID
 FROM "Blind-Guess-Senior"
 WHERE contains(category, "动漫")
 WHERE status = "已完成"
-SORT score DESC, year DESC, release ASC, file.name ASC
+SORT score DESC,year DESC, release ASC
 ```
 
 # 

@@ -6,7 +6,7 @@ TABLE WITHOUT ID
 FROM "Blind-Guess-Senior"
 WHERE contains(category, "游戏")
 WHERE status = "全成就" OR status = "已完成"
-SORT year ASC, month ASC
+SORT score DESC, year DESC, month DESC
 ```
 
 # 

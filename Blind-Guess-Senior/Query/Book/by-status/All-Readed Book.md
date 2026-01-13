@@ -8,7 +8,7 @@ FROM "Blind-Guess-Senior"
 WHERE contains(category, "书籍")
 WHERE status = "已完成"
 WHERE !contains(tags, "经典补完计划")
-SORT score DESC, year DESC, file.name ASC
+SORT score DESC, year DESC, month DESC
 ```
 
 # Classic-Fin 经典补完计划
@@ -21,7 +21,7 @@ FROM "Blind-Guess-Senior"
 WHERE contains(category, "书籍")
 WHERE status = "已完成"
 WHERE contains(tags, "经典补完计划")
-SORT score DESC, year DESC, file.name ASC
+SORT score DESC, year DESC, month DESC
 ```
 
 # All Readed 所有
@@ -32,7 +32,7 @@ tags AS 标签
 FROM "Blind-Guess-Senior"
 WHERE contains(category, "书籍")
 WHERE status = "已完成"
-SORT score DESC, year DESC, file.name ASC
+SORT score DESC, year DESC, month DESC
 ```
 
 # 

@@ -32,5 +32,5 @@ TBA 2025 *提名* **==最佳演出==** [[The Blind Award 2025#游戏提名]]
 
 音乐不是我在游玩过程中投入最多关注的东西，但玩完最念念不忘，后劲最足的一定是渎神的音乐。
 
-blasphemous (adjective): sacrilegious against God or sacred things; profane. 即渎神的，不敬的。如同这款游戏的中文名字：神之亵渎，整个游戏带着一股浓浓的“亵渎”的味道。
+blasphemous (adjective): sacrilegious against God or sacred things; profane. 即渎神的，不敬的。
 

@@ -5,8 +5,8 @@ developer:
 publisher:
   - Team Cherry
 score: 10
-year:
-month:
+year: 2026
+month: 1
 category:
   - 游戏
 tags:

@@ -1,5 +1,10 @@
 ---
 status: 已放弃
+developer:
+  - Dreams Uncorporated
+  - SYCK
+publisher:
+  - Maximum Entertainment
 score: 3
 year:
 month:
@@ -22,3 +27,5 @@ tags:
 玩法 1/4 Poor
 体验 1/4 Poor
 ```
+
+

@@ -1,0 +1,29 @@
+views:
+  - type: table
+    name: 表格
+    filters:
+      and:
+        - file.folder.contains("Blind-Guess-Senior/Game")
+        - status.containsAny("已完成", "全成就")
+    order:
+      - file.name
+      - status
+      - score
+      - year
+      - month
+      - tags
+    sort:
+      - property: year
+        direction: DESC
+      - property: file.name
+        direction: DESC
+      - property: tags
+        direction: ASC
+      - property: score
+        direction: ASC
+    columnSize:
+      file.name: 533
+      note.status: 99
+      note.score: 92
+      note.year: 64
+      note.month: 75
