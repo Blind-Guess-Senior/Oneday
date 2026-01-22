@@ -11,6 +11,7 @@ category:
   - 游戏
 tags:
   - 平台跳跃
+  - 像素
 ---
 TBA 2024 **==最佳演出==** [[The Blind Award 2024#游戏]] 
 

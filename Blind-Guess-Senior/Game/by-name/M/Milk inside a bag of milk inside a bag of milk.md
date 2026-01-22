@@ -10,6 +10,8 @@ month: 1
 category:
   - 游戏
 tags:
+  - 视觉小说
+  - Metagame
 ---
 续：
 [[Milk outside a bag of milk outside a bag of milk]] 

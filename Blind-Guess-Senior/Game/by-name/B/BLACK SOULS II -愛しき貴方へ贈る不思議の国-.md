@@ -1,5 +1,10 @@
 ---
 status: 已完成
+developer:
+  - Eeny, meeny, miny, moe?
+publisher:
+  - OTAKU Plan
+  - NEWS
 score: 9
 year:
 month:
@@ -7,6 +12,7 @@ category:
   - 游戏
 tags:
   - JRPG
+  - 像素
 ---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

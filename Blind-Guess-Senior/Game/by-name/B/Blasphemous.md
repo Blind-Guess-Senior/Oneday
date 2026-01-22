@@ -11,6 +11,7 @@ category:
   - 游戏
 tags:
   - 类银河城
+  - 像素
 ---
 TBA 2025 **==最佳音乐==** [[The Blind Award 2025#游戏]] 
 TBA 2025 *提名* **==年度独立==** [[The Blind Award 2025#游戏提名]] 

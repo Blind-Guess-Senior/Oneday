@@ -11,6 +11,7 @@ category:
   - 游戏
 tags:
   - JRPG
+  - 像素
 ---
 TBA 2025 *提名* **==最佳叙事==** [[The Blind Award 2025#游戏提名]] 
 

@@ -30,9 +30,11 @@
  
 ### ==年度游戏== 
  Dead Cells | [[Dead Cells]] 
+ BLACK SOULS -黒の童話と五魔姫- | [[BLACK SOULS -黒の童話と五魔姫-]] | [[BLACK SOULS]] 
  
 ### ==年度独立==
  Dead Cells | [[Dead Cells]] 
+ BLACK SOULS -黒の童話と五魔姫- | [[BLACK SOULS -黒の童話と五魔姫-]] | [[BLACK SOULS]] 
  
 ### ==最佳创意==
  无
@@ -43,9 +45,11 @@
  Dead Cells | [[Dead Cells]] 
  
 ### ==最佳叙事==
- 无
+ BLACK SOULS -黒の童話と五魔姫- | [[BLACK SOULS -黒の童話と五魔姫-]] | [[BLACK SOULS]] 
+ 
 ### ==最佳演出==
- 无
+ BLACK SOULS -黒の童話と五魔姫- | [[BLACK SOULS -黒の童話と五魔姫-]] | [[BLACK SOULS]] 
+ 
 ### ==最受期待==
  无
 
