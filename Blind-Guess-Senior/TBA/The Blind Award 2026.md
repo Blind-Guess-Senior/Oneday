@@ -46,9 +46,11 @@
  
 ### ==最佳叙事==
  BLACK SOULS -黒の童話と五魔姫- | [[BLACK SOULS -黒の童話と五魔姫-]] | [[BLACK SOULS]] 
+ 鸣潮
  
 ### ==最佳演出==
  BLACK SOULS -黒の童話と五魔姫- | [[BLACK SOULS -黒の童話と五魔姫-]] | [[BLACK SOULS]] 
+ 鸣潮
  
 ### ==最受期待==
  无
@@ -149,7 +151,13 @@
  Listen - ONE OK ROCK - Ambitions
  ヒシチコシク - ヨルシカ - 負け犬にアンコールはいらない
  眩しいDNAだけ - ずっと真夜中でいいのに。 - 潜潜話
+ 噓つき - あたらよ - 夜明け前
  コンプリケイション -still struggle version- - ROOKiEZ is PUNK'D - From Dusk Till Dawn
+ In The Stars - ONE OK ROCK - Eye Of The Storm
+ 愿戴荣光坠入天渊 - 鸣潮先约电台, jixwang, VISION SOUND - 真伪之塔
+ 致以无名的抗争者 - 鸣潮先约电台, jixwang, Thena A, Tarokiki, VISION SOUND - 无名长诗
+ 逐光筑昼 -  鸣潮先约电台, YUE.STEVEN, Mars Atlas - 烬夜启明
+ 天外来物 - 薛之谦 - 天外来物
  
 ### ==年度动漫==
  无
