@@ -223,10 +223,14 @@ class AsparkExtractor(ReviewExtractor):
         if content is None:
             return None
 
+        # Only include reviews marked as finished with ---fin.---
+        if "---fin.---" not in content:
+            return None
+
         lines = [l.rstrip() for l in content.splitlines()]
         modified = self.mtime_iso(filepath)
 
-        # Status: inferred from sub-folder
+        # Status: inferred from sub-folder (kept in data but not shown in UI)
         if "/游戏/" in rel_path or "/二游与竞技/" in rel_path:
             status = "已完成"
         elif "/未完成/" in rel_path:
@@ -250,67 +254,55 @@ class AsparkExtractor(ReviewExtractor):
             extra=self._extract_extra(filepath, lines, content),
         )
 
-    # ------------------------------------------------------------------
-    # ★  Fill in the methods below with your extraction logic.
-    # ------------------------------------------------------------------
-
     def _extract_title(self, filepath: Path, lines: list[str]) -> str:
-        """Return the display title for this review.
-
-        Hints
-        -----
-        * ``filepath.stem`` contains the filename without extension,
-          e.g. ``"Hollow Knight-Silksong★★★★★"``.
-        * ``lines[0]`` is often a Chinese title.
-        """
-        raise NotImplementedError
+        return lines[0].strip() if lines else filepath.stem
 
     def _extract_score(
         self, filepath: Path, lines: list[str], content: str
     ) -> int | None:
-        """Return the overall score as an integer (1-5 for stars), or None."""
-        raise NotImplementedError
+        m = re.search(r"(★+)", filepath.stem)
+        return len(m.group(1)) if m else None
 
     def _extract_score_raw(
         self, filepath: Path, lines: list[str], content: str
     ) -> str:
-        """Return the score as a display string, e.g. ``"★★★★"``."""
-        raise NotImplementedError
+        m = re.search(r"(★+)", filepath.stem)
+        return m.group(1) if m else ""
 
     def _extract_sub_scores(self, lines: list[str]) -> dict:
-        """Return a dict mapping dimension names to their scores.
-
-        Example return value::
-
-            {"玩法": 5, "叙事": 4, "美术": 4, "音乐": 4}
-        """
-        raise NotImplementedError
+        result = {}
+        for line in lines[1:]:
+            stripped = line.strip()
+            if not stripped or re.match(r"^-{3,}", stripped):
+                break
+            m = re.match(r"^(.+?)(★+)\s*$", stripped)
+            if m:
+                result[m.group(1).strip()] = len(m.group(2))
+            else:
+                break
+        return result
 
     def _extract_tags(
         self, filepath: Path, lines: list[str], content: str
     ) -> list[str]:
-        """Return a list of tags for this review (may be empty)."""
-        raise NotImplementedError
+        return []
 
     def _extract_date(self, lines: list[str], content: str) -> str | None:
-        """Return the review date as ``"YYYY-MM-DD"`` (or shorter), or None.
-
-        Hints
-        -----
-        * The date often appears near the end in the form ``---25.9.12 初版``.
-        """
-        raise NotImplementedError
+        # Date appears near the end as ---YY.M.D (e.g. ---25.9.12 初版)
+        m = re.search(r"---(\d{2})\.(\d{1,2})\.(\d{1,2})", content)
+        if m:
+            yy, mo, dd = m.group(1), m.group(2).zfill(2), m.group(3).zfill(2)
+            return f"20{yy}-{mo}-{dd}"
+        return None
 
     def _extract_extra(
         self, filepath: Path, lines: list[str], content: str
     ) -> dict:
-        """Return any additional fields to surface in the front-end.
-
-        Examples::
-
-            {"author": "耀欣"}
-        """
-        raise NotImplementedError
+        extra = {}
+        m = re.search(r"@(\S+)", content)
+        if m:
+            extra["aspark_author"] = m.group(1)
+        return extra
 
 
 # ---------------------------------------------------------------------------
@@ -346,6 +338,11 @@ class BlindGuessSeniorExtractor(ReviewExtractor):
             return None
 
         meta, body = parse_yaml_frontmatter(content)
+
+        # Only include reviews marked as finished with ---fin.---
+        if "---fin.---" not in body:
+            return None
+
         title = re.sub(r"★.*$", "", filepath.stem).strip()
         modified = self.mtime_iso(filepath)
 
@@ -365,59 +362,81 @@ class BlindGuessSeniorExtractor(ReviewExtractor):
             extra=self._extract_extra(meta, body, filepath),
         )
 
-    # ------------------------------------------------------------------
-    # ★  Fill in the methods below with your extraction logic.
-    # ------------------------------------------------------------------
-
     def _extract_score(self, meta: dict, body: str) -> int | None:
-        """Return the overall score as an integer (1-10), or None."""
-        raise NotImplementedError
+        return coerce_int(meta.get("score"))
 
     def _extract_score_raw(self, meta: dict, body: str) -> str:
-        """Return the score as a display string, e.g. ``"9/10 此生难忘"``."""
-        raise NotImplementedError
+        score = coerce_int(meta.get("score"))
+        if score is None:
+            return ""
+        m = re.search(r"(\d+/10[^\n]*)", body)
+        if m:
+            return m.group(1).strip()
+        return f"{score}/10"
 
     def _extract_sub_scores(self, meta: dict, body: str) -> dict:
-        """Return a dict mapping dimension names to their scored values.
-
-        Example return value::
-
-            {"美术": {"value": 2, "max": 4, "label": "Average"}, …}
-        """
-        raise NotImplementedError
+        m = re.search(r"```\n(.*?)\n```", body, re.DOTALL)
+        if not m:
+            return {}
+        result = {}
+        for line in m.group(1).splitlines():
+            line = line.strip()
+            # "美术 2/4 Average" – scored entry
+            lm = re.match(r"^(\S+)\s+(\d+)/(\d+)\s*(.*?)\s*$", line)
+            if lm:
+                result[lm.group(1)] = {
+                    "value": int(lm.group(2)),
+                    "max":   int(lm.group(3)),
+                    "label": lm.group(4).strip(),
+                }
+                continue
+            # "美术 /4" – placeholder (no value yet)
+            lm2 = re.match(r"^(\S+)\s+/(\d+)\s*$", line)
+            if lm2:
+                result[lm2.group(1)] = {
+                    "value": None,
+                    "max":   int(lm2.group(2)),
+                    "label": "",
+                }
+        return result
 
     def _extract_category(self, meta: dict, body: str) -> list[str]:
-        """Return the category list, e.g. ``["游戏"]``."""
-        raise NotImplementedError
+        return to_str_list(meta.get("category"))
 
     def _extract_status(self, meta: dict, body: str) -> str:
-        """Return the status string, e.g. ``"已完成"``."""
-        raise NotImplementedError
+        return str(meta.get("status") or "").strip()
 
     def _extract_tags(self, meta: dict, body: str) -> list[str]:
-        """Return the list of tags."""
-        raise NotImplementedError
+        return to_str_list(meta.get("tags"))
 
     def _extract_date(self, meta: dict, body: str) -> str | None:
-        """Return the review date as ``"YYYY-MM-DD"`` / ``"YYYY-MM"`` / ``"YYYY"``, or None."""
-        raise NotImplementedError
+        year  = coerce_int(meta.get("year"))
+        month = coerce_int(meta.get("month"))
+        if year:
+            return f"{year}-{month:02d}" if month else str(year)
+        return None
 
     def _extract_extra(self, meta: dict, body: str, filepath: Path) -> dict:
-        """Return any additional fields to surface in the front-end.
-
-        Examples for games::
-
-            {"developer": ["Team Cherry"], "publisher": ["Team Cherry"]}
-
-        Examples for books::
-
-            {"book_author": "埃勒里·奎因", "country": "美"}
-
-        Examples for anime::
-
-            {"release_year": 2003, "media_type": "TV"}
-        """
-        raise NotImplementedError
+        extra: dict = {}
+        release = coerce_int(meta.get("release"))
+        if release:
+            extra["release_year"] = release
+        media_type = str(meta.get("type") or "").strip()
+        if media_type:
+            extra["media_type"] = media_type
+        developer = to_str_list(meta.get("developer"))
+        if developer:
+            extra["developer"] = developer
+        publisher = to_str_list(meta.get("publisher"))
+        if publisher:
+            extra["publisher"] = publisher
+        book_author = str(meta.get("author") or "").strip()
+        if book_author:
+            extra["book_author"] = book_author
+        country = str(meta.get("country") or "").strip()
+        if country:
+            extra["country"] = country
+        return extra
 
 
 # ---------------------------------------------------------------------------
