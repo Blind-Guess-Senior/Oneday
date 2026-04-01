@@ -4,47 +4,868 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Oneday · 评测</title>
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
   <style>
-    :root {
-      --theme-color: #42b983;
+    /* ── Reset & base ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      background: #f5f6f8;
+      color: #1e293b;
+      min-height: 100vh;
     }
-    .sidebar-nav li > a {
-      font-size: 14px;
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; font: inherit; }
+
+    /* ── Variables ────────────────────────────────────────────────────── */
+    :root {
+      --accent:   #4f6ef7;
+      --accent-h: #3a57e8;
+      --bg:       #f5f6f8;
+      --surface:  #ffffff;
+      --border:   #e4e7ec;
+      --muted:    #64748b;
+      --star:     #f59e0b;
+      --radius:   10px;
+      --shadow:   0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
+      --sidebar-w: 220px;
+    }
+
+    /* ── Header ───────────────────────────────────────────────────────── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      height: 56px;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .logo {
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--accent); white-space: nowrap;
+    }
+    .logo:hover { color: var(--accent-h); }
+    .search-box {
+      flex: 1; max-width: 380px;
+      display: flex; align-items: center; gap: .5rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .3rem .75rem;
+    }
+    .search-box svg { color: var(--muted); flex-shrink: 0; }
+    .search-box input {
+      border: none; background: transparent; outline: none;
+      font: inherit; font-size: .9rem; width: 100%;
+      color: #1e293b;
+    }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
+    .header-right a {
+      color: var(--muted); font-size: .85rem;
+      display: flex; align-items: center; gap: .3rem;
+    }
+    .header-right a:hover { color: var(--accent); }
+    .btn-filter-toggle {
+      display: none;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: .3rem .7rem;
+      font-size: .85rem; color: var(--muted);
+      align-items: center; gap: .3rem;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────────────── */
+    .layout {
+      display: flex;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1.5rem 3rem;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    /* ── Sidebar (filter panel) ───────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      position: sticky;
+      top: 72px;
+      max-height: calc(100vh - 80px);
+      overflow-y: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .filter-section { margin-bottom: 1.2rem; }
+    .filter-section:last-child { margin-bottom: 0; }
+    .filter-title {
+      font-size: .75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .06em;
+      color: var(--muted); margin-bottom: .5rem;
+    }
+    .filter-options { display: flex; flex-direction: column; gap: .25rem; }
+    .filter-option {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .25rem .4rem; border-radius: 6px;
+      cursor: pointer; user-select: none;
+      font-size: .88rem; transition: background .12s;
+    }
+    .filter-option:hover { background: var(--bg); }
+    .filter-option input[type="checkbox"] { accent-color: var(--accent); }
+
+    .score-range { padding: .25rem 0; }
+    .score-range input[type="range"] {
+      width: 100%; accent-color: var(--accent); margin: .3rem 0;
+    }
+    .score-range-labels {
+      display: flex; justify-content: space-between;
+      font-size: .78rem; color: var(--muted);
+    }
+
+    .filter-reset {
+      width: 100%; margin-top: .5rem;
+      background: none; border: 1px solid var(--border);
+      border-radius: 6px; padding: .3rem;
+      font-size: .82rem; color: var(--muted);
+      transition: all .12s;
+    }
+    .filter-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+    .tag-cloud { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .3rem; }
+    .tag-chip {
+      padding: .2rem .55rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 20px; font-size: .78rem; cursor: pointer;
+      transition: all .12s; user-select: none;
+    }
+    .tag-chip:hover, .tag-chip.selected {
+      background: var(--accent); color: #fff; border-color: var(--accent);
+    }
+
+    /* ── Main content area ────────────────────────────────────────────── */
+    .main { flex: 1; min-width: 0; }
+
+    /* Sort / stats bar */
+    .toolbar {
+      display: flex; align-items: center; gap: .75rem;
+      margin-bottom: 1rem; flex-wrap: wrap;
+    }
+    .toolbar-count { font-size: .88rem; color: var(--muted); margin-right: auto; }
+    .sort-select {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; padding: .3rem .65rem;
+      font: inherit; font-size: .85rem; color: #1e293b;
+      cursor: pointer; outline: none;
+    }
+    .sort-select:hover { border-color: var(--accent); }
+
+    /* ── Card grid ────────────────────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s, border-color .15s;
+      display: flex; flex-direction: column; gap: .55rem;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,.1);
+      border-color: var(--accent);
+    }
+
+    .card-top { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: .15rem .5rem; border-radius: 20px;
+      font-size: .72rem; font-weight: 600; line-height: 1.4;
+    }
+    .badge-game    { background: #eff6ff; color: #1d4ed8; }
+    .badge-anime   { background: #f5f3ff; color: #6d28d9; }
+    .badge-book    { background: #f0fdf4; color: #166534; }
+    .badge-default { background: #f1f5f9; color: #475569; }
+    .badge-status-done  { background: #f0fdf4; color: #166534; }
+    .badge-status-doing { background: #fffbeb; color: #92400e; }
+    .badge-status-todo  { background: #f8fafc; color: #64748b; }
+
+    .card-title {
+      font-size: 1rem; font-weight: 600; line-height: 1.4;
+      color: #0f172a;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    .card-meta { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+    .reviewer-name { font-size: .8rem; color: var(--muted); }
+    .score-display { font-size: .9rem; font-weight: 700; }
+    .score-stars { color: var(--star); letter-spacing: .05em; }
+    .score-hi  { color: #16a34a; }
+    .score-mid { color: #d97706; }
+    .score-lo  { color: #dc2626; }
+    .card-date { font-size: .78rem; color: var(--muted); margin-left: auto; }
+
+    .card-tags { display: flex; flex-wrap: wrap; gap: .3rem; }
+    .card-tag {
+      padding: .15rem .45rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; font-size: .72rem; color: var(--muted);
+    }
+
+    /* ── Pagination ───────────────────────────────────────────────────── */
+    .pagination {
+      display: flex; justify-content: center; align-items: center;
+      gap: .4rem; margin-top: 1.5rem; flex-wrap: wrap;
+    }
+    .page-btn {
+      min-width: 34px; height: 34px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; font-size: .85rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .12s;
+    }
+    .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .page-btn:disabled { opacity: .35; cursor: default; }
+
+    /* ── Article view ─────────────────────────────────────────────────── */
+    .article-wrap {
+      max-width: 780px; margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.2rem;
+    }
+    .article-back {
+      display: inline-flex; align-items: center; gap: .35rem;
+      font-size: .85rem; color: var(--muted);
+      margin-bottom: 1.2rem;
+      padding: .3rem .7rem;
+      border: 1px solid var(--border); border-radius: 7px;
+      transition: all .12s;
+    }
+    .article-back:hover { color: var(--accent); border-color: var(--accent); }
+    .article-title {
+      font-size: 1.5rem; font-weight: 700; line-height: 1.4;
+      margin-bottom: .8rem;
+    }
+    .article-meta-bar {
+      display: flex; flex-wrap: wrap; gap: .5rem;
+      align-items: center; padding: .75rem 1rem;
+      background: var(--bg); border-radius: 8px;
+      margin-bottom: 1.5rem; font-size: .85rem;
+    }
+    .article-meta-item { display: flex; align-items: center; gap: .3rem; color: var(--muted); }
+    .article-meta-item strong { color: #1e293b; }
+    .article-meta-sep { color: var(--border); }
+
+    .sub-scores-table { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0 1rem; }
+    .sub-score-cell {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; padding: .3rem .7rem;
+      font-size: .82rem; text-align: center; min-width: 56px;
+    }
+    .sub-score-cell .dim-name { color: var(--muted); font-size: .72rem; }
+    .sub-score-cell .dim-val  { font-weight: 700; }
+
+    /* ── Markdown renderer ────────────────────────────────────────────── */
+    .md-body {
+      line-height: 1.75; color: #1e293b;
+      border-top: 1px solid var(--border); padding-top: 1.5rem;
+    }
+    .md-body h1,.md-body h2,.md-body h3,.md-body h4 {
+      margin: 1.5rem 0 .6rem; font-weight: 700; line-height: 1.3;
+    }
+    .md-body h1 { font-size: 1.4rem; }
+    .md-body h2 { font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: .4rem; }
+    .md-body h3 { font-size: 1.05rem; }
+    .md-body p  { margin: .7rem 0; }
+    .md-body ul,.md-body ol { padding-left: 1.5rem; margin: .6rem 0; }
+    .md-body li { margin: .25rem 0; }
+    .md-body blockquote {
+      border-left: 3px solid var(--accent); margin: .8rem 0;
+      padding: .4rem 1rem; background: #f8faff; border-radius: 0 6px 6px 0;
+      color: var(--muted);
+    }
+    .md-body code {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; padding: .1em .35em; font-size: .88em;
+      font-family: "JetBrains Mono","Fira Code",monospace;
+    }
+    .md-body pre {
+      background: #1e293b; color: #e2e8f0;
+      border-radius: 8px; padding: 1rem 1.2rem; overflow-x: auto;
+      margin: .8rem 0; font-size: .85rem;
+      font-family: "JetBrains Mono","Fira Code",monospace;
+    }
+    .md-body pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+    .md-body hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+    .md-body a { color: var(--accent); text-decoration: underline; }
+    .md-body strong { font-weight: 700; }
+    .md-body em { font-style: italic; }
+    .md-body table { border-collapse: collapse; width: 100%; margin: .8rem 0; }
+    .md-body th,.md-body td { border: 1px solid var(--border); padding: .4rem .7rem; text-align: left; }
+    .md-body th { background: var(--bg); font-weight: 600; }
+    .md-body img { max-width: 100%; border-radius: 6px; }
+
+    /* ── Empty / loading states ───────────────────────────────────────── */
+    .state-center { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+    .state-center .icon { font-size: 2.5rem; margin-bottom: .8rem; }
+    .state-center p { font-size: .95rem; }
+
+    /* ── Mobile ───────────────────────────────────────────────────────── */
+    @media (max-width: 820px) {
+      .btn-filter-toggle { display: inline-flex; }
+      .sidebar {
+        position: fixed; top: 56px; left: 0; bottom: 0;
+        z-index: 200; width: 260px;
+        transform: translateX(-110%);
+        transition: transform .22s ease;
+        border-radius: 0; max-height: 100%;
+      }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,.15); }
+      .sidebar-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,.35); z-index: 190;
+      }
+      .sidebar-overlay.open { display: block; }
+      .layout { padding: 1rem; }
+      .article-wrap { padding: 1.2rem 1rem; }
     }
   </style>
 </head>
 <body>
-  <div id="app">加载中……</div>
-  <script>
-    window.$docsify = {
-      name: 'Oneday',
-      repo: 'Blind-Guess-Senior/Oneday',
-      loadSidebar: '_sidebar.md',
-      subMaxLevel: 2,
-      homepage: 'Readme.md',
-      auto2top: true,
-      markdown: {
-        breaks: true
-      },
-      sidebarDisplayLevel: 1,
-      search: {
-        maxAge: 86400000,
-        paths: 'auto',
-        placeholder: '搜索评测…',
-        noData: '没有找到结果',
-        depth: 6
-      },
-      pagination: {
-        previousText: '上一篇',
-        nextText: '下一篇',
-        crossChapter: true
+<div id="app">
+
+  <!-- ── Header ─────────────────────────────────────────────────────── -->
+  <header>
+    <a class="logo" href="#/" @click.prevent="navHome">Oneday · 评测</a>
+
+    <div class="search-box" v-show="view === 'home'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input v-model="search" placeholder="搜索标题、标签…" @input="page=1">
+    </div>
+
+    <div class="header-right">
+      <button class="btn-filter-toggle" @click="sidebarOpen=!sidebarOpen" v-show="view==='home'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="16" y2="12"/><line x1="4" y1="18" x2="12" y2="18"/>
+        </svg>
+        筛选
+      </button>
+      <a href="https://github.com/Blind-Guess-Senior/Oneday" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17 4.7 18 5 18 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/>
+        </svg>
+        GitHub
+      </a>
+    </div>
+  </header>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" :class="{open:sidebarOpen}" @click="sidebarOpen=false" v-show="view==='home'"></div>
+
+  <!-- ── Layout ──────────────────────────────────────────────────────── -->
+  <div class="layout">
+
+    <!-- ── Filter sidebar ──────────────────────────────────────────── -->
+    <aside class="sidebar" :class="{open:sidebarOpen}" v-show="view==='home'">
+
+      <!-- Reviewer -->
+      <div class="filter-section">
+        <div class="filter-title">评测者</div>
+        <div class="filter-options">
+          <label class="filter-option" v-for="r in meta.reviewers" :key="r">
+            <input type="checkbox" :value="r" v-model="filterReviewers" @change="page=1">
+            {{ r }}
+          </label>
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="filter-section">
+        <div class="filter-title">分类</div>
+        <div class="filter-options">
+          <label class="filter-option" v-for="c in meta.categories" :key="c">
+            <input type="checkbox" :value="c" v-model="filterCategories" @change="page=1">
+            {{ c }}
+          </label>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="filter-section">
+        <div class="filter-title">状态</div>
+        <div class="filter-options">
+          <label class="filter-option" v-for="s in ['已完成','进行中','未完成']" :key="s">
+            <input type="checkbox" :value="s" v-model="filterStatuses" @change="page=1">
+            {{ s }}
+          </label>
+        </div>
+      </div>
+
+      <!-- Score (decimal: Blind-Guess-Senior) -->
+      <div class="filter-section" v-if="hasDecimalScores">
+        <div class="filter-title">盲视分数 (1–10)</div>
+        <div class="score-range">
+          <input type="range" min="1" max="10" v-model.number="scoreMin" @input="page=1">
+          <input type="range" min="1" max="10" v-model.number="scoreMax" @input="page=1">
+          <div class="score-range-labels">
+            <span>≥ {{ scoreMin }}</span>
+            <span>≤ {{ scoreMax }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stars (Aspark) -->
+      <div class="filter-section" v-if="hasStarScores">
+        <div class="filter-title">Aspark 星级</div>
+        <div class="filter-options">
+          <label class="filter-option" v-for="n in [5,4,3,2,1]" :key="n">
+            <input type="checkbox" :value="n" v-model="filterStars" @change="page=1">
+            <span style="color:var(--star)">{{ '★'.repeat(n) }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="filter-section" v-if="visibleTags.length">
+        <div class="filter-title">标签</div>
+        <div class="tag-cloud">
+          <span
+            v-for="t in visibleTags" :key="t"
+            class="tag-chip"
+            :class="{selected: filterTags.includes(t)}"
+            @click="toggleTag(t)"
+          >{{ t }}</span>
+        </div>
+        <button
+          v-if="meta.all_tags && meta.all_tags.length > TAG_LIMIT"
+          style="margin-top:.5rem;font-size:.78rem;color:var(--muted);background:none;border:none;"
+          @click="showAllTags=!showAllTags"
+        >
+          {{ showAllTags ? '收起' : '显示更多标签' }}
+        </button>
+      </div>
+
+      <button class="filter-reset" @click="resetFilters">重置筛选</button>
+    </aside>
+
+    <!-- ── Main ────────────────────────────────────────────────────── -->
+    <div class="main">
+
+      <!-- ════ HOME VIEW ════ -->
+      <template v-if="view === 'home'">
+
+        <div class="state-center" v-if="loading">
+          <div class="icon">⏳</div>
+          <p>加载中…</p>
+        </div>
+
+        <div class="state-center" v-else-if="error">
+          <div class="icon">⚠️</div>
+          <p>{{ error }}</p>
+        </div>
+
+        <template v-else>
+          <div class="toolbar">
+            <span class="toolbar-count">共 {{ filtered.length }} 条结果</span>
+            <select class="sort-select" v-model="sortBy" @change="page=1">
+              <option value="modified">最近更新</option>
+              <option value="date">评测日期</option>
+              <option value="score_desc">评分从高到低</option>
+              <option value="score_asc">评分从低到高</option>
+              <option value="title">标题</option>
+            </select>
+          </div>
+
+          <div class="cards-grid" v-if="paged.length">
+            <div class="card" v-for="r in paged" :key="r.path" @click="navArticle(r)">
+              <div class="card-top">
+                <span class="badge" :class="categoryBadgeClass(r)">{{ primaryCategory(r) }}</span>
+                <span class="badge" :class="statusBadgeClass(r)">{{ r.status || '—' }}</span>
+              </div>
+              <div class="card-title">{{ r.title }}</div>
+              <div class="card-meta">
+                <span class="reviewer-name">{{ r.reviewer }}</span>
+                <span style="color:var(--border)">·</span>
+                <span class="score-display" :class="scoreClass(r)">{{ r.score_raw || '未评分' }}</span>
+                <span class="card-date">{{ r.date || '' }}</span>
+              </div>
+              <div class="card-tags" v-if="r.tags && r.tags.length">
+                <span class="card-tag" v-for="t in r.tags.slice(0,4)" :key="t">{{ t }}</span>
+                <span class="card-tag" v-if="r.tags.length > 4">+{{ r.tags.length - 4 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="state-center" v-else>
+            <div class="icon">🔍</div>
+            <p>没有符合条件的结果</p>
+          </div>
+
+          <div class="pagination" v-if="totalPages > 1">
+            <button class="page-btn" @click="page--" :disabled="page===1">‹</button>
+            <template v-for="p in pageRange" :key="String(p)">
+              <button v-if="p === '…'" class="page-btn" disabled>…</button>
+              <button v-else class="page-btn" :class="{active:p===page}" @click="page=p">{{ p }}</button>
+            </template>
+            <button class="page-btn" @click="page++" :disabled="page===totalPages">›</button>
+          </div>
+        </template>
+
+      </template>
+
+      <!-- ════ ARTICLE VIEW ════ -->
+      <template v-else-if="view === 'article' && article">
+        <div class="article-wrap">
+
+          <a class="article-back" href="#/" @click.prevent="navHome">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            返回列表
+          </a>
+
+          <h1 class="article-title">{{ article.title }}</h1>
+
+          <div class="article-meta-bar">
+            <span class="article-meta-item">
+              <span>评测者</span>&nbsp;<strong>{{ article.reviewer }}</strong>
+            </span>
+            <span class="article-meta-sep">|</span>
+            <span class="article-meta-item">
+              <span>分类</span>&nbsp;<strong>{{ (article.category||[]).join(' / ') || '—' }}</strong>
+            </span>
+            <span class="article-meta-sep">|</span>
+            <span class="article-meta-item">
+              <span>状态</span>&nbsp;<strong>{{ article.status || '—' }}</strong>
+            </span>
+            <template v-if="article.score_raw">
+              <span class="article-meta-sep">|</span>
+              <span class="article-meta-item">
+                <span>评分</span>&nbsp;
+                <strong :class="scoreClass(article)" class="score-display">{{ article.score_raw }}</strong>
+              </span>
+            </template>
+            <template v-if="article.date">
+              <span class="article-meta-sep">|</span>
+              <span class="article-meta-item"><strong>{{ article.date }}</strong></span>
+            </template>
+            <template v-if="article.tags && article.tags.length">
+              <span class="article-meta-sep">|</span>
+              <span class="article-meta-item" style="flex-wrap:wrap;gap:.3rem">
+                <span
+                  class="card-tag"
+                  v-for="t in article.tags" :key="t"
+                  style="cursor:pointer"
+                  @click="filterByTag(t)"
+                >{{ t }}</span>
+              </span>
+            </template>
+          </div>
+
+          <!-- Sub-scores -->
+          <div class="sub-scores-table" v-if="hasSubScores(article)">
+            <template v-if="article.score_system === 'stars'">
+              <div class="sub-score-cell" v-for="(v, k) in article.sub_scores" :key="k">
+                <div class="dim-name">{{ k }}</div>
+                <div class="dim-val score-stars">{{ v !== null && v !== undefined ? '★'.repeat(v) : 'N/A' }}</div>
+              </div>
+            </template>
+            <template v-else>
+              <div class="sub-score-cell" v-for="(v, k) in article.sub_scores" :key="k">
+                <div class="dim-name">{{ k }}</div>
+                <div class="dim-val">{{ v && v.value !== undefined ? v.value + '/' + v.max : '—' }}</div>
+                <div style="font-size:.7rem;color:var(--muted)" v-if="v && v.label">{{ v.label }}</div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Extra metadata (book_author, developer, release_year, …) -->
+          <div class="article-meta-bar" v-if="extraMeta(article).length" style="margin-bottom:1rem">
+            <template v-for="(item, idx) in extraMeta(article)" :key="item.label">
+              <span class="article-meta-item">
+                <span>{{ item.label }}</span>&nbsp;<strong>{{ item.value }}</strong>
+              </span>
+              <span class="article-meta-sep" v-if="idx < extraMeta(article).length-1">|</span>
+            </template>
+          </div>
+
+          <div class="state-center" v-if="articleLoading">
+            <div class="icon">⏳</div><p>加载文章…</p>
+          </div>
+          <div class="md-body" v-else v-html="articleHtml"></div>
+
+        </div>
+      </template>
+
+      <!-- 404 -->
+      <div class="state-center" v-else>
+        <div class="icon">🚫</div>
+        <p>找不到该页面</p><br>
+        <a href="#/" @click.prevent="navHome" style="color:var(--accent)">返回首页</a>
+      </div>
+
+    </div><!-- /.main -->
+  </div><!-- /.layout -->
+
+</div><!-- /#app -->
+
+<script src="assets/js/vue.global.prod.js"></script>
+<script src="assets/js/marked.min.js"></script>
+<script src="assets/js/purify.min.js"></script>
+<script>
+const { createApp, ref, computed, watch, onMounted } = Vue;
+
+const PAGE_SIZE = 30;
+const TAG_LIMIT = 30;
+const DATA_URL  = "site_data.json";
+
+function renderMarkdown(raw) {
+  if (!raw) return "";
+  // Strip wiki-style links [[text|alias]] -> text, [[text]] -> text
+  let src = raw.replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, "$1");
+  const html = marked.parse(src, { breaks: true, gfm: true });
+  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+}
+
+createApp({
+  setup() {
+    // ── Data ──────────────────────────────────────────────────────
+    const loading        = ref(true);
+    const error          = ref("");
+    const reviews        = ref([]);
+    const meta           = ref({ reviewers: [], categories: [], all_tags: [] });
+
+    // ── Routing ───────────────────────────────────────────────────
+    const view           = ref("home");
+    const article        = ref(null);
+    const articleHtml    = ref("");
+    const articleLoading = ref(false);
+
+    // ── Filters ───────────────────────────────────────────────────
+    const search          = ref("");
+    const filterReviewers = ref([]);
+    const filterCategories= ref([]);
+    const filterStatuses  = ref([]);
+    const filterStars     = ref([]);
+    const filterTags      = ref([]);
+    const scoreMin        = ref(1);
+    const scoreMax        = ref(10);
+    const sortBy          = ref("modified");
+    const page            = ref(1);
+    const sidebarOpen     = ref(false);
+    const showAllTags     = ref(false);
+
+    // ── Computed ──────────────────────────────────────────────────
+    const hasDecimalScores = computed(() =>
+      reviews.value.some(r => r.score_system === "decimal" && r.score != null)
+    );
+    const hasStarScores = computed(() =>
+      reviews.value.some(r => r.score_system === "stars")
+    );
+    const visibleTags = computed(() => {
+      const all = (meta.value.all_tags) || [];
+      return showAllTags.value ? all : all.slice(0, TAG_LIMIT);
+    });
+
+    const filtered = computed(() => {
+      let list = reviews.value;
+      const q = search.value.trim().toLowerCase();
+      if (q) list = list.filter(r =>
+        (r.title || "").toLowerCase().includes(q) ||
+        (r.tags  || []).some(t => t.toLowerCase().includes(q)) ||
+        (r.reviewer || "").toLowerCase().includes(q)
+      );
+      if (filterReviewers.value.length)
+        list = list.filter(r => filterReviewers.value.includes(r.reviewer));
+      if (filterCategories.value.length)
+        list = list.filter(r => (r.category || []).some(c => filterCategories.value.includes(c)));
+      if (filterStatuses.value.length)
+        list = list.filter(r => filterStatuses.value.includes(r.status));
+      if (filterTags.value.length)
+        list = list.filter(r => filterTags.value.every(t => (r.tags || []).includes(t)));
+      if (filterStars.value.length)
+        list = list.filter(r => r.score_system === "stars" && filterStars.value.includes(r.score));
+      if (hasDecimalScores.value && (scoreMin.value > 1 || scoreMax.value < 10))
+        list = list.filter(r =>
+          r.score_system !== "decimal" ||
+          (r.score != null && r.score >= scoreMin.value && r.score <= scoreMax.value)
+        );
+
+      const key = sortBy.value;
+      return [...list].sort((a, b) => {
+        if (key === "modified")   return (b.modified || "").localeCompare(a.modified || "");
+        if (key === "date")       return (b.date || "").localeCompare(a.date || "");
+        if (key === "score_desc") return (b.score ?? -1)  - (a.score ?? -1);
+        if (key === "score_asc")  return (a.score ?? 999) - (b.score ?? 999);
+        if (key === "title")      return (a.title || "").localeCompare(b.title || "", "zh");
+        return 0;
+      });
+    });
+
+    const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)));
+    const paged = computed(() => {
+      const s = (page.value - 1) * PAGE_SIZE;
+      return filtered.value.slice(s, s + PAGE_SIZE);
+    });
+    const pageRange = computed(() => {
+      const total = totalPages.value, cur = page.value;
+      if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+      const ps = new Set([1, total, cur, cur - 1, cur + 1].filter(p => p >= 1 && p <= total));
+      const sorted = [...ps].sort((a, b) => a - b);
+      const result = [];
+      let prev = 0;
+      for (const p of sorted) {
+        if (p - prev > 1) result.push("…");
+        result.push(p);
+        prev = p;
       }
+      return result;
+    });
+
+    watch(filtered, () => { if (page.value > totalPages.value) page.value = 1; });
+
+    // ── Display helpers ───────────────────────────────────────────
+    function primaryCategory(r) { return (r.category || [])[0] || "其他"; }
+    function scoreClass(r) {
+      if (!r || r.score == null) return "";
+      if (r.score_system === "stars") return "score-stars";
+      if (r.score >= 8) return "score-hi";
+      if (r.score >= 5) return "score-mid";
+      return "score-lo";
+    }
+    function categoryBadgeClass(r) {
+      const cats = r.category || [];
+      if (cats.includes("游戏")) return "badge-game";
+      if (cats.includes("动漫")) return "badge-anime";
+      if (cats.includes("书籍")) return "badge-book";
+      return "badge-default";
+    }
+    function statusBadgeClass(r) {
+      const s = r.status || "";
+      if (s === "已完成" || s === "全成就") return "badge-status-done";
+      if (s === "进行中") return "badge-status-doing";
+      return "badge-status-todo";
+    }
+    function hasSubScores(r) {
+      return r.sub_scores && Object.keys(r.sub_scores).length > 0;
+    }
+    function extraMeta(r) {
+      const items = [];
+      if (r.book_author)                items.push({ label: "作者",     value: r.book_author });
+      if (r.country)                    items.push({ label: "国家/地区", value: r.country });
+      if (r.release_year)               items.push({ label: "发行年份",  value: r.release_year });
+      if (r.media_type)                 items.push({ label: "类型",     value: r.media_type });
+      if (r.developer?.length)          items.push({ label: "开发商",   value: r.developer.join(" / ") });
+      if (r.publisher?.length &&
+          JSON.stringify(r.publisher) !== JSON.stringify(r.developer))
+        items.push({ label: "发行商", value: r.publisher.join(" / ") });
+      return items;
+    }
+
+    // ── Navigation ────────────────────────────────────────────────
+    function navHome() {
+      view.value = "home";
+      article.value = null;
+      articleHtml.value = "";
+      sidebarOpen.value = false;
+      window.location.hash = "/";
+    }
+
+    async function navArticle(r) {
+      article.value        = r;
+      view.value           = "article";
+      articleHtml.value    = "";
+      articleLoading.value = true;
+      sidebarOpen.value    = false;
+      window.location.hash = "/article/" + encodeURIComponent(r.path);
+      window.scrollTo(0, 0);
+      try {
+        const resp = await fetch(r.path);
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const raw = await resp.text();
+        articleHtml.value = renderMarkdown(raw);
+      } catch (e) {
+        articleHtml.value = "<p style='color:red'>无法加载文章内容。</p>";
+      } finally {
+        articleLoading.value = false;
+      }
+    }
+
+    function filterByTag(tag) {
+      if (!filterTags.value.includes(tag)) filterTags.value.push(tag);
+      navHome();
+    }
+    function toggleTag(tag) {
+      const i = filterTags.value.indexOf(tag);
+      if (i === -1) filterTags.value.push(tag); else filterTags.value.splice(i, 1);
+      page.value = 1;
+    }
+    function resetFilters() {
+      search.value = ""; filterReviewers.value = []; filterCategories.value = [];
+      filterStatuses.value = []; filterStars.value = []; filterTags.value = [];
+      scoreMin.value = 1; scoreMax.value = 10; page.value = 1;
+    }
+
+    // ── Hash routing ──────────────────────────────────────────────
+    function handleHash() {
+      const hash = window.location.hash.replace(/^#/, "") || "/";
+      if (hash.startsWith("/article/")) {
+        const path = decodeURIComponent(hash.slice("/article/".length));
+        const found = reviews.value.find(r => r.path === path);
+        if (found) { navArticle(found); return; }
+      }
+      view.value = "home";
+      article.value = null;
+    }
+
+    // ── Bootstrap ─────────────────────────────────────────────────
+    onMounted(async () => {
+      window.addEventListener("hashchange", handleHash);
+      try {
+        const resp = await fetch(DATA_URL);
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+        reviews.value = data.reviews || [];
+        meta.value    = data.meta    || {};
+      } catch (e) {
+        error.value = "无法加载 site_data.json：" + e.message;
+      } finally {
+        loading.value = false;
+        handleHash();
+      }
+    });
+
+    return {
+      loading, error, reviews, meta,
+      view, article, articleHtml, articleLoading,
+      search, filterReviewers, filterCategories,
+      filterStatuses, filterStars, filterTags,
+      scoreMin, scoreMax, sortBy, page, sidebarOpen, showAllTags,
+      filtered, totalPages, paged, pageRange,
+      hasDecimalScores, hasStarScores, visibleTags,
+      primaryCategory, scoreClass, categoryBadgeClass,
+      statusBadgeClass, hasSubScores, extraMeta,
+      navHome, navArticle, filterByTag, toggleTag, resetFilters,
+      TAG_LIMIT,
     };
-  </script>
-  <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+  }
+}).mount("#app");
+</script>
 </body>
 </html>
