@@ -3,6 +3,7 @@
 
 import os
 import re
+from urllib.parse import quote
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -63,15 +64,24 @@ def get_file_title(filepath):
     return _filename_title(filepath)
 
 
+def _encode_rel(filepath):
+    """Return a URL-safe relative path for use in Docsify sidebar links.
+
+    Each path segment is percent-encoded individually (``safe=""``), and then
+    the segments are re-joined with ``/`` so the separators stay un-encoded.
+    """
+    rel = os.path.relpath(filepath, ROOT).replace(os.sep, "/")
+    return "/".join(quote(part, safe="") for part in rel.split("/"))
+
+
 def make_link(filepath, indent=0):
     """Return a Docsify sidebar list item string for a file."""
     _MAX_TITLE_LENGTH = 60
     _TRUNCATE_AT = 57
-    rel = os.path.relpath(filepath, ROOT).replace(os.sep, "/")
     title = get_file_title(filepath)
     if len(title) > _MAX_TITLE_LENGTH:
         title = title[:_TRUNCATE_AT] + "…"
-    return f"{'  ' * indent}- [{title}]({rel})\n"
+    return f"{'  ' * indent}- [{title}]({_encode_rel(filepath)})\n"
 
 
 def list_dir_files(directory, indent, sidebar, max_depth=1, current_depth=0):
@@ -96,73 +106,81 @@ def main():
         "\n",
     ]
 
-    # ── Aspark section ──────────────────────────────────────────────────────
-    sidebar.append("- **Aspark 的评测**\n")
+    bgs_dir = os.path.join(ROOT, "Blind-Guess-Senior")
+    aspark_review_dir = os.path.join(ROOT, "Aspark", "小众变态测评")
 
-    review_dir = os.path.join(ROOT, "Aspark", "小众变态测评")
-    if os.path.exists(review_dir):
-        standards = os.path.join(review_dir, "★评测标准食用与使用说明书✰.md")
+    # ── 游戏 ──────────────────────────────────────────────────────────────────
+    sidebar.append("- **游戏**\n")
+
+    # Aspark game reviews
+    if os.path.exists(aspark_review_dir):
+        sidebar.append("  - **Aspark 的评测**\n")
+        standards = os.path.join(aspark_review_dir, "★评测标准食用与使用说明书✰.md")
         if os.path.exists(standards):
-            sidebar.append(make_link(standards, indent=1))
+            sidebar.append(make_link(standards, indent=2))
 
-        games_dir = os.path.join(review_dir, "游戏")
+        games_dir = os.path.join(aspark_review_dir, "游戏")
         if os.path.exists(games_dir):
-            sidebar.append("  - **完成评测 · 游戏**\n")
+            sidebar.append("    - **完成评测 · 游戏**\n")
             list_dir_files(games_dir, indent=3, sidebar=sidebar)
 
-        gacha_dir = os.path.join(review_dir, "二游与竞技")
+        gacha_dir = os.path.join(aspark_review_dir, "二游与竞技")
         if os.path.exists(gacha_dir):
-            sidebar.append("  - **完成评测 · 二游与竞技**\n")
+            sidebar.append("    - **完成评测 · 二游与竞技**\n")
             list_dir_files(gacha_dir, indent=3, sidebar=sidebar)
 
-        unfinished_dir = os.path.join(review_dir, "未完成")
+        unfinished_dir = os.path.join(aspark_review_dir, "未完成")
         if os.path.exists(unfinished_dir):
-            sidebar.append("  - **进行中评测**\n")
+            sidebar.append("    - **进行中评测**\n")
             list_dir_files(unfinished_dir, indent=3, sidebar=sidebar)
 
-    sidebar.append("\n")
-
-    # ── Blind-Guess-Senior section ───────────────────────────────────────────
-    sidebar.append("- **Blind-Guess-Senior 的评测**\n")
-
-    bgs_dir = os.path.join(ROOT, "Blind-Guess-Senior")
+    # BGS game reviews
     if os.path.exists(bgs_dir):
-        # Game
         game_dir = os.path.join(bgs_dir, "Game")
         if os.path.exists(game_dir):
-            sidebar.append("  - **Game**\n")
+            sidebar.append("  - **Blind-Guess-Senior 的评测**\n")
             # Standards docs
             for fname in sorted(os.listdir(game_dir)):
                 fpath = os.path.join(game_dir, fname)
                 if os.path.isfile(fpath) and fname.endswith(".md"):
-                    sidebar.append(make_link(fpath, indent=3))
+                    sidebar.append(make_link(fpath, indent=2))
             # Reviews by name
             by_name = os.path.join(game_dir, "by-name")
             if os.path.exists(by_name):
                 sidebar.append("    - **游戏评测（按名称）**\n")
-                list_dir_files(by_name, indent=5, sidebar=sidebar, max_depth=2)
+                list_dir_files(by_name, indent=3, sidebar=sidebar, max_depth=2)
 
-        # Anime
+    sidebar.append("\n")
+
+    # ── 动漫 ──────────────────────────────────────────────────────────────────
+    sidebar.append("- **动漫**\n")
+
+    if os.path.exists(bgs_dir):
         anime_dir = os.path.join(bgs_dir, "Anime")
         if os.path.exists(anime_dir):
-            sidebar.append("  - **Anime**\n")
+            sidebar.append("  - **Blind-Guess-Senior 的评测**\n")
             for fname in sorted(os.listdir(anime_dir)):
                 fpath = os.path.join(anime_dir, fname)
                 if os.path.isfile(fpath) and fname.endswith(".md"):
-                    sidebar.append(make_link(fpath, indent=3))
+                    sidebar.append(make_link(fpath, indent=2))
             by_year = os.path.join(anime_dir, "by-year")
             if os.path.exists(by_year):
                 sidebar.append("    - **动漫评测（按年份）**\n")
-                list_dir_files(by_year, indent=5, sidebar=sidebar, max_depth=2)
+                list_dir_files(by_year, indent=3, sidebar=sidebar, max_depth=2)
 
-        # Book
+    sidebar.append("\n")
+
+    # ── 书籍 ──────────────────────────────────────────────────────────────────
+    sidebar.append("- **书籍**\n")
+
+    if os.path.exists(bgs_dir):
         book_dir = os.path.join(bgs_dir, "Book")
         if os.path.exists(book_dir):
-            sidebar.append("  - **Book**\n")
+            sidebar.append("  - **Blind-Guess-Senior 的评测**\n")
             by_author = os.path.join(book_dir, "by-author")
             if os.path.exists(by_author):
                 sidebar.append("    - **书评（按作者）**\n")
-                list_dir_files(by_author, indent=5, sidebar=sidebar, max_depth=2)
+                list_dir_files(by_author, indent=3, sidebar=sidebar, max_depth=2)
 
     output = os.path.join(ROOT, "_sidebar.md")
     with open(output, "w", encoding="utf-8") as f:
