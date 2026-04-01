@@ -353,7 +353,6 @@ class BlindGuessSeniorExtractor(ReviewExtractor):
             score=self._extract_score(meta, body),
             score_raw=self._extract_score_raw(meta, body),
             score_system="decimal",
-            sub_scores=self._extract_sub_scores(meta, body),
             category=self._extract_category(meta, body),
             status=self._extract_status(meta, body),
             tags=self._extract_tags(meta, body),
@@ -366,39 +365,8 @@ class BlindGuessSeniorExtractor(ReviewExtractor):
         return coerce_int(meta.get("score"))
 
     def _extract_score_raw(self, meta: dict, body: str) -> str:
-        score = coerce_int(meta.get("score"))
-        if score is None:
-            return ""
-        m = re.search(r"(\d+/10[^\n]*)", body)
-        if m:
-            return m.group(1).strip()
-        return f"{score}/10"
-
-    def _extract_sub_scores(self, meta: dict, body: str) -> dict:
-        m = re.search(r"```\n(.*?)\n```", body, re.DOTALL)
-        if not m:
-            return {}
-        result = {}
-        for line in m.group(1).splitlines():
-            line = line.strip()
-            # "美术 2/4 Average" – scored entry
-            lm = re.match(r"^(\S+)\s+(\d+)/(\d+)\s*(.*?)\s*$", line)
-            if lm:
-                result[lm.group(1)] = {
-                    "value": int(lm.group(2)),
-                    "max":   int(lm.group(3)),
-                    "label": lm.group(4).strip(),
-                }
-                continue
-            # "美术 /4" – placeholder (no value yet)
-            lm2 = re.match(r"^(\S+)\s+/(\d+)\s*$", line)
-            if lm2:
-                result[lm2.group(1)] = {
-                    "value": None,
-                    "max":   int(lm2.group(2)),
-                    "label": "",
-                }
-        return result
+        score = meta.get("score")
+        return str(score) if score is not None else ""
 
     def _extract_category(self, meta: dict, body: str) -> list[str]:
         return to_str_list(meta.get("category"))

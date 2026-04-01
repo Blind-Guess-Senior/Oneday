@@ -270,15 +270,6 @@
     .article-meta-item strong { color: #1e293b; }
     .article-meta-sep { color: var(--border); }
 
-    .sub-scores-table { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0 1rem; }
-    .sub-score-cell {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 7px; padding: .3rem .7rem;
-      font-size: .82rem; text-align: center; min-width: 56px;
-    }
-    .sub-score-cell .dim-name { color: var(--muted); font-size: .72rem; }
-    .sub-score-cell .dim-val  { font-weight: 700; }
-
     /* ── Markdown renderer ────────────────────────────────────────────── */
     .md-body {
       line-height: 1.75; color: #1e293b;
@@ -563,23 +554,6 @@
             </template>
           </div>
 
-          <!-- Sub-scores -->
-          <div class="sub-scores-table" v-if="hasSubScores(article)">
-            <template v-if="article.score_system === 'stars'">
-              <div class="sub-score-cell" v-for="(v, k) in article.sub_scores" :key="k">
-                <div class="dim-name">{{ k }}</div>
-                <div class="dim-val score-stars">{{ v !== null && v !== undefined ? '★'.repeat(v) : 'N/A' }}</div>
-              </div>
-            </template>
-            <template v-else>
-              <div class="sub-score-cell" v-for="(v, k) in article.sub_scores" :key="k">
-                <div class="dim-name">{{ k }}</div>
-                <div class="dim-val">{{ v && v.value !== undefined ? v.value + '/' + v.max : '—' }}</div>
-                <div style="font-size:.7rem;color:var(--muted)" v-if="v && v.label">{{ v.label }}</div>
-              </div>
-            </template>
-          </div>
-
           <!-- Extra metadata (book_author, developer, release_year, …) -->
           <div class="article-meta-bar" v-if="extraMeta(article).length" style="margin-bottom:1rem">
             <template v-for="(item, idx) in extraMeta(article)" :key="item.label">
@@ -770,9 +744,6 @@ createApp({
       if (s === "进行中") return "badge-status-doing";
       return "badge-status-todo";
     }
-    function hasSubScores(r) {
-      return r.sub_scores && Object.keys(r.sub_scores).length > 0;
-    }
     const EXTRA_LABELS = {
       release: "发行年份", type: "类型",
       developer: "开发商", publisher: "发行商",
@@ -877,7 +848,7 @@ createApp({
       reviewersInCategory, scoreFilterVisible, selectedReviewerScoreSystem,
       visibleTags,
       primaryCategory, scoreClass, categoryBadgeClass,
-      hasSubScores, extraMeta,
+      extraMeta,
       navHome, navArticle, filterByTag, toggleTag, resetFilters, onCategoryChange,
       TAG_LIMIT,
     };
