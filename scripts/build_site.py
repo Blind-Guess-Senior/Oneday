@@ -275,7 +275,7 @@ class AsparkExtractor(ReviewExtractor):
             stripped = line.strip()
             if not stripped or re.match(r"^-{3,}", stripped):
                 break
-            m = re.match(r"^(.+?)(★+)\s*$", stripped)
+            m = re.match(r"^([^★]+)(★+)\s*$", stripped)
             if m:
                 result[m.group(1).strip()] = len(m.group(2))
             else:
@@ -413,7 +413,7 @@ class BlindGuessSeniorExtractor(ReviewExtractor):
         year  = coerce_int(meta.get("year"))
         month = coerce_int(meta.get("month"))
         if year:
-            return f"{year}-{month:02d}" if month else str(year)
+            return f"{year}-{month:02d}" if month and 1 <= month <= 12 else str(year)
         return None
 
     def _extract_extra(self, meta: dict, body: str, filepath: Path) -> dict:
