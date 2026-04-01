@@ -109,11 +109,17 @@ def load_metadata_maps(root: Path) -> dict[str, list]:
         entries: list[dict] = []
         for line in map_file.read_text(encoding="utf-8").splitlines():
             line = line.strip()
-            if not line or line.startswith("#") or " . " not in line:
+            if not line or line.startswith("#"):
                 continue
-            key_part, label = line.split(" . ", 1)
-            keys = [k.strip() for k in key_part.split("+")]
-            entries.append({"keys": keys, "label": label.strip()})
+            if " . " in line:
+                # Merged-key format: key1+key2 . label  or  key . label
+                key_part, label = line.split(" . ", 1)
+                keys = [k.strip() for k in key_part.split("+")]
+                entries.append({"keys": keys, "label": label.strip()})
+            elif " " in line:
+                # Simple format: key label
+                key_part, label = line.split(None, 1)
+                entries.append({"keys": [key_part.strip()], "label": label.strip()})
         maps[folder] = entries
     return maps
 
