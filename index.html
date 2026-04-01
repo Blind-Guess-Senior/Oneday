@@ -117,13 +117,18 @@
     .filter-option:hover { background: var(--bg); }
     .filter-option input[type="checkbox"] { accent-color: var(--accent); }
 
-    .score-range { padding: .25rem 0; }
-    .score-range input[type="range"] {
-      width: 100%; accent-color: var(--accent); margin: .3rem 0;
+    .score-chips { display: flex; flex-wrap: wrap; gap: .25rem; margin-bottom: .3rem; }
+    .score-chip {
+      padding: .15rem .42rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 4px; font-size: .78rem; cursor: pointer;
+      transition: all .12s; user-select: none; white-space: nowrap;
     }
-    .score-range-labels {
-      display: flex; justify-content: space-between;
-      font-size: .78rem; color: var(--muted);
+    .score-chip:hover, .score-chip.selected {
+      background: var(--accent); color: #fff; border-color: var(--accent);
+    }
+    .score-reviewer-label {
+      font-size: .72rem; color: var(--muted); margin: .2rem 0 .15rem;
     }
 
     .filter-reset {
@@ -194,6 +199,7 @@
     .badge-game    { background: #eff6ff; color: #1d4ed8; }
     .badge-anime   { background: #f5f3ff; color: #6d28d9; }
     .badge-book    { background: #f0fdf4; color: #166534; }
+    .badge-tba     { background: #fff7ed; color: #9a3412; }
     .badge-default { background: #f1f5f9; color: #475569; }
     .badge-status-done  { background: #f0fdf4; color: #166534; }
     .badge-status-doing { background: #fffbeb; color: #92400e; }
@@ -379,7 +385,9 @@
       <div class="filter-section">
         <div class="filter-title">分类</div>
         <div class="filter-options">
-          <label class="filter-option" v-for="c in ['游戏','动漫','书籍']" :key="c">
+          <label class="filter-option"
+            v-for="c in (['游戏','动漫','书籍','The Blind Award'].filter(c => (meta.categories||[]).includes(c)))"
+            :key="c">
             <input type="checkbox" :value="c" v-model="filterCategories" @change="onCategoryChange">
             {{ c }}
           </label>
@@ -397,29 +405,24 @@
         </div>
       </div>
 
-      <!-- Score (only when exactly one reviewer is selected) -->
-      <div class="filter-section" v-if="scoreFilterVisible">
+      <!-- Score filter: per-reviewer chip selector, shown when ≥1 reviewer selected -->
+      <div class="filter-section" v-if="filterReviewers.length">
         <div class="filter-title">分数筛选</div>
-        <!-- Stars -->
-        <template v-if="selectedReviewerScoreSystem === 'stars'">
-          <div class="filter-options">
-            <label class="filter-option" v-for="n in [5,4,3,2,1]" :key="n">
-              <input type="checkbox" :value="n" v-model="filterStars" @change="page=1">
-              <span style="color:var(--star)">{{ '★'.repeat(n) }}</span>
-            </label>
+        <div v-for="rv in filterReviewers" :key="rv">
+          <div class="score-reviewer-label">{{ rv }}</div>
+          <!-- Stars (Aspark) -->
+          <div class="score-chips" v-if="reviewerScoreSystem(rv) === 'stars'">
+            <span v-for="n in [1,2,3,4,5]" :key="n"
+              class="score-chip" :class="{selected: isScoreSelected(rv, n)}"
+              @click="toggleScore(rv, n)">{{ '⭐'.repeat(n) }}</span>
           </div>
-        </template>
-        <!-- Decimal -->
-        <template v-else-if="selectedReviewerScoreSystem === 'decimal'">
-          <div class="score-range">
-            <input type="range" min="1" max="10" v-model.number="scoreMin" @input="page=1">
-            <input type="range" min="1" max="10" v-model.number="scoreMax" @input="page=1">
-            <div class="score-range-labels">
-              <span>≥ {{ scoreMin }}</span>
-              <span>≤ {{ scoreMax }}</span>
-            </div>
+          <!-- Decimal (BGS, default) -->
+          <div class="score-chips" v-else>
+            <span v-for="n in [1,2,3,4,5,6,7,8,9,10]" :key="n"
+              class="score-chip" :class="{selected: isScoreSelected(rv, n)}"
+              @click="toggleScore(rv, n)">{{ n }}</span>
           </div>
-        </template>
+        </div>
       </div>
 
       <!-- Tags (universal) -->
@@ -594,7 +597,7 @@ const PAGE_SIZE = 30;
 const TAG_LIMIT = 30;
 const DATA_URL  = "site_data.json";
 
-function renderMarkdown(raw) {
+function renderMarkdown(raw, reviewPath) {
   if (!raw) return "";
   let src = raw;
   // Strip YAML frontmatter (--- ... ---) from the top.
@@ -605,8 +608,17 @@ function renderMarkdown(raw) {
   }
   // Strip ---fin.--- completion marker wherever it appears
   src = src.replace(/^---fin\.---\s*\n?/m, "");
-  // Strip wiki-style links [[text|alias]] -> text, [[text]] -> text
-  src = src.replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, "$1");
+  // Resolve Obsidian-style image links ![[filename]] → standard markdown image
+  // pointing to the file's own directory (images are co-located with the review).
+  // Must run before the wiki-link replacement below so ![[...]] isn't consumed first.
+  if (reviewPath) {
+    const dir = reviewPath.includes("/") ? reviewPath.slice(0, reviewPath.lastIndexOf("/") + 1) : "";
+    src = src.replace(/!\[\[([^\]]+)\]\]/g, (_, fname) => `![${fname}](${dir}${encodeURIComponent(fname)})`);
+  }
+  // Convert remaining wiki-style links [[target|alias]] → alias; [[target]] → last path segment
+  src = src.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, target, alias) =>
+    alias || target.split("/").pop()
+  );
   const html = marked.parse(src, { breaks: true, gfm: true });
   return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
 }
@@ -629,10 +641,8 @@ createApp({
     const search          = ref("");
     const filterReviewers = ref([]);
     const filterCategories= ref([]);
-    const filterStars     = ref([]);
+    const filterScores    = Vue.reactive({}); // { [reviewer]: number[] }
     const filterTags      = ref([]);
-    const scoreMin        = ref(1);
-    const scoreMax        = ref(10);
     const sortBy          = ref("modified");
     const page            = ref(1);
     const sidebarOpen     = ref(false);
@@ -656,13 +666,18 @@ createApp({
       );
     });
 
-    // Score filter is only shown when exactly one reviewer is selected
-    const scoreFilterVisible = computed(() => filterReviewers.value.length === 1);
-    const selectedReviewerScoreSystem = computed(() => {
-      if (filterReviewers.value.length !== 1) return null;
-      const rev = reviews.value.find(r => r.reviewer === filterReviewers.value[0]);
-      return rev ? rev.score_system : null;
-    });
+    // Score system for a given reviewer (used for chip display)
+    function reviewerScoreSystem(rv) {
+      const r = reviews.value.find(rev => rev.reviewer === rv);
+      return r ? (r.score_system || "decimal") : "decimal";
+    }
+    function isScoreSelected(rv, n) { return (filterScores[rv] || []).includes(n); }
+    function toggleScore(rv, n) {
+      if (!filterScores[rv]) filterScores[rv] = [];
+      const idx = filterScores[rv].indexOf(n);
+      if (idx === -1) filterScores[rv].push(n); else filterScores[rv].splice(idx, 1);
+      page.value = 1;
+    }
 
     const filtered = computed(() => {
       let list = reviews.value;
@@ -678,15 +693,12 @@ createApp({
         list = list.filter(r => filterReviewers.value.includes(r.reviewer));
       if (filterTags.value.length)
         list = list.filter(r => filterTags.value.every(t => (r.tags || []).includes(t)));
-      // Score filter only applies when a single reviewer is selected
-      if (scoreFilterVisible.value) {
-        if (selectedReviewerScoreSystem.value === "stars" && filterStars.value.length)
-          list = list.filter(r => r.score_system === "stars" && filterStars.value.includes(r.score));
-        if (selectedReviewerScoreSystem.value === "decimal" && (scoreMin.value > 1 || scoreMax.value < 10))
-          list = list.filter(r =>
-            r.score_system !== "decimal" ||
-            (r.score != null && r.score >= scoreMin.value && r.score <= scoreMax.value)
-          );
+      // Score filter: per-reviewer chip multi-select
+      if (filterReviewers.value.some(rv => (filterScores[rv] || []).length > 0)) {
+        list = list.filter(r => {
+          const sel = filterScores[r.reviewer] || [];
+          return sel.length === 0 || sel.includes(r.score);
+        });
       }
 
       const key = sortBy.value;
@@ -736,6 +748,7 @@ createApp({
       if (cats.includes("游戏")) return "badge-game";
       if (cats.includes("动漫")) return "badge-anime";
       if (cats.includes("书籍")) return "badge-book";
+      if (cats.includes("The Blind Award")) return "badge-tba";
       return "badge-default";
     }
     function statusBadgeClass(r) {
@@ -744,26 +757,60 @@ createApp({
       if (s === "进行中") return "badge-status-doing";
       return "badge-status-todo";
     }
-    const EXTRA_LABELS = {
-      release: "发行年份", type: "类型",
-      developer: "开发商", publisher: "发行商",
-      author: "作者", country: "国家/地区",
-    };
     const REVIEW_RESERVED_KEYS = new Set([
       "path", "modified", "title", "reviewer",
       "score", "score_raw", "score_system",
       "category", "status", "tags",
     ]);
     function extraMeta(r) {
-      return Object.entries(r)
-        .filter(([k, v]) =>
-          !REVIEW_RESERVED_KEYS.has(k) &&
-          v != null && v !== "" && (!Array.isArray(v) || v.length > 0)
-        )
-        .map(([k, v]) => ({
-          label: EXTRA_LABELS[k] || k,
-          value: Array.isArray(v) ? v.join(" / ") : String(v),
-        }));
+      // Find the most specific metadata map for this review's path
+      const maps = meta.value.metadata_maps || {};
+      let mapEntries = null;
+      let bestLen = -1;
+      for (const [folder, entries] of Object.entries(maps)) {
+        const matches = folder === "." || r.path.startsWith(folder + "/");
+        if (matches && folder.length > bestLen) {
+          mapEntries = entries;
+          bestLen = folder.length;
+        }
+      }
+
+      if (!mapEntries) {
+        // No map: show all non-reserved keys with key name as label
+        return Object.entries(r)
+          .filter(([k, v]) =>
+            !REVIEW_RESERVED_KEYS.has(k) &&
+            v != null && v !== "" && (!Array.isArray(v) || v.length > 0)
+          )
+          .map(([k, v]) => ({
+            label: k,
+            value: Array.isArray(v) ? v.join(" / ") : String(v),
+          }));
+      }
+
+      const result = [];
+      const usedKeys = new Set();
+      for (const { keys, label } of mapEntries) {
+        if (keys.length === 1) {
+          const v = r[keys[0]];
+          if (v == null || v === "" || (Array.isArray(v) && v.length === 0)) continue;
+          result.push({ label, value: Array.isArray(v) ? v.join(" / ") : String(v) });
+          usedKeys.add(keys[0]);
+        } else {
+          // Merged keys (e.g. year+month → "2025.8")
+          const parts = keys.map(k => r[k]).filter(v => v != null && v !== "");
+          if (parts.length === 0) continue;
+          result.push({ label, value: parts.join(".") });
+          keys.forEach(k => usedKeys.add(k));
+        }
+      }
+      // Append any remaining non-reserved, non-mapped keys
+      for (const [k, v] of Object.entries(r)) {
+        if (REVIEW_RESERVED_KEYS.has(k) || usedKeys.has(k)) continue;
+        if (v == null || v === "" || (Array.isArray(v) && v.length === 0)) continue;
+        result.push({ label: k, value: Array.isArray(v) ? v.join(" / ") : String(v) });
+      }
+      return result;
     }
 
     // ── Navigation ────────────────────────────────────────────────
@@ -787,7 +834,7 @@ createApp({
         const resp = await fetch(r.path);
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const raw = await resp.text();
-        articleHtml.value = renderMarkdown(raw);
+        articleHtml.value = renderMarkdown(raw, r.path);
       } catch (e) {
         articleHtml.value = "<p style='color:red'>无法加载文章内容。</p>";
       } finally {
@@ -806,14 +853,14 @@ createApp({
     }
     function onCategoryChange() {
       filterReviewers.value = [];
-      filterStars.value = [];
-      scoreMin.value = 1; scoreMax.value = 10;
+      Object.keys(filterScores).forEach(k => delete filterScores[k]);
       page.value = 1;
     }
     function resetFilters() {
       search.value = ""; filterReviewers.value = []; filterCategories.value = [];
-      filterStars.value = []; filterTags.value = [];
-      scoreMin.value = 1; scoreMax.value = 10; page.value = 1;
+      filterTags.value = [];
+      Object.keys(filterScores).forEach(k => delete filterScores[k]);
+      page.value = 1;
     }
 
     // ── Hash routing ──────────────────────────────────────────────
@@ -849,10 +896,11 @@ createApp({
       loading, error, reviews, meta,
       view, article, articleHtml, articleLoading,
       search, filterReviewers, filterCategories,
-      filterStars, filterTags,
-      scoreMin, scoreMax, sortBy, page, sidebarOpen, showAllTags,
+      filterScores, filterTags,
+      sortBy, page, sidebarOpen, showAllTags,
       filtered, totalPages, paged, pageRange,
-      reviewersInCategory, scoreFilterVisible, selectedReviewerScoreSystem,
+      reviewersInCategory,
+      reviewerScoreSystem, isScoreSelected, toggleScore,
       visibleTags,
       primaryCategory, scoreClass, categoryBadgeClass,
       extraMeta,

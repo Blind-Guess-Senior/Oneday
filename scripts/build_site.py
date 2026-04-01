@@ -87,6 +87,76 @@ def mtime_iso(filepath: Path) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Metadata map loader
+# ---------------------------------------------------------------------------
+
+def load_metadata_maps(root: Path) -> dict[str, list]:
+    """Load all metadata_map.txt files found anywhere in the repository.
+
+    Returns a dict keyed by the folder path (relative to root) containing the
+    file.  Each value is an ordered list of mapping entries::
+
+        [{"keys": ["year", "month"], "label": "游玩日期"}, ...]
+
+    Line format (one per line):
+        key . label              – single key
+        key1+key2 . label        – merged keys (displayed as "val1.val2")
+    Lines starting with ``#`` or without `` . `` are ignored.
+    """
+    maps: dict[str, list] = {}
+    for map_file in root.rglob("metadata_map.txt"):
+        folder = map_file.parent.relative_to(root).as_posix()
+        entries: list[dict] = []
+        for line in map_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if " . " in line:
+                # Merged-key format: key1+key2 . label  or  key . label
+                key_part, label = line.split(" . ", 1)
+                keys = [k.strip() for k in key_part.split("+")]
+                entries.append({"keys": keys, "label": label.strip()})
+            elif " " in line:
+                # Simple format: key label
+                key_part, label = line.split(None, 1)
+                entries.append({"keys": [key_part.strip()], "label": label.strip()})
+        maps[folder] = entries
+    return maps
+
+
+# ---------------------------------------------------------------------------
+# TBA (award files) scanner
+# ---------------------------------------------------------------------------
+
+def scan_tba(root: Path) -> list[dict]:
+    """Scan ``*/TBA/*.md`` files and return them as special award entries.
+
+    These files have no YAML frontmatter and no ``---fin.---`` requirement.
+    They are included unconditionally with ``category: ["The Blind Award"]``.
+    """
+    results: list[dict] = []
+    for reviewer_dir in sorted(root.iterdir()):
+        if not reviewer_dir.is_dir() or reviewer_dir.name.startswith("."):
+            continue
+        tba_dir = reviewer_dir / "TBA"
+        if not tba_dir.is_dir():
+            continue
+        for fp in sorted(tba_dir.glob("*.md")):
+            rel_path = fp.relative_to(root).as_posix()
+            results.append({
+                "path":     rel_path,
+                "title":    fp.stem,
+                "reviewer": reviewer_dir.name,
+                "category": ["The Blind Award"],
+                "modified": mtime_iso(fp),
+                "tags":     [],
+                "score":    None,
+                "score_raw": "",
+            })
+    return results
+
+
+# ---------------------------------------------------------------------------
 # Universal extractor
 # ---------------------------------------------------------------------------
 
@@ -136,6 +206,9 @@ def extract_review(filepath: Path, rel_path: str) -> dict | None:
     score_val = meta.get("score")
     review["score_raw"] = str(score_val) if score_val is not None else ""
     review["score"] = coerce_int(score_val)
+
+    # Auto-detect score system: Aspark uses star ratings (1–5), others decimal (1–10)
+    review["score_system"] = "stars" if rel_path.split("/")[0].lower() == "aspark" else "decimal"
 
     # Special: tags → normalise to list[str]
     review["tags"] = to_str_list(meta.get("tags"))
@@ -209,6 +282,8 @@ def main() -> None:
     print("Building site_data.json…")
 
     reviews = scan()
+    tba = scan_tba(ROOT)
+    reviews.extend(tba)
 
     # Sort: most recently modified first (front-end "recent updates" view)
     reviews.sort(key=lambda r: r.get("modified", ""), reverse=True)
@@ -218,14 +293,17 @@ def main() -> None:
     all_categories = sorted({c for r in reviews for c in to_str_list(r.get("category"))})
     reviewers      = sorted({r["reviewer"] for r in reviews})
 
+    metadata_maps = load_metadata_maps(ROOT)
+
     site_data = {
         "reviews": reviews,
         "meta": {
-            "total":      len(reviews),
-            "generated":  datetime.now().isoformat(),
-            "categories": all_categories,
-            "reviewers":  reviewers,
-            "all_tags":   all_tags,
+            "total":         len(reviews),
+            "generated":     datetime.now().isoformat(),
+            "categories":    all_categories,
+            "reviewers":     reviewers,
+            "all_tags":      all_tags,
+            "metadata_maps": metadata_maps,
         },
     }
 
