@@ -6,7 +6,6 @@ through verbatim.  A file is included only when:
 
   1. It has a valid YAML frontmatter block (``---`` … ``---``).
   2. Its body contains the completion marker ``---fin.---``.
-  3. The frontmatter has a non-empty ``reviewer`` field.
 
 Two YAML keys receive special normalisation:
 
@@ -15,9 +14,10 @@ Two YAML keys receive special normalisation:
   tags    → normalised to a list[str] regardless of how YAML encodes it.
 
 All other YAML keys are written to the output dict exactly as-is.
-Two extra keys are always injected (never in YAML):
+Three extra keys are always injected (never read from YAML):
 
   path      repo-relative path, e.g. "Author/…/file.md"
+  reviewer  top-level folder name (the repository is organised by author)
   modified  file mtime ISO string (used for "recent" sorting)
 
 Output
@@ -99,9 +99,10 @@ def extract_review(filepath: Path, rel_path: str) -> dict | None:
                    ``score`` as a coerced int (or None).
     * ``tags``   — normalised to list[str].
 
-    Two keys injected by the extractor (never in YAML):
+    Three keys injected by the extractor (never read from YAML):
 
     * ``path``     — repo-relative path.
+    * ``reviewer`` — top-level folder name (repository is organised by author).
     * ``modified`` — file mtime ISO string.
 
     A ``title`` fallback is applied when the YAML has no ``title`` key:
@@ -119,14 +120,12 @@ def extract_review(filepath: Path, rel_path: str) -> dict | None:
     if "---fin.---" not in body:
         return None
 
-    if not str(meta.get("reviewer") or "").strip():
-        return None
-
     # Start with all YAML keys verbatim
     review: dict = dict(meta)
 
-    # Infrastructure fields (not from YAML)
+    # Infrastructure fields derived from the file path (not from YAML)
     review["path"] = rel_path
+    review["reviewer"] = rel_path.split("/")[0]
     review["modified"] = mtime_iso(filepath)
 
     # Title fallback: use filename stem when YAML has no ``title``
