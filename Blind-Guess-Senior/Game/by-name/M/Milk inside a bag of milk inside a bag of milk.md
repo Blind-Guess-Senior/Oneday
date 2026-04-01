@@ -13,6 +13,8 @@ tags:
   - 视觉小说
   - Metagame
 ---
+---fin.---
+
 续：
 [[Milk outside a bag of milk outside a bag of milk]] 
 
