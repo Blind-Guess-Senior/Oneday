@@ -623,10 +623,11 @@ const DATA_URL  = "site_data.json";
 function renderMarkdown(raw) {
   if (!raw) return "";
   let src = raw;
-  // Strip YAML frontmatter (--- ... ---) from the top
+  // Strip YAML frontmatter (--- ... ---) from the top.
+  // Use "\n---\n" to ensure the closing delimiter is on its own line.
   if (src.startsWith("---")) {
-    const end = src.indexOf("\n---", 3);
-    if (end !== -1) src = src.slice(end + 4).trimStart();
+    const end = src.indexOf("\n---\n", 3);
+    if (end !== -1) src = src.slice(end + 5).trimStart();
   }
   // Strip ---fin.--- completion marker wherever it appears
   src = src.replace(/^---fin\.---\s*\n?/m, "");
@@ -772,17 +773,19 @@ createApp({
     function hasSubScores(r) {
       return r.sub_scores && Object.keys(r.sub_scores).length > 0;
     }
+    const EXTRA_LABELS = {
+      release: "发行年份", type: "类型",
+      developer: "开发商", publisher: "发行商",
+      author: "作者", country: "国家/地区",
+    };
     function extraMeta(r) {
-      const items = [];
-      if (r.book_author)                items.push({ label: "作者",     value: r.book_author });
-      if (r.country)                    items.push({ label: "国家/地区", value: r.country });
-      if (r.release_year)               items.push({ label: "发行年份",  value: r.release_year });
-      if (r.media_type)                 items.push({ label: "类型",     value: r.media_type });
-      if (r.developer?.length)          items.push({ label: "开发商",   value: r.developer.join(" / ") });
-      if (r.publisher?.length &&
-          JSON.stringify(r.publisher) !== JSON.stringify(r.developer))
-        items.push({ label: "发行商", value: r.publisher.join(" / ") });
-      return items;
+      const extra = r.extra || {};
+      return Object.entries(extra)
+        .filter(([, v]) => v != null && v !== "" && (!Array.isArray(v) || v.length > 0))
+        .map(([k, v]) => ({
+          label: EXTRA_LABELS[k] || k,
+          value: Array.isArray(v) ? v.join(" / ") : String(v),
+        }));
     }
 
     // ── Navigation ────────────────────────────────────────────────

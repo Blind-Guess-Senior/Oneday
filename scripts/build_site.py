@@ -89,12 +89,7 @@ class Review:
     extra: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        d = asdict(self)
-        # Flatten `extra` into the top level so the front-end can access
-        # extra["book_author"] as item.book_author
-        extra = d.pop("extra", {})
-        d.update(extra)
-        return d
+        return asdict(self)
 
 
 # ---------------------------------------------------------------------------
@@ -301,7 +296,7 @@ class AsparkExtractor(ReviewExtractor):
         extra = {}
         m = re.search(r"@(\S+)", content)
         if m:
-            extra["aspark_author"] = m.group(1)
+            extra["author"] = m.group(1)
         return extra
 
 
@@ -331,6 +326,11 @@ class BlindGuessSeniorExtractor(ReviewExtractor):
     * ``Review.score_system`` is always ``"decimal"``
     * ``Review.title`` comes from the filename (stars stripped)
     """
+
+    # YAML keys consumed by the standard Review fields – not forwarded to ``extra``.
+    _STANDARD_YAML_KEYS: frozenset[str] = frozenset(
+        {"status", "score", "year", "month", "category", "tags"}
+    )
 
     def extract(self, filepath: Path, rel_path: str) -> Review | None:
         content = self.read(filepath)
@@ -417,26 +417,22 @@ class BlindGuessSeniorExtractor(ReviewExtractor):
         return None
 
     def _extract_extra(self, meta: dict, body: str, filepath: Path) -> dict:
-        extra: dict = {}
-        release = coerce_int(meta.get("release"))
-        if release:
-            extra["release_year"] = release
-        media_type = str(meta.get("type") or "").strip()
-        if media_type:
-            extra["media_type"] = media_type
-        developer = to_str_list(meta.get("developer"))
-        if developer:
-            extra["developer"] = developer
-        publisher = to_str_list(meta.get("publisher"))
-        if publisher:
-            extra["publisher"] = publisher
-        book_author = str(meta.get("author") or "").strip()
-        if book_author:
-            extra["book_author"] = book_author
-        country = str(meta.get("country") or "").strip()
-        if country:
-            extra["country"] = country
-        return extra
+        """Pass through all YAML fields not consumed by standard Review fields.
+
+        Any new field added to the YAML frontmatter automatically appears in
+        ``extra`` without requiring code changes here.
+        """
+        def _nonempty(v) -> bool:
+            if v is None:
+                return False
+            if isinstance(v, (list, dict)):
+                return len(v) > 0
+            return str(v).strip() != ""
+
+        return {
+            k: v for k, v in meta.items()
+            if k not in self._STANDARD_YAML_KEYS and _nonempty(v)
+        }
 
 
 # ---------------------------------------------------------------------------
