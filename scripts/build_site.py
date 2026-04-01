@@ -1,38 +1,34 @@
 #!/usr/bin/env python3
 """Build site_data.json from markdown review files.
 
-All review metadata is read exclusively from YAML frontmatter.
-A file is included only when:
+All review metadata is read exclusively from YAML frontmatter and passed
+through verbatim.  A file is included only when:
 
   1. It has a valid YAML frontmatter block (``---`` … ``---``).
   2. Its body contains the completion marker ``---fin.---``.
   3. The frontmatter has a non-empty ``reviewer`` field.
 
+Two YAML keys receive special normalisation:
+
+  score   → also emitted as ``score_raw`` (original string) and ``score``
+            (coerced to int, or None).
+  tags    → normalised to a list[str] regardless of how YAML encodes it.
+
+All other YAML keys are written to the output dict exactly as-is.
+Two extra keys are always injected (never in YAML):
+
+  path      repo-relative path, e.g. "Author/…/file.md"
+  modified  file mtime ISO string (used for "recent" sorting)
+
 Output
 ======
 site_data.json  (written to the repository root, listed in .gitignore)
-
-Schema of each item in ``reviews``:
-
-  path          str            repo-relative path, e.g. "Author/…/file.md"
-  title         str            from YAML ``title``; falls back to filename stem
-  reviewer      str            from YAML ``reviewer`` (required)
-  score         int|None       numeric score, or None
-  score_raw     str            score as it appears in the UI (string form of the YAML value)
-  score_system  str            "stars" | "decimal" | "" — from YAML or auto-detected
-  category      list[str]      e.g. ["游戏"]
-  status        str            e.g. "已完成" / "进行中" / "未完成"
-  tags          list[str]
-  date          str|None       from YAML ``date``, or assembled from ``year``/``month``
-  modified      str            file mtime ISO string (used for "recent" sorting)
-  extra         dict           all non-standard YAML keys
 """
 
 from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
 
@@ -46,52 +42,8 @@ ROOT = Path(__file__).parent.parent
 
 
 # ---------------------------------------------------------------------------
-# Output schema
-# ---------------------------------------------------------------------------
-
-@dataclass
-class Review:
-    """Canonical representation of a single review entry."""
-
-    # ── mandatory ──────────────────────────────────────────────────────────
-    path: str           # repo-relative path (forward slashes)
-    title: str          # display title
-    reviewer: str       # from YAML ``reviewer``
-
-    # ── scoring ────────────────────────────────────────────────────────────
-    score: int | None = None        # normalised numeric score
-    score_raw: str = ""             # score as it appears in the UI
-    score_system: str = ""          # "stars" | "decimal"
-
-    # ── classification ─────────────────────────────────────────────────────
-    category: list[str] = field(default_factory=list)
-    status: str = ""
-    tags: list[str] = field(default_factory=list)
-
-    # ── dates ──────────────────────────────────────────────────────────────
-    date: str | None = None         # review date (YYYY-MM-DD / YYYY-MM / YYYY)
-    modified: str = ""              # file mtime ISO string
-
-    # ── catch-all for non-standard YAML keys ──────────────────────────────
-    extra: dict = field(default_factory=dict)
-
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-
-# ---------------------------------------------------------------------------
 # Helper utilities
 # ---------------------------------------------------------------------------
-
-# YAML keys consumed by the standard Review fields.
-# Any other key is forwarded to ``extra``.
-_STANDARD_KEYS: frozenset[str] = frozenset({
-    "title", "reviewer",
-    "score", "score_system",
-    "category", "status", "tags",
-    "date", "year", "month",
-})
-
 
 def parse_yaml_frontmatter(content: str) -> tuple[dict, str]:
     """Return ``(metadata_dict, body_string)`` from a YAML-fenced markdown file.
@@ -138,13 +90,22 @@ def mtime_iso(filepath: Path) -> str:
 # Universal extractor
 # ---------------------------------------------------------------------------
 
-def extract_review(filepath: Path, rel_path: str) -> Review | None:
-    """Parse *filepath* and return a :class:`Review`, or ``None`` to skip.
+def extract_review(filepath: Path, rel_path: str) -> dict | None:
+    """Parse *filepath* and return a review dict, or ``None`` to skip.
 
-    All metadata is read from YAML frontmatter.  A file is skipped when:
-    * it has no valid YAML frontmatter,
-    * its body does not contain ``---fin.---``, or
-    * the frontmatter has no ``reviewer`` field.
+    All YAML keys are passed through verbatim except for the two special ones:
+
+    * ``score``  — kept as-is under ``score_raw`` (str); also emitted under
+                   ``score`` as a coerced int (or None).
+    * ``tags``   — normalised to list[str].
+
+    Two keys injected by the extractor (never in YAML):
+
+    * ``path``     — repo-relative path.
+    * ``modified`` — file mtime ISO string.
+
+    A ``title`` fallback is applied when the YAML has no ``title`` key:
+    the filename stem is used (trailing ``★…`` stripped).
     """
     try:
         content = filepath.read_text(encoding="utf-8")
@@ -158,60 +119,29 @@ def extract_review(filepath: Path, rel_path: str) -> Review | None:
     if "---fin.---" not in body:
         return None
 
-    reviewer = str(meta.get("reviewer") or "").strip()
-    if not reviewer:
+    if not str(meta.get("reviewer") or "").strip():
         return None
 
-    # Title: explicit YAML field, or filename stem (stars stripped)
-    title = str(meta.get("title") or "").strip() or re.sub(r"★.*$", "", filepath.stem).strip()
+    # Start with all YAML keys verbatim
+    review: dict = dict(meta)
 
-    # Score: keep the raw YAML value as-is for the UI
+    # Infrastructure fields (not from YAML)
+    review["path"] = rel_path
+    review["modified"] = mtime_iso(filepath)
+
+    # Title fallback: use filename stem when YAML has no ``title``
+    if not str(review.get("title") or "").strip():
+        review["title"] = re.sub(r"★.*$", "", filepath.stem).strip()
+
+    # Special: score → coerce to int; keep raw string form
     score_val = meta.get("score")
-    score_raw = str(score_val) if score_val is not None else ""
-    score = coerce_int(score_val)
+    review["score_raw"] = str(score_val) if score_val is not None else ""
+    review["score"] = coerce_int(score_val)
 
-    # Score system: from YAML, or auto-detected
-    score_system = str(meta.get("score_system") or "").strip()
-    if not score_system:
-        if isinstance(score_val, str) and "★" in score_val:
-            score_system = "stars"
-        elif score is not None:
-            score_system = "decimal"
-    # When using stars, derive the numeric count from the raw value
-    if score_system == "stars" and score is None and isinstance(score_val, str):
-        score = score_val.count("★") or None
+    # Special: tags → normalise to list[str]
+    review["tags"] = to_str_list(meta.get("tags"))
 
-    # Date: explicit ISO ``date`` field, or assembled from ``year``/``month``
-    date_val = str(meta.get("date") or "").strip() or None
-    if not date_val:
-        year = coerce_int(meta.get("year"))
-        month = coerce_int(meta.get("month"))
-        if year:
-            date_val = f"{year}-{month:02d}" if month and 1 <= month <= 12 else str(year)
-
-    def _nonempty(v) -> bool:
-        if v is None:
-            return False
-        if isinstance(v, (list, dict)):
-            return len(v) > 0
-        return str(v).strip() != ""
-
-    extra = {k: v for k, v in meta.items() if k not in _STANDARD_KEYS and _nonempty(v)}
-
-    return Review(
-        path=rel_path,
-        title=title,
-        reviewer=reviewer,
-        score=score,
-        score_raw=score_raw,
-        score_system=score_system,
-        category=to_str_list(meta.get("category")),
-        status=str(meta.get("status") or "").strip(),
-        tags=to_str_list(meta.get("tags")),
-        date=date_val,
-        modified=mtime_iso(filepath),
-        extra=extra,
-    )
+    return review
 
 
 # ---------------------------------------------------------------------------
@@ -262,7 +192,7 @@ def scan() -> list[dict]:
             continue
 
         if review is not None:
-            results.append(review.to_dict())
+            results.append(review)
 
     if errors:
         print(f"  [warn] {len(errors)} extraction error(s):")
@@ -286,7 +216,7 @@ def main() -> None:
 
     # Aggregate vocabulary for filter dropdowns
     all_tags       = sorted({t for r in reviews for t in (r.get("tags") or [])})
-    all_categories = sorted({c for r in reviews for c in (r.get("category") or [])})
+    all_categories = sorted({c for r in reviews for c in to_str_list(r.get("category"))})
     reviewers      = sorted({r["reviewer"] for r in reviews})
 
     site_data = {

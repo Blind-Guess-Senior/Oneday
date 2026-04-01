@@ -749,10 +749,17 @@ createApp({
       developer: "开发商", publisher: "发行商",
       author: "作者", country: "国家/地区",
     };
+    const REVIEW_RESERVED_KEYS = new Set([
+      "path", "modified", "title", "reviewer",
+      "score", "score_raw", "score_system",
+      "category", "status", "tags",
+    ]);
     function extraMeta(r) {
-      const extra = r.extra || {};
-      return Object.entries(extra)
-        .filter(([, v]) => v != null && v !== "" && (!Array.isArray(v) || v.length > 0))
+      return Object.entries(r)
+        .filter(([k, v]) =>
+          !REVIEW_RESERVED_KEYS.has(k) &&
+          v != null && v !== "" && (!Array.isArray(v) || v.length > 0)
+        )
         .map(([k, v]) => ({
           label: EXTRA_LABELS[k] || k,
           value: Array.isArray(v) ? v.join(" / ") : String(v),
