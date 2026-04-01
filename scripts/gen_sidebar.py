@@ -92,6 +92,7 @@ def list_dir_files(directory, indent, sidebar, max_depth=1, current_depth=0):
 def main():
     sidebar = [
         "- [首页](Readme.md)\n",
+        "- [网站部署说明](网站部署说明.md)\n",
         "\n",
     ]
 
