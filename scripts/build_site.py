@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 """Build site_data.json from markdown review files.
 
-Architecture
-============
-Each author's content lives in its own folder and uses a different
-file format.  This script defines a **strategy pattern** so that each
-folder gets its own :class:`ReviewExtractor` subclass:
+All review metadata is read exclusively from YAML frontmatter.
+A file is included only when:
 
-  Aspark/                    →  AsparkExtractor
-  Blind-Guess-Senior/        →  BlindGuessSeniorExtractor
-
-To add a new author/folder, subclass :class:`ReviewExtractor`, implement
-:meth:`extract`, then register it in :func:`build_registry`.
+  1. It has a valid YAML frontmatter block (``---`` … ``---``).
+  2. Its body contains the completion marker ``---fin.---``.
+  3. The frontmatter has a non-empty ``reviewer`` field.
 
 Output
 ======
@@ -19,26 +14,23 @@ site_data.json  (written to the repository root, listed in .gitignore)
 
 Schema of each item in ``reviews``:
 
-  path          str            repo-relative path, e.g. "Aspark/…/file.md"
-  title         str            display title
-  reviewer      str            folder owner / pen-name
-  score         int|None       normalised numeric score (None = unscored)
-  score_raw     str            score as shown in the UI, e.g. "★★★★" / "9/10"
-  score_system  "stars"|"decimal"
-  sub_scores    dict           {dimension: value}  – structure is extractor-defined
+  path          str            repo-relative path, e.g. "Author/…/file.md"
+  title         str            from YAML ``title``; falls back to filename stem
+  reviewer      str            from YAML ``reviewer`` (required)
+  score         int|None       numeric score, or None
+  score_raw     str            score as it appears in the UI (string form of the YAML value)
+  score_system  str            "stars" | "decimal" | "" — from YAML or auto-detected
   category      list[str]      e.g. ["游戏"]
   status        str            e.g. "已完成" / "进行中" / "未完成"
   tags          list[str]
-  date          str|None       review date, ISO-like: "YYYY-MM-DD" / "YYYY-MM" / "YYYY"
+  date          str|None       from YAML ``date``, or assembled from ``year``/``month``
   modified      str            file mtime ISO string (used for "recent" sorting)
-  extra         dict           any additional fields the extractor wants to surface
+  extra         dict           all non-standard YAML keys
 """
 
 from __future__ import annotations
 
-import abc
 import json
-import os
 import re
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -59,22 +51,17 @@ ROOT = Path(__file__).parent.parent
 
 @dataclass
 class Review:
-    """Canonical representation of a single review entry.
-
-    Fields with a default of ``None`` or ``[]`` are optional – extractors
-    may leave them unset when the information is not available.
-    """
+    """Canonical representation of a single review entry."""
 
     # ── mandatory ──────────────────────────────────────────────────────────
     path: str           # repo-relative path (forward slashes)
     title: str          # display title
-    reviewer: str       # folder owner / pen-name
+    reviewer: str       # from YAML ``reviewer``
 
     # ── scoring ────────────────────────────────────────────────────────────
     score: int | None = None        # normalised numeric score
     score_raw: str = ""             # score as it appears in the UI
     score_system: str = ""          # "stars" | "decimal"
-    sub_scores: dict = field(default_factory=dict)
 
     # ── classification ─────────────────────────────────────────────────────
     category: list[str] = field(default_factory=list)
@@ -85,7 +72,7 @@ class Review:
     date: str | None = None         # review date (YYYY-MM-DD / YYYY-MM / YYYY)
     modified: str = ""              # file mtime ISO string
 
-    # ── catch-all for extractor-specific data ──────────────────────────────
+    # ── catch-all for non-standard YAML keys ──────────────────────────────
     extra: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -93,8 +80,18 @@ class Review:
 
 
 # ---------------------------------------------------------------------------
-# Helper utilities (available to all extractors)
+# Helper utilities
 # ---------------------------------------------------------------------------
+
+# YAML keys consumed by the standard Review fields.
+# Any other key is forwarded to ``extra``.
+_STANDARD_KEYS: frozenset[str] = frozenset({
+    "title", "reviewer",
+    "score", "score_system",
+    "category", "status", "tags",
+    "date", "year", "month",
+})
+
 
 def parse_yaml_frontmatter(content: str) -> tuple[dict, str]:
     """Return ``(metadata_dict, body_string)`` from a YAML-fenced markdown file.
@@ -133,274 +130,88 @@ def to_str_list(val) -> list[str]:
     return [s] if s else []
 
 
+def mtime_iso(filepath: Path) -> str:
+    return datetime.fromtimestamp(filepath.stat().st_mtime).isoformat()
+
+
 # ---------------------------------------------------------------------------
-# Abstract base extractor
+# Universal extractor
 # ---------------------------------------------------------------------------
 
-class ReviewExtractor(abc.ABC):
-    """Base class for folder-specific extraction strategies.
+def extract_review(filepath: Path, rel_path: str) -> Review | None:
+    """Parse *filepath* and return a :class:`Review`, or ``None`` to skip.
 
-    Subclass this and implement :meth:`extract`.  Then register your
-    subclass together with the folder(s) it handles in :func:`build_registry`.
+    All metadata is read from YAML frontmatter.  A file is skipped when:
+    * it has no valid YAML frontmatter,
+    * its body does not contain ``---fin.---``, or
+    * the frontmatter has no ``reviewer`` field.
     """
-
-    # Folders (relative to ROOT, forward slashes) whose *.md files this
-    # extractor is responsible for.  Set by the registry builder.
-    folders: list[str] = []
-
-    @abc.abstractmethod
-    def extract(self, filepath: Path, rel_path: str) -> Review | None:
-        """Parse *filepath* and return a :class:`Review`, or ``None`` to skip.
-
-        Parameters
-        ----------
-        filepath:
-            Absolute :class:`~pathlib.Path` to the markdown file.
-        rel_path:
-            Repo-relative path using forward slashes (ready for URLs /
-            ``site_data.json``).
-        """
-
-    def should_include(self, filepath: Path, rel_path: str) -> bool:
-        """Return ``True`` if this file should be processed at all.
-
-        Override to add folder-specific filters on top of the global
-        :func:`is_content_file` check (which is always applied first).
-        """
-        return True
-
-    # ── shared helpers ──────────────────────────────────────────────────────
-
-    @staticmethod
-    def mtime_iso(filepath: Path) -> str:
-        return datetime.fromtimestamp(filepath.stat().st_mtime).isoformat()
-
-    @staticmethod
-    def read(filepath: Path) -> str | None:
-        try:
-            return filepath.read_text(encoding="utf-8")
-        except Exception:
-            return None
-
-
-# ---------------------------------------------------------------------------
-# ┌─────────────────────────────────────────────────────────────────────────┐
-# │  EXTRACTOR 1 – Aspark                                                   │
-# │                                                                         │
-# │  Folder: Aspark/小众变态测评/{游戏,二游与竞技,未完成}/                  │
-# │  Format: no YAML frontmatter; star rating in filename;                  │
-# │          Chinese title as first line; sub-scores on lines 2-5;         │
-# │          review date + @author near the end.                            │
-# └─────────────────────────────────────────────────────────────────────────┘
-
-class AsparkExtractor(ReviewExtractor):
-    """Extraction strategy for Aspark's review files.
-
-    How to fill this in
-    -------------------
-    Implement the ``_extract_*`` helper methods below.  Each method receives
-    the file content (and, where needed, the filepath) and should return
-    the corresponding piece of metadata.  The :meth:`extract` driver calls
-    them in order and assembles the final :class:`Review`.
-
-    Already wired up
-    ----------------
-    * ``filepath`` / ``rel_path`` → ``Review.path``
-    * ``Review.reviewer`` is always ``"Aspark"``
-    * ``Review.score_system`` is always ``"stars"``
-    * ``Review.modified`` comes from the file mtime
-    * ``Review.category`` defaults to ``["游戏"]``
-    * ``Review.status`` is inferred from the containing sub-folder name
-    """
-
-    def extract(self, filepath: Path, rel_path: str) -> Review | None:
-        content = self.read(filepath)
-        if content is None:
-            return None
-
-        # Only include reviews marked as finished with ---fin.---
-        if "---fin.---" not in content:
-            return None
-
-        lines = [l.rstrip() for l in content.splitlines()]
-        modified = self.mtime_iso(filepath)
-
-        # Status: inferred from sub-folder (kept in data but not shown in UI)
-        if "/游戏/" in rel_path or "/二游与竞技/" in rel_path:
-            status = "已完成"
-        elif "/未完成/" in rel_path:
-            status = "未完成"
-        else:
-            status = ""
-
-        return Review(
-            path=rel_path,
-            title=self._extract_title(filepath, lines),
-            reviewer="Aspark",
-            score=self._extract_score(filepath, lines, content),
-            score_raw=self._extract_score_raw(filepath, lines, content),
-            score_system="stars",
-            sub_scores=self._extract_sub_scores(lines),
-            category=["游戏"],
-            status=status,
-            tags=self._extract_tags(filepath, lines, content),
-            date=self._extract_date(lines, content),
-            modified=modified,
-            extra=self._extract_extra(filepath, lines, content),
-        )
-
-    def _extract_title(self, filepath: Path, lines: list[str]) -> str:
-        return lines[0].strip() if lines else filepath.stem
-
-    def _extract_score(
-        self, filepath: Path, lines: list[str], content: str
-    ) -> int | None:
-        m = re.search(r"(★+)", filepath.stem)
-        return len(m.group(1)) if m else None
-
-    def _extract_score_raw(
-        self, filepath: Path, lines: list[str], content: str
-    ) -> str:
-        m = re.search(r"(★+)", filepath.stem)
-        return m.group(1) if m else ""
-
-    def _extract_sub_scores(self, lines: list[str]) -> dict:
-        result = {}
-        for line in lines[1:]:
-            stripped = line.strip()
-            if not stripped or re.match(r"^-{3,}", stripped):
-                break
-            m = re.match(r"^([^★]+)(★+)\s*$", stripped)
-            if m:
-                result[m.group(1).strip()] = len(m.group(2))
-            else:
-                break
-        return result
-
-    def _extract_tags(
-        self, filepath: Path, lines: list[str], content: str
-    ) -> list[str]:
-        return []
-
-    def _extract_date(self, lines: list[str], content: str) -> str | None:
-        # Date appears near the end as ---YY.M.D (e.g. ---25.9.12 初版)
-        m = re.search(r"---(\d{2})\.(\d{1,2})\.(\d{1,2})", content)
-        if m:
-            yy, mo, dd = m.group(1), m.group(2).zfill(2), m.group(3).zfill(2)
-            return f"20{yy}-{mo}-{dd}"
+    try:
+        content = filepath.read_text(encoding="utf-8")
+    except Exception:
         return None
 
-    def _extract_extra(
-        self, filepath: Path, lines: list[str], content: str
-    ) -> dict:
-        extra = {}
-        m = re.search(r"@(\S+)", content)
-        if m:
-            extra["author"] = m.group(1)
-        return extra
+    meta, body = parse_yaml_frontmatter(content)
+    if not meta:
+        return None  # no YAML frontmatter → not a review
 
+    if "---fin.---" not in body:
+        return None
 
-# ---------------------------------------------------------------------------
-# ┌─────────────────────────────────────────────────────────────────────────┐
-# │  EXTRACTOR 2 – Blind-Guess-Senior                                       │
-# │                                                                         │
-# │  Folders: Blind-Guess-Senior/Game/by-name/                              │
-# │           Blind-Guess-Senior/Anime/by-year/                             │
-# │           Blind-Guess-Senior/Book/by-author/                            │
-# │  Format:  YAML frontmatter (status, score, year, month, category,       │
-# │           tags, …); sub-scores in a fenced code block in the body.      │
-# └─────────────────────────────────────────────────────────────────────────┘
+    reviewer = str(meta.get("reviewer") or "").strip()
+    if not reviewer:
+        return None
 
-class BlindGuessSeniorExtractor(ReviewExtractor):
-    """Extraction strategy for Blind-Guess-Senior's review files.
+    # Title: explicit YAML field, or filename stem (stars stripped)
+    title = str(meta.get("title") or "").strip() or re.sub(r"★.*$", "", filepath.stem).strip()
 
-    How to fill this in
-    -------------------
-    Same pattern as :class:`AsparkExtractor`: implement the ``_extract_*``
-    helpers.  The YAML frontmatter is already parsed for you and passed as
-    ``meta``; the body text (after the ``---`` block) is passed as ``body``.
+    # Score: keep the raw YAML value as-is for the UI
+    score_val = meta.get("score")
+    score_raw = str(score_val) if score_val is not None else ""
+    score = coerce_int(score_val)
 
-    Already wired up
-    ----------------
-    * ``Review.path`` / ``Review.reviewer`` / ``Review.modified``
-    * ``Review.score_system`` is always ``"decimal"``
-    * ``Review.title`` comes from the filename (stars stripped)
-    """
+    # Score system: from YAML, or auto-detected
+    score_system = str(meta.get("score_system") or "").strip()
+    if not score_system:
+        if isinstance(score_val, str) and "★" in score_val:
+            score_system = "stars"
+        elif score is not None:
+            score_system = "decimal"
+    # When using stars, derive the numeric count from the raw value
+    if score_system == "stars" and score is None and isinstance(score_val, str):
+        score = score_val.count("★") or None
 
-    # YAML keys consumed by the standard Review fields – not forwarded to ``extra``.
-    _STANDARD_YAML_KEYS: frozenset[str] = frozenset(
-        {"status", "score", "year", "month", "category", "tags"}
-    )
-
-    def extract(self, filepath: Path, rel_path: str) -> Review | None:
-        content = self.read(filepath)
-        if content is None:
-            return None
-
-        meta, body = parse_yaml_frontmatter(content)
-
-        # Only include reviews marked as finished with ---fin.---
-        if "---fin.---" not in body:
-            return None
-
-        title = re.sub(r"★.*$", "", filepath.stem).strip()
-        modified = self.mtime_iso(filepath)
-
-        return Review(
-            path=rel_path,
-            title=title,
-            reviewer="Blind-Guess-Senior",
-            score=self._extract_score(meta, body),
-            score_raw=self._extract_score_raw(meta, body),
-            score_system="decimal",
-            category=self._extract_category(meta, body),
-            status=self._extract_status(meta, body),
-            tags=self._extract_tags(meta, body),
-            date=self._extract_date(meta, body),
-            modified=modified,
-            extra=self._extract_extra(meta, body, filepath),
-        )
-
-    def _extract_score(self, meta: dict, body: str) -> int | None:
-        return coerce_int(meta.get("score"))
-
-    def _extract_score_raw(self, meta: dict, body: str) -> str:
-        score = meta.get("score")
-        return str(score) if score is not None else ""
-
-    def _extract_category(self, meta: dict, body: str) -> list[str]:
-        return to_str_list(meta.get("category"))
-
-    def _extract_status(self, meta: dict, body: str) -> str:
-        return str(meta.get("status") or "").strip()
-
-    def _extract_tags(self, meta: dict, body: str) -> list[str]:
-        return to_str_list(meta.get("tags"))
-
-    def _extract_date(self, meta: dict, body: str) -> str | None:
-        year  = coerce_int(meta.get("year"))
+    # Date: explicit ISO ``date`` field, or assembled from ``year``/``month``
+    date_val = str(meta.get("date") or "").strip() or None
+    if not date_val:
+        year = coerce_int(meta.get("year"))
         month = coerce_int(meta.get("month"))
         if year:
-            return f"{year}-{month:02d}" if month and 1 <= month <= 12 else str(year)
-        return None
+            date_val = f"{year}-{month:02d}" if month and 1 <= month <= 12 else str(year)
 
-    def _extract_extra(self, meta: dict, body: str, filepath: Path) -> dict:
-        """Pass through all YAML fields not consumed by standard Review fields.
+    def _nonempty(v) -> bool:
+        if v is None:
+            return False
+        if isinstance(v, (list, dict)):
+            return len(v) > 0
+        return str(v).strip() != ""
 
-        Any new field added to the YAML frontmatter automatically appears in
-        ``extra`` without requiring code changes here.
-        """
-        def _nonempty(v) -> bool:
-            if v is None:
-                return False
-            if isinstance(v, (list, dict)):
-                return len(v) > 0
-            return str(v).strip() != ""
+    extra = {k: v for k, v in meta.items() if k not in _STANDARD_KEYS and _nonempty(v)}
 
-        return {
-            k: v for k, v in meta.items()
-            if k not in self._STANDARD_YAML_KEYS and _nonempty(v)
-        }
+    return Review(
+        path=rel_path,
+        title=title,
+        reviewer=reviewer,
+        score=score,
+        score_raw=score_raw,
+        score_system=score_system,
+        category=to_str_list(meta.get("category")),
+        status=str(meta.get("status") or "").strip(),
+        tags=to_str_list(meta.get("tags")),
+        date=date_val,
+        modified=mtime_iso(filepath),
+        extra=extra,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -426,69 +237,32 @@ def is_content_file(filepath: Path, rel_path: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Registry: map folders → extractors
-# ---------------------------------------------------------------------------
-
-def build_registry() -> list[tuple[Path, ReviewExtractor]]:
-    """Return ``[(folder_path, extractor_instance), …]``.
-
-    Add new ``(folder, extractor)`` pairs here when new authors or
-    content types are introduced.
-    """
-    return [
-        # Aspark – completed game reviews
-        (ROOT / "Aspark" / "小众变态测评" / "游戏",         AsparkExtractor()),
-        # Aspark – gacha / competitive game reviews
-        (ROOT / "Aspark" / "小众变态测评" / "二游与竞技",   AsparkExtractor()),
-        # Aspark – in-progress reviews
-        (ROOT / "Aspark" / "小众变态测评" / "未完成",        AsparkExtractor()),
-
-        # Blind-Guess-Senior – games (alphabetical)
-        (ROOT / "Blind-Guess-Senior" / "Game"  / "by-name",   BlindGuessSeniorExtractor()),
-        # Blind-Guess-Senior – anime (by release year)
-        (ROOT / "Blind-Guess-Senior" / "Anime" / "by-year",   BlindGuessSeniorExtractor()),
-        # Blind-Guess-Senior – books (by author)
-        (ROOT / "Blind-Guess-Senior" / "Book"  / "by-author", BlindGuessSeniorExtractor()),
-    ]
-
-
-# ---------------------------------------------------------------------------
 # Scanner
 # ---------------------------------------------------------------------------
 
-def scan(registry: list[tuple[Path, ReviewExtractor]]) -> list[dict]:
-    """Walk every registered folder, extract metadata, return list of dicts."""
+def scan() -> list[dict]:
+    """Walk the entire repository tree, extract metadata, return list of dicts."""
     seen: set[str] = set()
     results: list[dict] = []
     errors: list[str] = []
 
-    for folder, extractor in registry:
-        if not folder.exists():
-            print(f"  [warn] folder not found: {folder}")
+    for filepath in sorted(ROOT.rglob("*.md")):
+        rel_path = filepath.relative_to(ROOT).as_posix()
+
+        if not is_content_file(filepath, rel_path):
+            continue
+        if rel_path in seen:
+            continue
+        seen.add(rel_path)
+
+        try:
+            review = extract_review(filepath, rel_path)
+        except Exception as exc:
+            errors.append(f"{rel_path}: {exc}")
             continue
 
-        for filepath in sorted(folder.rglob("*.md")):
-            rel_path = filepath.relative_to(ROOT).as_posix()
-
-            if not is_content_file(filepath, rel_path):
-                continue
-            if not extractor.should_include(filepath, rel_path):
-                continue
-            if rel_path in seen:
-                continue  # already processed by an earlier folder entry
-            seen.add(rel_path)
-
-            try:
-                review = extractor.extract(filepath, rel_path)
-            except NotImplementedError:
-                # Extractor stub not yet filled in — skip silently
-                continue
-            except Exception as exc:
-                errors.append(f"{rel_path}: {exc}")
-                continue
-
-            if review is not None:
-                results.append(review.to_dict())
+        if review is not None:
+            results.append(review.to_dict())
 
     if errors:
         print(f"  [warn] {len(errors)} extraction error(s):")
@@ -505,8 +279,7 @@ def scan(registry: list[tuple[Path, ReviewExtractor]]) -> list[dict]:
 def main() -> None:
     print("Building site_data.json…")
 
-    registry = build_registry()
-    reviews = scan(registry)
+    reviews = scan()
 
     # Sort: most recently modified first (front-end "recent updates" view)
     reviews.sort(key=lambda r: r.get("modified", ""), reverse=True)

@@ -400,7 +400,7 @@
       <!-- Score (only when exactly one reviewer is selected) -->
       <div class="filter-section" v-if="scoreFilterVisible">
         <div class="filter-title">分数筛选</div>
-        <!-- Stars (Aspark) -->
+        <!-- Stars -->
         <template v-if="selectedReviewerScoreSystem === 'stars'">
           <div class="filter-options">
             <label class="filter-option" v-for="n in [5,4,3,2,1]" :key="n">
@@ -409,7 +409,7 @@
             </label>
           </div>
         </template>
-        <!-- Decimal (Blind-Guess-Senior) -->
+        <!-- Decimal -->
         <template v-else-if="selectedReviewerScoreSystem === 'decimal'">
           <div class="score-range">
             <input type="range" min="1" max="10" v-model.number="scoreMin" @input="page=1">
