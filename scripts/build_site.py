@@ -117,7 +117,7 @@ def extract_review(filepath: Path, rel_path: str) -> dict | None:
     if not meta:
         return None  # no YAML frontmatter → not a review
 
-    if "---fin.---" not in body and meta.get("status") != "已完成":
+    if "---fin.---" not in body:
         return None
 
     # Start with all YAML keys verbatim
