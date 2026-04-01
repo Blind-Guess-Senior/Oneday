@@ -270,15 +270,6 @@
     .article-meta-item strong { color: #1e293b; }
     .article-meta-sep { color: var(--border); }
 
-    .sub-scores-table { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0 1rem; }
-    .sub-score-cell {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 7px; padding: .3rem .7rem;
-      font-size: .82rem; text-align: center; min-width: 56px;
-    }
-    .sub-score-cell .dim-name { color: var(--muted); font-size: .72rem; }
-    .sub-score-cell .dim-val  { font-weight: 700; }
-
     /* ── Markdown renderer ────────────────────────────────────────────── */
     .md-body {
       line-height: 1.75; color: #1e293b;
@@ -384,64 +375,54 @@
     <!-- ── Filter sidebar ──────────────────────────────────────────── -->
     <aside class="sidebar" :class="{open:sidebarOpen}" v-show="view==='home'">
 
-      <!-- Reviewer -->
+      <!-- Category -->
       <div class="filter-section">
+        <div class="filter-title">分类</div>
+        <div class="filter-options">
+          <label class="filter-option" v-for="c in ['游戏','动漫','书籍']" :key="c">
+            <input type="checkbox" :value="c" v-model="filterCategories" @change="onCategoryChange">
+            {{ c }}
+          </label>
+        </div>
+      </div>
+
+      <!-- Reviewer (filtered to selected categories) -->
+      <div class="filter-section" v-if="reviewersInCategory.length">
         <div class="filter-title">评测者</div>
         <div class="filter-options">
-          <label class="filter-option" v-for="r in meta.reviewers" :key="r">
+          <label class="filter-option" v-for="r in reviewersInCategory" :key="r">
             <input type="checkbox" :value="r" v-model="filterReviewers" @change="page=1">
             {{ r }}
           </label>
         </div>
       </div>
 
-      <!-- Category -->
-      <div class="filter-section">
-        <div class="filter-title">分类</div>
-        <div class="filter-options">
-          <label class="filter-option" v-for="c in meta.categories" :key="c">
-            <input type="checkbox" :value="c" v-model="filterCategories" @change="page=1">
-            {{ c }}
-          </label>
-        </div>
-      </div>
-
-      <!-- Status -->
-      <div class="filter-section">
-        <div class="filter-title">状态</div>
-        <div class="filter-options">
-          <label class="filter-option" v-for="s in ['已完成','进行中','未完成']" :key="s">
-            <input type="checkbox" :value="s" v-model="filterStatuses" @change="page=1">
-            {{ s }}
-          </label>
-        </div>
-      </div>
-
-      <!-- Score (decimal: Blind-Guess-Senior) -->
-      <div class="filter-section" v-if="hasDecimalScores">
-        <div class="filter-title">盲视分数 (1–10)</div>
-        <div class="score-range">
-          <input type="range" min="1" max="10" v-model.number="scoreMin" @input="page=1">
-          <input type="range" min="1" max="10" v-model.number="scoreMax" @input="page=1">
-          <div class="score-range-labels">
-            <span>≥ {{ scoreMin }}</span>
-            <span>≤ {{ scoreMax }}</span>
+      <!-- Score (only when exactly one reviewer is selected) -->
+      <div class="filter-section" v-if="scoreFilterVisible">
+        <div class="filter-title">分数筛选</div>
+        <!-- Stars -->
+        <template v-if="selectedReviewerScoreSystem === 'stars'">
+          <div class="filter-options">
+            <label class="filter-option" v-for="n in [5,4,3,2,1]" :key="n">
+              <input type="checkbox" :value="n" v-model="filterStars" @change="page=1">
+              <span style="color:var(--star)">{{ '★'.repeat(n) }}</span>
+            </label>
           </div>
-        </div>
+        </template>
+        <!-- Decimal -->
+        <template v-else-if="selectedReviewerScoreSystem === 'decimal'">
+          <div class="score-range">
+            <input type="range" min="1" max="10" v-model.number="scoreMin" @input="page=1">
+            <input type="range" min="1" max="10" v-model.number="scoreMax" @input="page=1">
+            <div class="score-range-labels">
+              <span>≥ {{ scoreMin }}</span>
+              <span>≤ {{ scoreMax }}</span>
+            </div>
+          </div>
+        </template>
       </div>
 
-      <!-- Stars (Aspark) -->
-      <div class="filter-section" v-if="hasStarScores">
-        <div class="filter-title">Aspark 星级</div>
-        <div class="filter-options">
-          <label class="filter-option" v-for="n in [5,4,3,2,1]" :key="n">
-            <input type="checkbox" :value="n" v-model="filterStars" @change="page=1">
-            <span style="color:var(--star)">{{ '★'.repeat(n) }}</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Tags -->
+      <!-- Tags (universal) -->
       <div class="filter-section" v-if="visibleTags.length">
         <div class="filter-title">标签</div>
         <div class="tag-cloud">
@@ -496,7 +477,6 @@
             <div class="card" v-for="r in paged" :key="r.path" @click="navArticle(r)">
               <div class="card-top">
                 <span class="badge" :class="categoryBadgeClass(r)">{{ primaryCategory(r) }}</span>
-                <span class="badge" :class="statusBadgeClass(r)">{{ r.status || '—' }}</span>
               </div>
               <div class="card-title">{{ r.title }}</div>
               <div class="card-meta">
@@ -550,10 +530,6 @@
             <span class="article-meta-item">
               <span>分类</span>&nbsp;<strong>{{ (article.category||[]).join(' / ') || '—' }}</strong>
             </span>
-            <span class="article-meta-sep">|</span>
-            <span class="article-meta-item">
-              <span>状态</span>&nbsp;<strong>{{ article.status || '—' }}</strong>
-            </span>
             <template v-if="article.score_raw">
               <span class="article-meta-sep">|</span>
               <span class="article-meta-item">
@@ -575,23 +551,6 @@
                   @click="filterByTag(t)"
                 >{{ t }}</span>
               </span>
-            </template>
-          </div>
-
-          <!-- Sub-scores -->
-          <div class="sub-scores-table" v-if="hasSubScores(article)">
-            <template v-if="article.score_system === 'stars'">
-              <div class="sub-score-cell" v-for="(v, k) in article.sub_scores" :key="k">
-                <div class="dim-name">{{ k }}</div>
-                <div class="dim-val score-stars">{{ v !== null && v !== undefined ? '★'.repeat(v) : 'N/A' }}</div>
-              </div>
-            </template>
-            <template v-else>
-              <div class="sub-score-cell" v-for="(v, k) in article.sub_scores" :key="k">
-                <div class="dim-name">{{ k }}</div>
-                <div class="dim-val">{{ v && v.value !== undefined ? v.value + '/' + v.max : '—' }}</div>
-                <div style="font-size:.7rem;color:var(--muted)" v-if="v && v.label">{{ v.label }}</div>
-              </div>
             </template>
           </div>
 
@@ -637,8 +596,17 @@ const DATA_URL  = "site_data.json";
 
 function renderMarkdown(raw) {
   if (!raw) return "";
+  let src = raw;
+  // Strip YAML frontmatter (--- ... ---) from the top.
+  // Use "\n---\n" to ensure the closing delimiter is on its own line.
+  if (src.startsWith("---")) {
+    const end = src.indexOf("\n---\n", 3);
+    if (end !== -1) src = src.slice(end + 5).trimStart();
+  }
+  // Strip ---fin.--- completion marker wherever it appears
+  src = src.replace(/^---fin\.---\s*\n?/m, "");
   // Strip wiki-style links [[text|alias]] -> text, [[text]] -> text
-  let src = raw.replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, "$1");
+  src = src.replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, "$1");
   const html = marked.parse(src, { breaks: true, gfm: true });
   return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
 }
@@ -661,7 +629,6 @@ createApp({
     const search          = ref("");
     const filterReviewers = ref([]);
     const filterCategories= ref([]);
-    const filterStatuses  = ref([]);
     const filterStars     = ref([]);
     const filterTags      = ref([]);
     const scoreMin        = ref(1);
@@ -672,15 +639,29 @@ createApp({
     const showAllTags     = ref(false);
 
     // ── Computed ──────────────────────────────────────────────────
-    const hasDecimalScores = computed(() =>
-      reviews.value.some(r => r.score_system === "decimal" && r.score != null)
-    );
-    const hasStarScores = computed(() =>
-      reviews.value.some(r => r.score_system === "stars")
-    );
     const visibleTags = computed(() => {
       const all = (meta.value.all_tags) || [];
       return showAllTags.value ? all : all.slice(0, TAG_LIMIT);
+    });
+
+    // Reviewers that have at least one review in the selected categories
+    const reviewersInCategory = computed(() => {
+      const allReviewers = meta.value.reviewers || [];
+      if (!filterCategories.value.length) return allReviewers;
+      return allReviewers.filter(r =>
+        reviews.value.some(rev =>
+          rev.reviewer === r &&
+          (rev.category || []).some(c => filterCategories.value.includes(c))
+        )
+      );
+    });
+
+    // Score filter is only shown when exactly one reviewer is selected
+    const scoreFilterVisible = computed(() => filterReviewers.value.length === 1);
+    const selectedReviewerScoreSystem = computed(() => {
+      if (filterReviewers.value.length !== 1) return null;
+      const rev = reviews.value.find(r => r.reviewer === filterReviewers.value[0]);
+      return rev ? rev.score_system : null;
     });
 
     const filtered = computed(() => {
@@ -691,21 +672,22 @@ createApp({
         (r.tags  || []).some(t => t.toLowerCase().includes(q)) ||
         (r.reviewer || "").toLowerCase().includes(q)
       );
-      if (filterReviewers.value.length)
-        list = list.filter(r => filterReviewers.value.includes(r.reviewer));
       if (filterCategories.value.length)
         list = list.filter(r => (r.category || []).some(c => filterCategories.value.includes(c)));
-      if (filterStatuses.value.length)
-        list = list.filter(r => filterStatuses.value.includes(r.status));
+      if (filterReviewers.value.length)
+        list = list.filter(r => filterReviewers.value.includes(r.reviewer));
       if (filterTags.value.length)
         list = list.filter(r => filterTags.value.every(t => (r.tags || []).includes(t)));
-      if (filterStars.value.length)
-        list = list.filter(r => r.score_system === "stars" && filterStars.value.includes(r.score));
-      if (hasDecimalScores.value && (scoreMin.value > 1 || scoreMax.value < 10))
-        list = list.filter(r =>
-          r.score_system !== "decimal" ||
-          (r.score != null && r.score >= scoreMin.value && r.score <= scoreMax.value)
-        );
+      // Score filter only applies when a single reviewer is selected
+      if (scoreFilterVisible.value) {
+        if (selectedReviewerScoreSystem.value === "stars" && filterStars.value.length)
+          list = list.filter(r => r.score_system === "stars" && filterStars.value.includes(r.score));
+        if (selectedReviewerScoreSystem.value === "decimal" && (scoreMin.value > 1 || scoreMax.value < 10))
+          list = list.filter(r =>
+            r.score_system !== "decimal" ||
+            (r.score != null && r.score >= scoreMin.value && r.score <= scoreMax.value)
+          );
+      }
 
       const key = sortBy.value;
       return [...list].sort((a, b) => {
@@ -762,20 +744,26 @@ createApp({
       if (s === "进行中") return "badge-status-doing";
       return "badge-status-todo";
     }
-    function hasSubScores(r) {
-      return r.sub_scores && Object.keys(r.sub_scores).length > 0;
-    }
+    const EXTRA_LABELS = {
+      release: "发行年份", type: "类型",
+      developer: "开发商", publisher: "发行商",
+      author: "作者", country: "国家/地区",
+    };
+    const REVIEW_RESERVED_KEYS = new Set([
+      "path", "modified", "title", "reviewer",
+      "score", "score_raw", "score_system",
+      "category", "status", "tags",
+    ]);
     function extraMeta(r) {
-      const items = [];
-      if (r.book_author)                items.push({ label: "作者",     value: r.book_author });
-      if (r.country)                    items.push({ label: "国家/地区", value: r.country });
-      if (r.release_year)               items.push({ label: "发行年份",  value: r.release_year });
-      if (r.media_type)                 items.push({ label: "类型",     value: r.media_type });
-      if (r.developer?.length)          items.push({ label: "开发商",   value: r.developer.join(" / ") });
-      if (r.publisher?.length &&
-          JSON.stringify(r.publisher) !== JSON.stringify(r.developer))
-        items.push({ label: "发行商", value: r.publisher.join(" / ") });
-      return items;
+      return Object.entries(r)
+        .filter(([k, v]) =>
+          !REVIEW_RESERVED_KEYS.has(k) &&
+          v != null && v !== "" && (!Array.isArray(v) || v.length > 0)
+        )
+        .map(([k, v]) => ({
+          label: EXTRA_LABELS[k] || k,
+          value: Array.isArray(v) ? v.join(" / ") : String(v),
+        }));
     }
 
     // ── Navigation ────────────────────────────────────────────────
@@ -816,9 +804,15 @@ createApp({
       if (i === -1) filterTags.value.push(tag); else filterTags.value.splice(i, 1);
       page.value = 1;
     }
+    function onCategoryChange() {
+      filterReviewers.value = [];
+      filterStars.value = [];
+      scoreMin.value = 1; scoreMax.value = 10;
+      page.value = 1;
+    }
     function resetFilters() {
       search.value = ""; filterReviewers.value = []; filterCategories.value = [];
-      filterStatuses.value = []; filterStars.value = []; filterTags.value = [];
+      filterStars.value = []; filterTags.value = [];
       scoreMin.value = 1; scoreMax.value = 10; page.value = 1;
     }
 
@@ -855,13 +849,14 @@ createApp({
       loading, error, reviews, meta,
       view, article, articleHtml, articleLoading,
       search, filterReviewers, filterCategories,
-      filterStatuses, filterStars, filterTags,
+      filterStars, filterTags,
       scoreMin, scoreMax, sortBy, page, sidebarOpen, showAllTags,
       filtered, totalPages, paged, pageRange,
-      hasDecimalScores, hasStarScores, visibleTags,
+      reviewersInCategory, scoreFilterVisible, selectedReviewerScoreSystem,
+      visibleTags,
       primaryCategory, scoreClass, categoryBadgeClass,
-      statusBadgeClass, hasSubScores, extraMeta,
-      navHome, navArticle, filterByTag, toggleTag, resetFilters,
+      extraMeta,
+      navHome, navArticle, filterByTag, toggleTag, resetFilters, onCategoryChange,
       TAG_LIMIT,
     };
   }
