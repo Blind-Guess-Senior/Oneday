@@ -645,7 +645,7 @@ function renderMarkdown(raw, reviewPath, allReviews) {
       const href = '#/article/' + encodeURIComponent(found.path);
       return `<a href="${href}" class="wiki-link">${displayText}</a>`;
     }
-    return `<span class="wiki-link wiki-link-missing" title="找不到页面：${escapeHtml(target)}">${displayText}</span>`;
+    return `<span class="wiki-link-missing" title="找不到页面：${escapeHtml(target)}">${displayText}</span>`;
   });
   // Convert Obsidian highlight ==text== → styled <mark>
   src = src.replace(/==([^=\n]+)==/g, (_, text) => `<mark class="hl">${text}</mark>`);
@@ -693,7 +693,7 @@ createApp({
         (r.category || []).includes(filterCategories.value)
       );
       const catTags = [...new Set(catReviews.flatMap(r => r.tags || []))].sort();
-      return showAllTags.value ? catTags : catTags.slice(0, TAG_LIMIT);
+      return showAllTags.value ? catTags : (catTags.length > TAG_LIMIT ? catTags.slice(0, TAG_LIMIT) : catTags);
     });
 
     // Reviewers that have at least one review in the selected category
