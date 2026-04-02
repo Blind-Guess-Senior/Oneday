@@ -125,34 +125,92 @@ def load_metadata_maps(root: Path) -> dict[str, list]:
 
 
 # ---------------------------------------------------------------------------
+# Category map loader  (reads category.txt from top-level reviewer dirs)
+# ---------------------------------------------------------------------------
+
+def load_category_map(root: Path) -> dict[str, list[dict]]:
+    """Load ``category.txt`` files from top-level reviewer directories.
+
+    Line format::
+
+        分类名 = folder1+folder2
+
+    The category name (left of ``=``) is the label shown on the website.
+    The right side lists one or more sub-folder paths (relative to the reviewer
+    directory) separated by ``+``.
+
+    Returns a dict keyed by reviewer name.  Each value is an ordered list of
+    entries::
+
+        [{"name": "动漫", "folders": ["Anime"]}, ...]
+    """
+    result: dict[str, list[dict]] = {}
+    for top_dir in sorted(root.iterdir()):
+        if not top_dir.is_dir() or top_dir.name.startswith("."):
+            continue
+        cat_file = top_dir / "category.txt"
+        if not cat_file.exists():
+            continue
+        entries: list[dict] = []
+        for line in cat_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            name, folders_str = line.split("=", 1)
+            name = name.strip()
+            folders = [f.strip() for f in folders_str.split("+") if f.strip()]
+            if name and folders:
+                entries.append({"name": name, "folders": folders})
+        if entries:
+            result[top_dir.name] = entries
+    return result
+
+
+# ---------------------------------------------------------------------------
 # TBA (award files) scanner
 # ---------------------------------------------------------------------------
 
-def scan_tba(root: Path) -> list[dict]:
-    """Scan ``*/TBA/*.md`` files and return them as special award entries.
+def scan_tba(root: Path, category_map: dict[str, list[dict]]) -> list[dict]:
+    """Scan no-YAML award/special files defined via ``category.txt``.
 
-    These files have no YAML frontmatter and no ``---fin.---`` requirement.
-    They are included unconditionally with ``category: ["The Blind Award"]``.
+    Files without YAML frontmatter that live in folders listed in a
+    ``category.txt`` are included unconditionally (no ``---fin.---``
+    requirement).  Their category is taken from the ``category.txt`` mapping
+    rather than being hardcoded.
     """
     results: list[dict] = []
     for reviewer_dir in sorted(root.iterdir()):
         if not reviewer_dir.is_dir() or reviewer_dir.name.startswith("."):
             continue
-        tba_dir = reviewer_dir / "TBA"
-        if not tba_dir.is_dir():
-            continue
-        for fp in sorted(tba_dir.glob("*.md")):
-            rel_path = fp.relative_to(root).as_posix()
-            results.append({
-                "path":     rel_path,
-                "title":    fp.stem,
-                "reviewer": reviewer_dir.name,
-                "category": ["The Blind Award"],
-                "modified": mtime_iso(fp),
-                "tags":     [],
-                "score":    None,
-                "score_raw": "",
-            })
+        reviewer = reviewer_dir.name
+        cat_entries = category_map.get(reviewer, [])
+        for cat_entry in cat_entries:
+            cat_name = cat_entry["name"]
+            for folder_rel in cat_entry["folders"]:
+                cat_dir = reviewer_dir / folder_rel
+                if not cat_dir.is_dir():
+                    continue
+                for fp in sorted(cat_dir.glob("*.md")):
+                    try:
+                        content = fp.read_text(encoding="utf-8")
+                    except Exception:
+                        continue
+                    # Skip files that have YAML frontmatter — they are handled
+                    # by the main scan() / extract_review() pipeline.
+                    meta_check, _ = parse_yaml_frontmatter(content)
+                    if meta_check:
+                        continue
+                    rel_path = fp.relative_to(root).as_posix()
+                    results.append({
+                        "path":      rel_path,
+                        "title":     fp.stem,
+                        "reviewer":  reviewer,
+                        "category":  [cat_name],
+                        "modified":  mtime_iso(fp),
+                        "tags":      [],
+                        "score":     None,
+                        "score_raw": "",
+                    })
     return results
 
 
@@ -281,17 +339,35 @@ def scan() -> list[dict]:
 def main() -> None:
     print("Building site_data.json…")
 
+    category_map = load_category_map(ROOT)
+
     reviews = scan()
-    tba = scan_tba(ROOT)
+    tba = scan_tba(ROOT, category_map)
     reviews.extend(tba)
 
     # Sort: most recently modified first (front-end "recent updates" view)
     reviews.sort(key=lambda r: r.get("modified", ""), reverse=True)
 
     # Aggregate vocabulary for filter dropdowns
-    all_tags       = sorted({t for r in reviews for t in (r.get("tags") or [])})
-    all_categories = sorted({c for r in reviews for c in to_str_list(r.get("category"))})
-    reviewers      = sorted({r["reviewer"] for r in reviews})
+    all_tags = sorted({t for r in reviews for t in (r.get("tags") or [])})
+    reviewers = sorted({r["reviewer"] for r in reviews})
+
+    # Build ordered categories list from category.txt files (preserving order).
+    # Any category found in reviews but not in any category.txt is appended at
+    # the end in sorted order so nothing is accidentally hidden.
+    ordered_cats: list[str] = []
+    seen_cats: set[str] = set()
+    for _reviewer, entries in category_map.items():
+        for entry in entries:
+            name = entry["name"]
+            if name not in seen_cats:
+                ordered_cats.append(name)
+                seen_cats.add(name)
+    # Append any remaining categories from reviews that aren't in category.txt
+    extra_cats = sorted(
+        {c for r in reviews for c in to_str_list(r.get("category"))} - seen_cats
+    )
+    ordered_cats.extend(extra_cats)
 
     metadata_maps = load_metadata_maps(ROOT)
 
@@ -300,7 +376,7 @@ def main() -> None:
         "meta": {
             "total":         len(reviews),
             "generated":     datetime.now().isoformat(),
-            "categories":    all_categories,
+            "categories":    ordered_cats,
             "reviewers":     reviewers,
             "all_tags":      all_tags,
             "metadata_maps": metadata_maps,
@@ -314,7 +390,7 @@ def main() -> None:
     print(f"✓ Written {out}")
     print(f"  Reviews    : {len(reviews)}")
     print(f"  Reviewers  : {reviewers}")
-    print(f"  Categories : {all_categories}")
+    print(f"  Categories : {ordered_cats}")
     print(f"  Tags       : {len(all_tags)} unique")
 
 

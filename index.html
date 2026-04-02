@@ -315,6 +315,15 @@
     .md-body th,.md-body td { border: 1px solid var(--border); padding: .4rem .7rem; text-align: left; }
     .md-body th { background: var(--bg); font-weight: 600; }
     .md-body img { max-width: 100%; border-radius: 6px; }
+    .md-body .wiki-link { color: var(--accent); text-decoration: underline; cursor: pointer; }
+    .md-body .wiki-link-missing { color: #c0605a; text-decoration: underline dotted; cursor: default; }
+    .md-body mark.hl {
+      background: none;
+      border-bottom: 2px solid #f59e0b;
+      padding-bottom: 1px;
+      color: #b45309;
+    }
+    .filter-option.selected { background: #eff3ff; color: var(--accent); font-weight: 600; }
 
     /* ── Empty / loading states ───────────────────────────────────────── */
     .state-center { text-align: center; padding: 4rem 1rem; color: var(--muted); }
@@ -385,12 +394,13 @@
       <div class="filter-section">
         <div class="filter-title">分类</div>
         <div class="filter-options">
-          <label class="filter-option"
-            v-for="c in (['游戏','动漫','书籍','The Blind Award'].filter(c => (meta.categories||[]).includes(c)))"
-            :key="c">
-            <input type="checkbox" :value="c" v-model="filterCategories" @change="onCategoryChange">
+          <div class="filter-option"
+            v-for="c in (meta.categories || [])"
+            :key="c"
+            :class="{selected: filterCategories === c}"
+            @click="selectCategory(c)">
             {{ c }}
-          </label>
+          </div>
         </div>
       </div>
 
@@ -425,8 +435,8 @@
         </div>
       </div>
 
-      <!-- Tags (universal) -->
-      <div class="filter-section" v-if="visibleTags.length">
+      <!-- Tags (only shown when a category is selected) -->
+      <div class="filter-section" v-if="filterCategories && visibleTags.length">
         <div class="filter-title">标签</div>
         <div class="tag-cloud">
           <span
@@ -437,7 +447,7 @@
           >{{ t }}</span>
         </div>
         <button
-          v-if="meta.all_tags && meta.all_tags.length > TAG_LIMIT"
+          v-if="visibleTags.length === TAG_LIMIT || showAllTags"
           style="margin-top:.5rem;font-size:.78rem;color:var(--muted);background:none;border:none;"
           @click="showAllTags=!showAllTags"
         >
@@ -597,7 +607,7 @@ const PAGE_SIZE = 30;
 const TAG_LIMIT = 30;
 const DATA_URL  = "site_data.json";
 
-function renderMarkdown(raw, reviewPath) {
+function renderMarkdown(raw, reviewPath, allReviews) {
   if (!raw) return "";
   let src = raw;
   // Strip YAML frontmatter (--- ... ---) from the top.
@@ -619,12 +629,36 @@ function renderMarkdown(raw, reviewPath) {
       return `![${fname}](${dir}${encodedFname})`;
     });
   }
-  // Convert remaining wiki-style links [[target|alias]] → alias; [[target]] → last path segment
-  src = src.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, target, alias) =>
-    alias || target.split("/").pop()
-  );
+  // Convert wiki-style links [[target#section|alias]] or [[target|alias]] or [[target]]
+  // → clickable link to a matching review (or a visually distinct "missing" span).
+  src = src.replace(/\[\[([^\]|]+?)(?:\|([^\]]+))?\]\]/g, (_, rawTarget, alias) => {
+    // Strip the #section anchor — we only navigate to the page, not a specific heading
+    const target = rawTarget.split('#')[0].trim();
+    const displayText = escapeHtml(alias || rawTarget.split('/').pop().split('#')[0].trim());
+    if (!target) return displayText;
+    // Look up a matching review by file stem or title
+    const found = (allReviews || []).find(r => {
+      const stem = r.path.split('/').pop().replace(/\.md$/i, '');
+      return stem === target || r.title === target;
+    });
+    if (found) {
+      const href = '#/article/' + encodeURIComponent(found.path);
+      return `<a href="${href}" class="wiki-link">${displayText}</a>`;
+    }
+    return `<span class="wiki-link-missing" title="找不到页面：${escapeHtml(target)}">${displayText}</span>`;
+  });
+  // Convert Obsidian highlight ==text== → styled <mark>
+  src = src.replace(/==([^=\n]+)==/g, (_, text) => `<mark class="hl">${text}</mark>`);
   const html = marked.parse(src, { breaks: true, gfm: true });
   return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 createApp({
@@ -644,7 +678,7 @@ createApp({
     // ── Filters ───────────────────────────────────────────────────
     const search          = ref("");
     const filterReviewers = ref([]);
-    const filterCategories= ref([]);
+    const filterCategories = ref("");
     const filterScores    = Vue.reactive({}); // { [reviewer]: number[] }
     const filterTags      = ref([]);
     const sortBy          = ref("modified");
@@ -652,20 +686,24 @@ createApp({
     const sidebarOpen     = ref(false);
     const showAllTags     = ref(false);
 
-    // ── Computed ──────────────────────────────────────────────────
+    // Tags relevant to the currently selected category (empty when no category selected)
     const visibleTags = computed(() => {
-      const all = (meta.value.all_tags) || [];
-      return showAllTags.value ? all : all.slice(0, TAG_LIMIT);
+      if (!filterCategories.value) return [];
+      const catReviews = reviews.value.filter(r =>
+        (r.category || []).includes(filterCategories.value)
+      );
+      const catTags = [...new Set(catReviews.flatMap(r => r.tags || []))].sort();
+      return showAllTags.value ? catTags : (catTags.length > TAG_LIMIT ? catTags.slice(0, TAG_LIMIT) : catTags);
     });
 
-    // Reviewers that have at least one review in the selected categories
+    // Reviewers that have at least one review in the selected category
     const reviewersInCategory = computed(() => {
       const allReviewers = meta.value.reviewers || [];
-      if (!filterCategories.value.length) return allReviewers;
+      if (!filterCategories.value) return allReviewers;
       return allReviewers.filter(r =>
         reviews.value.some(rev =>
           rev.reviewer === r &&
-          (rev.category || []).some(c => filterCategories.value.includes(c))
+          (rev.category || []).includes(filterCategories.value)
         )
       );
     });
@@ -691,8 +729,8 @@ createApp({
         (r.tags  || []).some(t => t.toLowerCase().includes(q)) ||
         (r.reviewer || "").toLowerCase().includes(q)
       );
-      if (filterCategories.value.length)
-        list = list.filter(r => (r.category || []).some(c => filterCategories.value.includes(c)));
+      if (filterCategories.value)
+        list = list.filter(r => (r.category || []).includes(filterCategories.value));
       if (filterReviewers.value.length)
         list = list.filter(r => filterReviewers.value.includes(r.reviewer));
       if (filterTags.value.length)
@@ -838,7 +876,7 @@ createApp({
         const resp = await fetch(r.path);
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const raw = await resp.text();
-        articleHtml.value = renderMarkdown(raw, r.path);
+        articleHtml.value = renderMarkdown(raw, r.path, reviews.value);
       } catch (e) {
         articleHtml.value = "<p style='color:red'>无法加载文章内容。</p>";
       } finally {
@@ -855,14 +893,20 @@ createApp({
       if (i === -1) filterTags.value.push(tag); else filterTags.value.splice(i, 1);
       page.value = 1;
     }
+    function selectCategory(c) {
+      filterCategories.value = filterCategories.value === c ? "" : c;
+      onCategoryChange();
+    }
     function onCategoryChange() {
       filterReviewers.value = [];
+      filterTags.value = [];
+      showAllTags.value = false;
       Object.keys(filterScores).forEach(k => delete filterScores[k]);
       page.value = 1;
     }
     function resetFilters() {
-      search.value = ""; filterReviewers.value = []; filterCategories.value = [];
-      filterTags.value = [];
+      search.value = ""; filterReviewers.value = []; filterCategories.value = "";
+      filterTags.value = []; showAllTags.value = false;
       Object.keys(filterScores).forEach(k => delete filterScores[k]);
       page.value = 1;
     }
@@ -908,7 +952,7 @@ createApp({
       visibleTags,
       primaryCategory, scoreClass, categoryBadgeClass,
       extraMeta,
-      navHome, navArticle, filterByTag, toggleTag, resetFilters, onCategoryChange,
+      navHome, navArticle, filterByTag, toggleTag, resetFilters, onCategoryChange, selectCategory,
       TAG_LIMIT,
     };
   }
