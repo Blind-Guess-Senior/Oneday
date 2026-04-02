@@ -781,7 +781,7 @@ createApp({
     function scoreClass(r) {
       if (!r || r.score == null) return "";
       if (r.score_system === "stars") return "score-stars";
-      if (r.score >= 8) return "score-hi";
+      if (r.score >= 7) return "score-hi";
       if (r.score >= 5) return "score-mid";
       return "score-lo";
     }
