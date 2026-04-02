@@ -141,6 +141,7 @@
     .filter-reset:hover { border-color: var(--accent); color: var(--accent); }
 
     .tag-cloud { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .3rem; }
+    .tag-cloud + .tag-cloud { margin-top: .5rem; }
     .tag-chip {
       padding: .2rem .55rem;
       background: var(--bg); border: 1px solid var(--border);
@@ -438,14 +439,16 @@
       <!-- Tags (only shown when a category is selected) -->
       <div class="filter-section" v-if="filterCategories && visibleTags.length">
         <div class="filter-title">标签</div>
-        <div class="tag-cloud">
-          <span
-            v-for="t in visibleTags" :key="t"
-            class="tag-chip"
-            :class="{selected: filterTags.includes(t)}"
-            @click="toggleTag(t)"
-          >{{ t }}</span>
-        </div>
+        <template v-for="(group, gi) in visibleTagGroups" :key="gi">
+          <div v-if="group.length" class="tag-cloud">
+            <span
+              v-for="t in group" :key="t"
+              class="tag-chip"
+              :class="{selected: filterTags.includes(t)}"
+              @click="toggleTag(t)"
+            >{{ t }}</span>
+          </div>
+        </template>
         <button
           v-if="visibleTags.length === TAG_LIMIT || showAllTags"
           style="margin-top:.5rem;font-size:.78rem;color:var(--muted);background:none;border:none;"
@@ -694,6 +697,17 @@ createApp({
       );
       const catTags = [...new Set(catReviews.flatMap(r => r.tags || []))].sort();
       return showAllTags.value ? catTags : (catTags.length > TAG_LIMIT ? catTags.slice(0, TAG_LIMIT) : catTags);
+    });
+
+    // Tags grouped by type (type1 / type2 / type3) for display — based on visibleTags
+    const visibleTagGroups = computed(() => {
+      const typeMap = (meta.value.tag_types || {}).type_map || {};
+      const groups = [[], [], []];
+      for (const t of visibleTags.value) {
+        const idx = (typeMap[t] || 3) - 1;
+        groups[idx].push(t);
+      }
+      return groups;
     });
 
     // Reviewers that have at least one review in the selected category
@@ -949,7 +963,7 @@ createApp({
       filtered, totalPages, paged, pageRange,
       reviewersInCategory,
       reviewerScoreSystem, isScoreSelected, toggleScore,
-      visibleTags,
+      visibleTags, visibleTagGroups,
       primaryCategory, scoreClass, categoryBadgeClass,
       extraMeta,
       navHome, navArticle, filterByTag, toggleTag, resetFilters, onCategoryChange, selectCategory,
