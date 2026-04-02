@@ -201,6 +201,8 @@ def scan_tba(root: Path, category_map: dict[str, list[dict]]) -> list[dict]:
                     if meta_check:
                         continue
                     rel_path = fp.relative_to(root).as_posix()
+                    if not is_content_file(fp, rel_path):
+                        continue
                     results.append({
                         "path":      rel_path,
                         "title":     fp.stem,
@@ -272,6 +274,56 @@ def extract_review(filepath: Path, rel_path: str) -> dict | None:
     review["tags"] = to_str_list(meta.get("tags"))
 
     return review
+
+
+# ---------------------------------------------------------------------------
+# Tag type loader  (reads type1.txt / type2.txt / type3.txt from scripts/)
+# ---------------------------------------------------------------------------
+
+def load_tag_types(root: Path) -> dict:
+    """Load tag type classification from ``scripts/type{1,2,3}.txt``.
+
+    File format — one or more sections, each opened by a ``-CategoryName``
+    header line followed by comma-separated tags::
+
+        -书籍
+        单元剧,公路片,自然+动物
+
+    A ``canonical+alias`` expression means *alias* is merged into *canonical*
+    (the alias tag is replaced by the canonical one when processing reviews).
+    Tags absent from all type files default to type 3.
+
+    Returns a dict with two keys:
+
+    * ``type_map``  – ``{canonical_tag: type_number}``  (1, 2, or 3)
+    * ``aliases``   – ``{alias_tag: canonical_tag}``
+    """
+    type_map: dict[str, int] = {}
+    aliases: dict[str, str] = {}
+    for type_num in (1, 2, 3):
+        type_file = root / "scripts" / f"type{type_num}.txt"
+        if not type_file.exists():
+            continue
+        with type_file.open(encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line or line.startswith("-") or line.startswith("#"):
+                    continue
+                for tag_expr in line.split(","):
+                    tag_expr = tag_expr.strip()
+                    if not tag_expr:
+                        continue
+                    if "+" in tag_expr:
+                        parts = [p.strip() for p in tag_expr.split("+")]
+                        canonical = parts[0]
+                        for alias in parts[1:]:
+                            if alias:
+                                aliases[alias] = canonical
+                        if canonical:
+                            type_map[canonical] = type_num
+                    else:
+                        type_map[tag_expr] = type_num
+    return {"type_map": type_map, "aliases": aliases}
 
 
 # ---------------------------------------------------------------------------
@@ -348,6 +400,21 @@ def main() -> None:
     # Sort: most recently modified first (front-end "recent updates" view)
     reviews.sort(key=lambda r: r.get("modified", ""), reverse=True)
 
+    # Load tag type classification and apply aliases
+    tag_types_data = load_tag_types(ROOT)
+    aliases = tag_types_data["aliases"]
+    if aliases:
+        for review in reviews:
+            orig_tags = review.get("tags") or []
+            new_tags: list[str] = []
+            seen_tags: set[str] = set()
+            for t in orig_tags:
+                canonical = aliases.get(t, t)
+                if canonical not in seen_tags:
+                    seen_tags.add(canonical)
+                    new_tags.append(canonical)
+            review["tags"] = new_tags
+
     # Aggregate vocabulary for filter dropdowns
     all_tags = sorted({t for r in reviews for t in (r.get("tags") or [])})
     reviewers = sorted({r["reviewer"] for r in reviews})
@@ -380,6 +447,7 @@ def main() -> None:
             "reviewers":     reviewers,
             "all_tags":      all_tags,
             "metadata_maps": metadata_maps,
+            "tag_types":     tag_types_data,
         },
     }
 
