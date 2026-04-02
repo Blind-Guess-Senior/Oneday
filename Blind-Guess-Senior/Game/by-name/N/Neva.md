@@ -12,6 +12,8 @@ category:
 tags:
   - 平台跳跃
 ---
+---fin.---
+
 TBA 2024 **==最佳艺术==** [[The Blind Award 2024#游戏]] 
 
 	首评于 2025.8.6

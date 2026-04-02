@@ -3,7 +3,7 @@
 ```dataview
 TABLE WITHOUT ID
  file.link AS 书名, country AS 国家, author AS 作者, tags AS 标签
-FROM "Blind-Guess-Senior"
+FROM "Blind-Guess-Senior/Book"
 WHERE contains(category, "书籍")
 WHERE status = "未完成"
 WHERE !contains(tags, "经典补完计划")
@@ -14,7 +14,7 @@ SORT file.name ASC
 ```dataview
 TABLE WITHOUT ID
  file.link AS 书名, country AS 国家, author AS 作者, tags AS 标签
-FROM "Blind-Guess-Senior"
+FROM "Blind-Guess-Senior/Book"
 WHERE contains(category, "书籍")
 WHERE status = "未完成"
 WHERE contains(tags, "经典补完计划")
@@ -25,7 +25,7 @@ SORT file.name ASC
 ```dataview
 TABLE WITHOUT ID
  file.link AS 书名, country AS 国家, author AS 作者, tags AS 标签
-FROM "Blind-Guess-Senior"
+FROM "Blind-Guess-Senior/Book"
 WHERE contains(category, "书籍")
 WHERE status = "未完成"
 SORT file.name ASC
