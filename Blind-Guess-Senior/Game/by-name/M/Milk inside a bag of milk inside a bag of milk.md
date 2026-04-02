@@ -13,8 +13,6 @@ tags:
   - 视觉小说
   - Metagame
 ---
----fin.---
-
 续：
 [[Milk outside a bag of milk outside a bag of milk]] 
 
@@ -35,4 +33,4 @@ tags:
 [《牛奶袋里袋装牛奶》：当在场者在在场者在场的场合（牛奶袋里面有一袋牛奶袋里面有一袋牛奶 Milk inside a bag of milk inside a bag of milk）文字](https://www.douban.com/review/13629881/) 
 加上我自己确实没太玩懂，就先这样吧。
 
-
+---fin.---
