@@ -214,15 +214,25 @@ def scan_tba(root: Path, category_map: dict[str, list[dict]]) -> list[dict]:
                     rel_path = fp.relative_to(root).as_posix()
                     if not is_content_file(fp, rel_path):
                         continue
+                    reviewer_lc = reviewer.lower()
+                    if reviewer_lc == "aspark":
+                        score_raw, score_num = aspark_score_from_filename(fp)
+                        title = re.sub(r"★+$", "", fp.stem).strip()
+                        score_system = "stars"
+                    else:
+                        score_raw, score_num = "", None
+                        title = fp.stem
+                        score_system = "decimal"
                     results.append({
                         "path":      rel_path,
-                        "title":     fp.stem,
+                        "title":     title,
                         "reviewer":  reviewer,
                         "category":  [cat_name],
                         "modified":  mtime_iso(fp),
                         "tags":      [],
-                        "score":     None,
-                        "score_raw": "",
+                        "score":     score_num,
+                        "score_raw": score_raw,
+                        "score_system": score_system,
                     })
     return results
 
