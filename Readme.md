@@ -1,27 +1,5 @@
-# Oneday · 评测合集
+A Collection for some people's OneDay.
 
-我和朋友的游戏、动漫、书籍评测合集。
+Based on Obsidian and its Dataview plugin.
 
----
-
-## Aspark 的评测
-
-使用「小众变态评测标准」，以 ★ 数量表示推荐程度（★ 到 ★★★★★）。
-
-- [评测标准说明书](Aspark/小众变态测评/★评测标准食用与使用说明书✰.md)
-
-完成的评测收录于左侧导航栏 **完成评测 · 游戏** 与 **完成评测 · 二游与竞技** 分类下；进行中的评测在 **进行中评测** 下。
-
----
-
-## Blind-Guess-Senior 的评测
-
-使用「盲视标准」，以 1–10 分描述个人感受。
-
-- [盲视标准说明](Blind-Guess-Senior/Game/盲视标准.md)
-
-游戏、动漫、书籍评测均收录于左侧导航栏对应分类下。
-
----
-
-> 想了解网站是怎么搭建的？请看 [网站部署说明](网站部署说明.md)。
+Website: https://blind-guess-senior.github.io/Oneday/
