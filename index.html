@@ -493,7 +493,6 @@
             <span class="toolbar-count">共 {{ filtered.length }} 条结果</span>
             <select class="sort-select" v-model="sortBy" @change="page=1">
               <option value="modified">最近更新</option>
-              <option value="date">评测日期</option>
               <option value="score_desc">评分从高到低</option>
               <option value="score_asc">评分从低到高</option>
               <option value="title">标题</option>
@@ -770,8 +769,7 @@ createApp({
 
       const key = sortBy.value;
       return [...list].sort((a, b) => {
-        if (key === "modified")   return (b.modified || "").localeCompare(a.modified || "");
-        if (key === "date")       return (b.date || "").localeCompare(a.date || "");
+        if (key === "modified")   return (a.modified || "").localeCompare(b.modified || "") * -1;
         if (key === "score_desc") return (b.score ?? -1)  - (a.score ?? -1);
         if (key === "score_asc")  return (a.score ?? 999) - (b.score ?? 999);
         if (key === "title")      return (a.title || "").localeCompare(b.title || "", "zh");
