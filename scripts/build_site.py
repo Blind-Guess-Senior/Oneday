@@ -39,6 +39,7 @@ import yaml  # PyYAML — already available in this environment
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).parent.parent
+ASPARK_SCORE_RE = re.compile(r"(★{1,5})$")
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +85,16 @@ def to_str_list(val) -> list[str]:
 
 def mtime_iso(filepath: Path) -> str:
     return datetime.fromtimestamp(filepath.stat().st_mtime).isoformat()
+
+
+def aspark_score_from_filename(filepath: Path) -> tuple[str, int | None]:
+    """Return (raw_score, numeric_score) for an Aspark filename."""
+    stem = filepath.stem
+    match = ASPARK_SCORE_RE.search(stem)
+    if not match:
+        return "", None
+    stars = match.group(1)
+    return stars, len(stars)
 
 
 # ---------------------------------------------------------------------------
@@ -258,17 +269,23 @@ def extract_review(filepath: Path, rel_path: str) -> dict | None:
     review["reviewer"] = rel_path.split("/")[0]
     review["modified"] = mtime_iso(filepath)
 
-    # Title fallback: use filename stem when YAML has no ``title``
-    if not str(review.get("title") or "").strip():
+    reviewer = rel_path.split("/")[0]
+    if reviewer.lower() == "aspark":
+        score_raw, score_num = aspark_score_from_filename(filepath)
+        review["score_raw"] = score_raw
+        review["score"] = score_num
+        review["title"] = re.sub(r"★+$", "", filepath.stem).strip()
+    elif not str(review.get("title") or "").strip():
         review["title"] = re.sub(r"★.*$", "", filepath.stem).strip()
 
     # Special: score → coerce to int; keep raw string form
-    score_val = meta.get("score")
-    review["score_raw"] = str(score_val) if score_val is not None else ""
-    review["score"] = coerce_int(score_val)
+    if reviewer.lower() != "aspark":
+        score_val = meta.get("score")
+        review["score_raw"] = str(score_val) if score_val is not None else ""
+        review["score"] = coerce_int(score_val)
 
     # Auto-detect score system: Aspark uses star ratings (1–5), others decimal (1–10)
-    review["score_system"] = "stars" if rel_path.split("/")[0].lower() == "aspark" else "decimal"
+    review["score_system"] = "stars" if reviewer.lower() == "aspark" else "decimal"
 
     # Special: tags → normalise to list[str]
     review["tags"] = to_str_list(meta.get("tags"))

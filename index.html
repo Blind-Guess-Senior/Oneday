@@ -140,8 +140,17 @@
     }
     .filter-reset:hover { border-color: var(--accent); color: var(--accent); }
 
+    .tag-group {
+      padding-top: .55rem;
+      margin-top: .55rem;
+      border-top: 1px solid rgba(148, 163, 184, .22);
+    }
+    .tag-group:first-child {
+      padding-top: 0;
+      margin-top: 0;
+      border-top: none;
+    }
     .tag-cloud { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .3rem; }
-    .tag-cloud + .tag-cloud { margin-top: .5rem; }
     .tag-chip {
       padding: .2rem .55rem;
       background: var(--bg); border: 1px solid var(--border);
@@ -440,13 +449,15 @@
       <div class="filter-section" v-if="filterCategories && visibleTags.length">
         <div class="filter-title">标签</div>
         <template v-for="(group, gi) in visibleTagGroups" :key="gi">
-          <div v-if="group.length" class="tag-cloud">
-            <span
-              v-for="t in group" :key="t"
-              class="tag-chip"
-              :class="{selected: filterTags.includes(t)}"
-              @click="toggleTag(t)"
-            >{{ t }}</span>
+          <div v-if="group.length" class="tag-group">
+            <div class="tag-cloud">
+              <span
+                v-for="t in group" :key="t"
+                class="tag-chip"
+                :class="{selected: filterTags.includes(t)}"
+                @click="toggleTag(t)"
+              >{{ t }}</span>
+            </div>
           </div>
         </template>
         <button
