@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -84,6 +85,20 @@ def to_str_list(val) -> list[str]:
 
 
 def mtime_iso(filepath: Path) -> str:
+    """Return the ISO timestamp of the file's last git commit, or file mtime as fallback."""
+    try:
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%cI", "--", str(filepath)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+    except Exception:
+        pass
+    # Fallback to file system mtime if git fails
     return datetime.fromtimestamp(filepath.stat().st_mtime).isoformat()
 
 
