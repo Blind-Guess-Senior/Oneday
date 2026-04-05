@@ -632,14 +632,15 @@ function renderMarkdown(raw, reviewPath, allReviews) {
   // Strip ---fin.--- completion marker wherever it appears
   src = src.replace(/^---fin\.---\s*\n?/m, "");
   // Resolve Obsidian-style image links ![[filename]] or ![[relative/path/file.ext]]
-  // → standard markdown image, resolved relative to the review file's directory.
+  // → standard markdown image. Images are looked up in the attachments/ subdirectory
+  // relative to the review file's directory.
   // Path segments are encoded individually so that separators (/) are preserved.
   // Must run before the wiki-link replacement below so ![[...]] isn't consumed first.
   if (reviewPath) {
     const dir = reviewPath.includes("/") ? reviewPath.slice(0, reviewPath.lastIndexOf("/") + 1) : "";
     src = src.replace(/!\[\[([^\]]+)\]\]/g, (_, fname) => {
       const encodedFname = fname.split('/').map(encodeURIComponent).join('/');
-      return `![${fname}](${dir}${encodedFname})`;
+      return `![${fname}](${dir}attachments/${encodedFname})`;
     });
   }
   // Convert wiki-style links [[target#section|alias]] or [[target|alias]] or [[target]]
