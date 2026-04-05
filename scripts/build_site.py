@@ -18,7 +18,7 @@ Three extra keys are always injected (never read from YAML):
 
   path      repo-relative path, e.g. "Author/…/file.md"
   reviewer  top-level folder name (the repository is organised by author)
-  modified  file mtime ISO string (used for "recent" sorting)
+  modified  last git commit time ISO string (used for "recent" sorting)
 
 Output
 ======
@@ -27,7 +27,6 @@ site_data.json  (written to the repository root, listed in .gitignore)
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import subprocess
@@ -42,7 +41,6 @@ import yaml  # PyYAML — already available in this environment
 
 ROOT = Path(__file__).parent.parent
 ASPARK_SCORE_RE = re.compile(r"(★{1,5})$")
-MODIFIED_INDEX_PATH = ROOT / "scripts" / "modified_index.json"
 
 
 # ---------------------------------------------------------------------------
@@ -86,77 +84,25 @@ def to_str_list(val) -> list[str]:
     return [s] if s else []
 
 
-def file_sha1(filepath: Path) -> str:
-    """Return hex sha1 digest for *filepath* content."""
-    h = hashlib.sha1()
-    with filepath.open("rb") as fh:
-        for chunk in iter(lambda: fh.read(8192), b""):
-            h.update(chunk)
-    return h.hexdigest()
+def git_commit_iso(rel_path: str) -> str:
+    """Return last git commit time (ISO) for *rel_path*.
 
-
-def git_commit_iso(rel_path: str) -> str | None:
-    """Return last git commit time (ISO) for *rel_path*, or None if unavailable."""
+    Falls back to the current time if git is unavailable or the file has no
+    commit history (e.g. freshly added but not yet pushed).
+    """
     try:
         result = subprocess.run(
             ["git", "log", "-1", "--format=%ct", "--", rel_path],
             cwd=ROOT,
             capture_output=True,
             text=True,
-            timeout=5
+            timeout=10,
         )
         if result.returncode == 0 and result.stdout.strip():
             return datetime.fromtimestamp(int(result.stdout.strip())).isoformat()
     except Exception:
-        return None
-    return None
-
-
-def load_modified_index(path: Path) -> dict[str, dict[str, str]]:
-    """Load the persisted modified index from disk."""
-    if not path.exists():
-        return {}
-    try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
-    if not isinstance(raw, dict):
-        return {}
-    cleaned: dict[str, dict[str, str]] = {}
-    for rel_path, entry in raw.items():
-        if not isinstance(rel_path, str):
-            continue
-        if isinstance(entry, dict):
-            sha1 = str(entry.get("sha1") or "").strip()
-            modified = str(entry.get("modified") or "").strip()
-            if sha1 and modified:
-                cleaned[rel_path] = {"sha1": sha1, "modified": modified}
-    return cleaned
-
-
-def save_modified_index(path: Path, index: dict[str, dict[str, str]]) -> None:
-    """Write the modified index to disk in stable order."""
-    ordered = {k: index[k] for k in sorted(index)}
-    path.write_text(
-        json.dumps(ordered, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-
-
-def resolve_modified(filepath: Path, rel_path: str, index: dict[str, dict[str, str]]) -> str:
-    """Resolve stable modified timestamp using digest index, updating entry when needed."""
-    digest = file_sha1(filepath)
-    cached = index.get(rel_path)
-    if isinstance(cached, dict):
-        if cached.get("sha1") == digest and str(cached.get("modified") or "").strip():
-            return str(cached["modified"])
-
-    modified = git_commit_iso(rel_path)
-    if not modified:
-        modified = datetime.fromtimestamp(filepath.stat().st_mtime).isoformat()
-
-    index[rel_path] = {"sha1": digest, "modified": modified}
-    return modified
+        pass
+    return ""
 
 
 def aspark_score_from_filename(filepath: Path) -> tuple[str, int | None]:
@@ -491,29 +437,17 @@ def main() -> None:
     print("Building site_data.json…")
 
     category_map = load_category_map(ROOT)
-    modified_index = load_modified_index(MODIFIED_INDEX_PATH)
 
     reviews = scan()
     tba = scan_tba(ROOT, category_map)
     reviews.extend(tba)
 
-    # Stable modified strategy: unchanged files keep prior timestamp;
-    # changed/new files are refreshed from git (or file mtime fallback).
-    current_paths: set[str] = set()
+    # Populate modified: ask git for the last commit time of each file.
+    # CI uses fetch-depth: 0 so the full history is always available.
     for review in reviews:
         rel_path = str(review.get("path") or "")
-        if not rel_path:
-            continue
-        current_paths.add(rel_path)
-        filepath = ROOT / rel_path
-        if filepath.exists():
-            review["modified"] = resolve_modified(filepath, rel_path, modified_index)
-
-    # Remove deleted files from index and persist for next build.
-    stale_paths = set(modified_index.keys()) - current_paths
-    for rel_path in stale_paths:
-        modified_index.pop(rel_path, None)
-    save_modified_index(MODIFIED_INDEX_PATH, modified_index)
+        if rel_path:
+            review["modified"] = git_commit_iso(rel_path)
 
     # Sort: most recently modified first (front-end "recent updates" view)
     reviews.sort(key=lambda r: r.get("modified", ""), reverse=True)
