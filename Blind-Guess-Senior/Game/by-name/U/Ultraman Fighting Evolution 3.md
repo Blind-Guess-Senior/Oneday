@@ -1,5 +1,9 @@
 ---
 status: 已完成
+developer:
+  - BANPRESTO
+publisher:
+  - BANPRESTO
 score: 9
 year:
 month:

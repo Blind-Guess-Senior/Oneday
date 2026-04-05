@@ -627,7 +627,7 @@ function renderMarkdown(raw, reviewPath, allReviews) {
   // Use "\n---\n" to ensure the closing delimiter is on its own line.
   if (src.startsWith("---")) {
     const end = src.indexOf("\n---\n", 3);
-    if (end !== -1) src = src.slice(end + 5).trimStart();
+    if (end !== -1) src = src.slice(end + 5).replace(/^\r?\n+/, "");
   }
   // Strip ---fin.--- completion marker wherever it appears
   src = src.replace(/^---fin\.---\s*\n?/m, "");
