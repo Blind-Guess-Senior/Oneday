@@ -770,7 +770,12 @@ createApp({
 
       const key = sortBy.value;
       return [...list].sort((a, b) => {
-        if (key === "modified")   return (a.modified || "").localeCompare(b.modified || "") * -1;
+        if (key === "modified") {
+          const ay = (a.year||0)*100 + (a.month||0);
+          const by = (b.year||0)*100 + (b.month||0);
+          if (ay !== by) return by - ay;
+          return (b.modified||"").localeCompare(a.modified||"");
+        }
         if (key === "score_desc") return (b.score ?? -1)  - (a.score ?? -1);
         if (key === "score_asc")  return (a.score ?? 999) - (b.score ?? 999);
         if (key === "title")      return (a.title || "").localeCompare(b.title || "", "zh");

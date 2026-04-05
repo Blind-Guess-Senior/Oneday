@@ -515,8 +515,14 @@ def main() -> None:
         modified_index.pop(rel_path, None)
     save_modified_index(MODIFIED_INDEX_PATH, modified_index)
 
-    # Sort: most recently modified first (front-end "recent updates" view)
-    reviews.sort(key=lambda r: r.get("modified", ""), reverse=True)
+    # Sort: most recently reviewed first (front-end "recent updates" view).
+    # Use year+month as the primary key since they represent the review date;
+    # fall back to modified (file edit time) as tiebreaker.
+    def _sort_key(r: dict) -> tuple:
+        year  = int(r["year"])  if r.get("year")  else 0
+        month = int(r["month"]) if r.get("month") else 0
+        return (year, month, r.get("modified", ""))
+    reviews.sort(key=_sort_key, reverse=True)
 
     # Load tag type classification and apply aliases
     tag_types_data = load_tag_types(ROOT)
