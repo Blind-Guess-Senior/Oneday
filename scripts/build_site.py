@@ -2,10 +2,16 @@
 """Build site_data.json from markdown review files.
 
 All review metadata is read exclusively from YAML frontmatter and passed
-through verbatim.  A file is included only when:
+through verbatim. A YAML review is included when:
 
-  1. It has a valid YAML frontmatter block (``---`` … ``---``).
-  2. Its body contains the completion marker ``---fin.---``.
+    1. It has a valid YAML frontmatter block (``---`` … ``---``).
+    2. It is considered "scored" by the top-level reviewer ``include.txt``
+         rules (``key=value`` lines, any-match). If include.txt is absent,
+         everything under that reviewer is treated as scored.
+
+The ``---fin.---`` marker no longer controls inclusion directly. Instead,
+reviews without that marker are marked as ``score_only`` so the frontend can
+choose whether to show them.
 
 Two YAML keys receive special normalisation:
 
@@ -196,6 +202,68 @@ def load_category_map(root: Path) -> dict[str, list[dict]]:
 
 
 # ---------------------------------------------------------------------------
+# Include rules loader  (reads include.txt from top-level reviewer dirs)
+# ---------------------------------------------------------------------------
+
+def load_include_rules(root: Path) -> dict[str, list[tuple[str, str]] | None]:
+    """Load include rules from top-level reviewer ``include.txt`` files.
+
+    Rule line format::
+
+        key=value
+
+    A review is considered "scored" when at least one rule matches exactly.
+    If a reviewer has no include.txt, all YAML reviews under that reviewer are
+    treated as scored by default.
+
+    Returns a dict keyed by reviewer folder name:
+
+    * ``None``          – no include.txt found; all reviews are scored.
+    * ``[(k, v), ...]`` – include.txt exists; any rule match marks scored.
+    """
+    result: dict[str, list[tuple[str, str]] | None] = {}
+    for top_dir in sorted(root.iterdir()):
+        if not top_dir.is_dir() or top_dir.name.startswith("."):
+            continue
+        include_file = top_dir / "include.txt"
+        if not include_file.exists():
+            result[top_dir.name] = None
+            continue
+        rules: list[tuple[str, str]] = []
+        for line in include_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip()
+            if key and value:
+                rules.append((key, value))
+        result[top_dir.name] = rules
+    return result
+
+
+def is_scored_review(
+    meta: dict,
+    reviewer: str,
+    include_rules: dict[str, list[tuple[str, str]] | None],
+) -> bool:
+    """Return whether a YAML review should be treated as scored.
+
+    * No include.txt for reviewer => all reviews are scored.
+    * include.txt exists          => any ``key=value`` rule match is scored.
+    """
+    rules = include_rules.get(reviewer, None)
+    if rules is None:
+        return True
+    for key, value in rules:
+        meta_val = meta.get(key)
+        if meta_val is not None and str(meta_val).strip() == value:
+            return True
+    return False
+
+
+# ---------------------------------------------------------------------------
 # TBA (award files) scanner
 # ---------------------------------------------------------------------------
 
@@ -251,6 +319,7 @@ def scan_tba(root: Path, category_map: dict[str, list[dict]]) -> list[dict]:
                         "score":     score_num,
                         "score_raw": score_raw,
                         "score_system": score_system,
+                        "score_only": False,
                     })
     return results
 
@@ -259,7 +328,11 @@ def scan_tba(root: Path, category_map: dict[str, list[dict]]) -> list[dict]:
 # Universal extractor
 # ---------------------------------------------------------------------------
 
-def extract_review(filepath: Path, rel_path: str) -> dict | None:
+def extract_review(
+    filepath: Path,
+    rel_path: str,
+    include_rules: dict[str, list[tuple[str, str]] | None],
+) -> dict | None:
     """Parse *filepath* and return a review dict, or ``None`` to skip.
 
     All YAML keys are passed through verbatim except for the two special ones:
@@ -268,11 +341,12 @@ def extract_review(filepath: Path, rel_path: str) -> dict | None:
                    ``score`` as a coerced int (or None).
     * ``tags``   — normalised to list[str].
 
-    Three keys injected by the extractor (never read from YAML):
+    Four keys injected by the extractor (never read from YAML):
 
     * ``path``     — repo-relative path.
     * ``reviewer`` — top-level folder name (repository is organised by author).
     * ``modified`` — file mtime ISO string.
+    * ``score_only`` — True when body lacks ``---fin.---`` marker.
 
     A ``title`` fallback is applied when the YAML has no ``title`` key:
     the filename stem is used (trailing ``★…`` stripped).
@@ -286,18 +360,20 @@ def extract_review(filepath: Path, rel_path: str) -> dict | None:
     if not meta:
         return None  # no YAML frontmatter → not a review
 
-    if "---fin.---" not in body:
+    reviewer = rel_path.split("/")[0]
+    if not is_scored_review(meta, reviewer, include_rules):
         return None
+    has_fin_marker = "---fin.---" in body
 
     # Start with all YAML keys verbatim
     review: dict = dict(meta)
 
     # Infrastructure fields derived from the file path (not from YAML)
     review["path"] = rel_path
-    review["reviewer"] = rel_path.split("/")[0]
+    review["reviewer"] = reviewer
     review["modified"] = ""
+    review["score_only"] = not has_fin_marker
 
-    reviewer = rel_path.split("/")[0]
     if reviewer.lower() == "aspark":
         score_raw, score_num = aspark_score_from_filename(filepath)
         review["score_raw"] = score_raw
@@ -377,7 +453,7 @@ def load_tag_types(root: Path) -> dict:
 
 # File/folder names that indicate non-review content
 _NON_REVIEW_NAMES: tuple[str, ...] = (
-    "标准", "说明书", "Template", "Award",
+    "标准", "说明书", "Template",
     "ToWatch", "ToRead", "Recent", "README", "Readme",
 )
 
@@ -397,28 +473,29 @@ def is_content_file(filepath: Path, rel_path: str) -> bool:
 # Scanner
 # ---------------------------------------------------------------------------
 
-def scan() -> list[dict]:
+def scan(include_rules: dict[str, list[tuple[str, str]] | None]) -> list[dict]:
     """Walk the entire repository tree, extract metadata, return list of dicts."""
-    seen: set[str] = set()
     results: list[dict] = []
     errors: list[str] = []
+    filepaths = sorted(ROOT.rglob("*.md"))
 
-    for filepath in sorted(ROOT.rglob("*.md")):
-        rel_path = filepath.relative_to(ROOT).as_posix()
+    for want_score_only in (False, True):
+        for filepath in filepaths:
+            rel_path = filepath.relative_to(ROOT).as_posix()
 
-        if not is_content_file(filepath, rel_path):
-            continue
-        if rel_path in seen:
-            continue
-        seen.add(rel_path)
+            if not is_content_file(filepath, rel_path):
+                continue
 
-        try:
-            review = extract_review(filepath, rel_path)
-        except Exception as exc:
-            errors.append(f"{rel_path}: {exc}")
-            continue
+            try:
+                review = extract_review(filepath, rel_path, include_rules)
+            except Exception as exc:
+                errors.append(f"{rel_path}: {exc}")
+                continue
 
-        if review is not None:
+            if review is None:
+                continue
+            if bool(review.get("score_only")) != want_score_only:
+                continue
             results.append(review)
 
     if errors:
@@ -436,9 +513,10 @@ def scan() -> list[dict]:
 def main() -> None:
     print("Building site_data.json…")
 
+    include_rules = load_include_rules(ROOT)
     category_map = load_category_map(ROOT)
 
-    reviews = scan()
+    reviews = scan(include_rules)
     tba = scan_tba(ROOT, category_map)
     reviews.extend(tba)
 
