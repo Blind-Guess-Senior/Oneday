@@ -332,6 +332,7 @@ def extract_review(
     filepath: Path,
     rel_path: str,
     include_rules: dict[str, list[tuple[str, str]] | None],
+    category_map: dict[str, list[dict]],
 ) -> dict | None:
     """Parse *filepath* and return a review dict, or ``None`` to skip.
 
@@ -364,15 +365,27 @@ def extract_review(
     if not is_scored_review(meta, reviewer, include_rules):
         return None
     has_fin_marker = "---fin.---" in body
+    score_only = not has_fin_marker
 
     # Start with all YAML keys verbatim
     review: dict = dict(meta)
+
+    review_categories = to_str_list(meta.get("category"))
+    allowed_categories = {
+        entry["name"]
+        for entry in category_map.get(reviewer, [])
+        if entry.get("name")
+    }
+    review_categories = [c for c in review_categories if c in allowed_categories]
+    if not review_categories:
+        return None
 
     # Infrastructure fields derived from the file path (not from YAML)
     review["path"] = rel_path
     review["reviewer"] = reviewer
     review["modified"] = ""
-    review["score_only"] = not has_fin_marker
+    review["score_only"] = score_only
+    review["category"] = review_categories
 
     if reviewer.lower() == "aspark":
         score_raw, score_num = aspark_score_from_filename(filepath)
@@ -473,7 +486,10 @@ def is_content_file(filepath: Path, rel_path: str) -> bool:
 # Scanner
 # ---------------------------------------------------------------------------
 
-def scan(include_rules: dict[str, list[tuple[str, str]] | None]) -> list[dict]:
+def scan(
+    include_rules: dict[str, list[tuple[str, str]] | None],
+    category_map: dict[str, list[dict]],
+) -> list[dict]:
     """Walk the entire repository tree, extract metadata, return list of dicts."""
     results: list[dict] = []
     errors: list[str] = []
@@ -487,7 +503,7 @@ def scan(include_rules: dict[str, list[tuple[str, str]] | None]) -> list[dict]:
                 continue
 
             try:
-                review = extract_review(filepath, rel_path, include_rules)
+                review = extract_review(filepath, rel_path, include_rules, category_map)
             except Exception as exc:
                 errors.append(f"{rel_path}: {exc}")
                 continue
@@ -516,7 +532,7 @@ def main() -> None:
     include_rules = load_include_rules(ROOT)
     category_map = load_category_map(ROOT)
 
-    reviews = scan(include_rules)
+    reviews = scan(include_rules, category_map)
     tba = scan_tba(ROOT, category_map)
     reviews.extend(tba)
 
@@ -550,8 +566,6 @@ def main() -> None:
     reviewers = sorted({r["reviewer"] for r in reviews})
 
     # Build ordered categories list from category.txt files (preserving order).
-    # Any category found in reviews but not in any category.txt is appended at
-    # the end in sorted order so nothing is accidentally hidden.
     ordered_cats: list[str] = []
     seen_cats: set[str] = set()
     for _reviewer, entries in category_map.items():
@@ -560,11 +574,6 @@ def main() -> None:
             if name not in seen_cats:
                 ordered_cats.append(name)
                 seen_cats.add(name)
-    # Append any remaining categories from reviews that aren't in category.txt
-    extra_cats = sorted(
-        {c for r in reviews for c in to_str_list(r.get("category"))} - seen_cats
-    )
-    ordered_cats.extend(extra_cats)
 
     metadata_maps = load_metadata_maps(ROOT)
 
