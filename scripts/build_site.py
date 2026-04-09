@@ -201,6 +201,28 @@ def load_category_map(root: Path) -> dict[str, list[dict]]:
     return result
 
 
+def categories_from_path(
+    reviewer: str,
+    rel_path: str,
+    category_map: dict[str, list[dict]],
+) -> list[str]:
+    """Return category names for *rel_path* based on category.txt folder mapping."""
+    matched: list[str] = []
+    reviewer_prefix = reviewer + "/"
+    for entry in category_map.get(reviewer, []):
+        cat_name = str(entry.get("name") or "").strip()
+        if not cat_name:
+            continue
+        for folder_rel in entry.get("folders", []):
+            folder_rel = str(folder_rel).strip().strip("/")
+            if not folder_rel:
+                continue
+            if rel_path.startswith(reviewer_prefix + folder_rel + "/"):
+                matched.append(cat_name)
+                break
+    return matched
+
+
 # ---------------------------------------------------------------------------
 # Include rules loader  (reads include.txt from top-level reviewer dirs)
 # ---------------------------------------------------------------------------
@@ -264,67 +286,6 @@ def is_scored_review(
 
 
 # ---------------------------------------------------------------------------
-# TBA (award files) scanner
-# ---------------------------------------------------------------------------
-
-def scan_tba(root: Path, category_map: dict[str, list[dict]]) -> list[dict]:
-    """Scan no-YAML award/special files defined via ``category.txt``.
-
-    Files without YAML frontmatter that live in folders listed in a
-    ``category.txt`` are included unconditionally (no ``---fin.---``
-    requirement).  Their category is taken from the ``category.txt`` mapping
-    rather than being hardcoded.
-    """
-    results: list[dict] = []
-    for reviewer_dir in sorted(root.iterdir()):
-        if not reviewer_dir.is_dir() or reviewer_dir.name.startswith("."):
-            continue
-        reviewer = reviewer_dir.name
-        cat_entries = category_map.get(reviewer, [])
-        for cat_entry in cat_entries:
-            cat_name = cat_entry["name"]
-            for folder_rel in cat_entry["folders"]:
-                cat_dir = reviewer_dir / folder_rel
-                if not cat_dir.is_dir():
-                    continue
-                for fp in sorted(cat_dir.glob("*.md")):
-                    try:
-                        content = fp.read_text(encoding="utf-8")
-                    except Exception:
-                        continue
-                    # Skip files that have YAML frontmatter — they are handled
-                    # by the main scan() / extract_review() pipeline.
-                    meta_check, _ = parse_yaml_frontmatter(content)
-                    if meta_check:
-                        continue
-                    rel_path = fp.relative_to(root).as_posix()
-                    if not is_content_file(fp, rel_path):
-                        continue
-                    reviewer_lc = reviewer.lower()
-                    if reviewer_lc == "aspark":
-                        score_raw, score_num = aspark_score_from_filename(fp)
-                        title = re.sub(r"★+$", "", fp.stem).strip()
-                        score_system = "stars"
-                    else:
-                        score_raw, score_num = "", None
-                        title = fp.stem
-                        score_system = "decimal"
-                    results.append({
-                        "path":      rel_path,
-                        "title":     title,
-                        "reviewer":  reviewer,
-                        "category":  [cat_name],
-                        "modified":  "",
-                        "tags":      [],
-                        "score":     score_num,
-                        "score_raw": score_raw,
-                        "score_system": score_system,
-                        "score_only": False,
-                    })
-    return results
-
-
-# ---------------------------------------------------------------------------
 # Universal extractor
 # ---------------------------------------------------------------------------
 
@@ -357,38 +318,40 @@ def extract_review(
     except Exception:
         return None
 
-    meta, body = parse_yaml_frontmatter(content)
-    if not meta:
-        return None  # no YAML frontmatter → not a review
-
     reviewer = rel_path.split("/")[0]
-    if not is_scored_review(meta, reviewer, include_rules):
+    categories = categories_from_path(reviewer, rel_path, category_map)
+    if not categories:
         return None
-    has_fin_marker = "---fin.---" in body
-    score_only = not has_fin_marker
+
+    meta, body = parse_yaml_frontmatter(content)
+    has_yaml = bool(meta)
+    effective_body = body if has_yaml else content
+
+    # Inclusion order:
+    # 1) complete review: in category.txt folder AND has ---fin.---
+    # 2) score-only review: not complete, in category.txt folder, and include.txt rule match
+    has_fin_marker = "---fin.---" in effective_body
+    if has_fin_marker:
+        score_only = False
+    else:
+        if not is_scored_review(meta, reviewer, include_rules):
+            return None
+        score_only = True
 
     # Start with all YAML keys verbatim
-    review: dict = dict(meta)
-
-    review_categories = to_str_list(meta.get("category"))
-    allowed_categories = {
-        entry["name"]
-        for entry in category_map.get(reviewer, [])
-        if entry.get("name")
-    }
-    review_categories = [c for c in review_categories if c in allowed_categories]
-    if not review_categories:
-        return None
+    review: dict = dict(meta) if has_yaml else {}
 
     # Infrastructure fields derived from the file path (not from YAML)
     review["path"] = rel_path
     review["reviewer"] = reviewer
     review["modified"] = ""
     review["score_only"] = score_only
-    review["category"] = review_categories
+    review["category"] = categories
 
     if reviewer.lower() == "aspark":
         score_raw, score_num = aspark_score_from_filename(filepath)
+        if score_num is None:
+            return None
         review["score_raw"] = score_raw
         review["score"] = score_num
         review["title"] = re.sub(r"★+$", "", filepath.stem).strip()
@@ -405,7 +368,7 @@ def extract_review(
     review["score_system"] = "stars" if reviewer.lower() == "aspark" else "decimal"
 
     # Special: tags → normalise to list[str]
-    review["tags"] = to_str_list(meta.get("tags"))
+    review["tags"] = to_str_list(meta.get("tags")) if has_yaml else []
 
     return review
 
@@ -533,8 +496,6 @@ def main() -> None:
     category_map = load_category_map(ROOT)
 
     reviews = scan(include_rules, category_map)
-    tba = scan_tba(ROOT, category_map)
-    reviews.extend(tba)
 
     # Populate modified: ask git for the last commit time of each file.
     # CI uses fetch-depth: 0 so the full history is always available.
