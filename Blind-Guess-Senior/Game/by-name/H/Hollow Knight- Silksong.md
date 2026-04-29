@@ -1,5 +1,5 @@
 ---
-status: 进行中
+status: 已完成
 developer:
   - Team Cherry
 publisher:
@@ -22,14 +22,16 @@ TBA 2025 **==最佳演出==** [[The Blind Award 2025#游戏]]
 TBA 2025 *提名* **==最佳创意==** [[The Blind Award 2025#游戏提名]] 
 TBA 2025 *提名* **==最佳音乐==** [[The Blind Award 2025#游戏提名]] 
 
+	完成 2026.4.19
+
 10/10 神
 
 ```
-美术 /4
-音乐 /4
-剧情 /4
-玩法 /4
-体验 /4
+美术 4/4 Superb
+音乐 3/4 Great
+剧情 3/4 Great
+玩法 4/4 Superb
+体验 4/4 Superb
 ```
 
 
