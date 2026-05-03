@@ -4,7 +4,7 @@ developer:
   - ustwo games
 publisher:
   - ustwo games
-score: 10
+score: 9
 year: 2025
 month: 7
 category:
@@ -19,8 +19,9 @@ TBA 2025 *提名* **==最佳演出==** [[The Blind Award 2025#游戏提名]]
 
 	首评于 2025.8.10
 	小项评分更新 2025.9.8
+	重评分 2026.5.3
 
-10/10 神
+9/10 此生难忘
 
 ```
 美术 4/4 Superb
@@ -30,3 +31,4 @@ TBA 2025 *提名* **==最佳演出==** [[The Blind Award 2025#游戏提名]]
 体验 4/4 Superb
 ```
 
+---fin.---

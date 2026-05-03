@@ -1,25 +1,28 @@
 ---
-status: 未完成
+status: 全成就
 developer:
   - ustwo games
 publisher:
   - ustwo games
-score:
-year:
-month:
+score: 8
+year: 2026
+month: 5
 category:
   - 游戏
 tags:
   - 指向点击
   - 解谜
 ---
+	完成 2026.5.3
 
+8/10 强烈推荐
 
 ```
-美术 /4
-音乐 /4
-剧情 /4
-玩法 /4
-体验 /4
+美术 4/4 Superb
+音乐 2/4 Average
+剧情 1/4 Poor
+玩法 3/4 Great
+体验 4/4 Superb
 ```
 
+---fin.---

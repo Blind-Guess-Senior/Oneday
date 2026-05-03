@@ -1,11 +1,7 @@
 ---
 status: 未完成
 developer:
-  - "\rTequila Works"
-  - QLOC
 publisher:
-  - "\rGrey Box"
-  - Six Foot
 score:
 year:
 month:
@@ -22,4 +18,5 @@ tags:
 玩法 /4
 体验 /4
 ```
+
 
