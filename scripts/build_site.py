@@ -406,11 +406,10 @@ def resolve_standard_category(
                 keys.append(folder)
 
         for key in keys:
-            key_norm = key.rstrip("/")
-            if candidate == key_norm or candidate.startswith(key_norm + "/"):
-                if len(key_norm) > best_match_len:
+            if candidate == key or candidate.startswith(key + "/"):
+                if len(key) > best_match_len:
                     best_match_name = cat_name
-                    best_match_len = len(key_norm)
+                    best_match_len = len(key)
 
     return best_match_name or candidate
 
