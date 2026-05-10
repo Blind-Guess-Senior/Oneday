@@ -121,6 +121,11 @@ def aspark_score_from_filename(filepath: Path) -> tuple[str, int | None]:
     return stars, len(stars)
 
 
+def normalize_rel_token(value: str) -> str:
+    """Trim whitespace and surrounding slashes from a path token."""
+    return str(value).strip().strip("/")
+
+
 # ---------------------------------------------------------------------------
 # Metadata map loader
 # ---------------------------------------------------------------------------
@@ -383,25 +388,26 @@ def resolve_standard_category(
     category_map: dict[str, list[dict]],
 ) -> str:
     """Resolve a standard folder path to a display category name."""
-    candidate = standard_category_rel.strip().strip("/")
+    candidate = normalize_rel_token(standard_category_rel)
     if not candidate:
         return ""
 
     best_match_name = ""
     best_match_len = -1
     for entry in category_map.get(reviewer, []):
-        cat_name = str(entry.get("name") or "").strip().strip("/")
+        cat_name = normalize_rel_token(str(entry.get("name") or ""))
         if not cat_name:
             continue
 
         keys = [cat_name]
         for folder_rel in entry.get("folders", []):
-            folder = str(folder_rel).strip().strip("/")
+            folder = normalize_rel_token(str(folder_rel))
             if folder:
                 keys.append(folder)
 
         for key in keys:
-            if candidate == key or candidate.startswith(key + "/"):
+            key_norm = key.rstrip("/")
+            if candidate == key_norm or candidate.startswith(key_norm + "/"):
                 if len(key) > best_match_len:
                     best_match_name = cat_name
                     best_match_len = len(key)
