@@ -467,7 +467,7 @@
       </div>
 
       <!-- Score filter: per-reviewer chip selector, shown when ≥1 reviewer selected -->
-      <div class="filter-section" v-if="filterReviewers.length">
+      <div class="filter-section" v-if="filterReviewers.length && !showStandardsOnly">
         <div class="filter-title">分数筛选</div>
         <div v-for="rv in filterReviewers" :key="rv">
           <div class="score-reviewer-label">{{ rv }}</div>
@@ -487,7 +487,7 @@
       </div>
 
       <!-- Tags (only shown when a category is selected) -->
-      <div class="filter-section" v-if="filterCategories && visibleTags.length">
+      <div class="filter-section" v-if="!showStandardsOnly && filterCategories && visibleTags.length">
         <div class="filter-title">标签</div>
         <template v-for="(group, gi) in visibleTagGroups" :key="gi">
           <div v-if="group.length" class="tag-group">
@@ -516,6 +516,10 @@
           <input type="checkbox" v-model="showScoreOnly" @change="page=1">
           显示仅评分评测
         </label>
+        <label class="filter-option">
+          <input type="checkbox" v-model="showStandardsOnly" @change="page=1">
+          显示评分标准
+        </label>
       </div>
 
       <button class="filter-reset" @click="resetFilters">重置筛选</button>
@@ -539,7 +543,7 @@
 
         <template v-else>
           <div class="toolbar">
-            <span class="toolbar-count">共 {{ filtered.length }} 条结果</span>
+            <span class="toolbar-count">共 {{ homeList.length }} 条结果</span>
             <select class="sort-select" v-model="sortBy" @change="page=1">
               <option value="modified">最近更新</option>
               <option value="score_desc">评分从高到低</option>
@@ -549,18 +553,20 @@
           </div>
 
           <div class="cards-grid" v-if="paged.length">
-            <div class="card" v-for="r in paged" :key="r.path" @click="navArticle(r)">
+            <div class="card" v-for="r in paged" :key="r.path" @click="r.kind === 'standard' ? navStandard(r) : navArticle(r)">
               <div class="card-top">
                 <span class="badge" :class="categoryBadgeClass(r)">{{ primaryCategory(r) }}</span>
+                <span class="badge badge-default" v-if="r.kind === 'standard'">评分标准</span>
               </div>
               <div class="card-title">{{ r.title }}</div>
               <div class="card-meta">
                 <span class="reviewer-name">{{ r.reviewer }}</span>
                 <span style="color:var(--border)">·</span>
-                <span class="score-display" :class="scoreClass(r)">{{ r.score_raw || '未评分' }}</span>
+                <span class="score-display" v-if="r.kind === 'standard'">{{ (r.category || [])[0] || '—' }}</span>
+                <span class="score-display" :class="scoreClass(r)" v-else>{{ r.score_raw || '未评分' }}</span>
                 <span class="card-date">{{ r.date || '' }}</span>
               </div>
-              <div class="card-tags" v-if="r.tags && r.tags.length">
+              <div class="card-tags" v-if="r.kind !== 'standard' && r.tags && r.tags.length">
                 <span class="card-tag" v-for="t in r.tags.slice(0,4)" :key="t">{{ t }}</span>
                 <span class="card-tag" v-if="r.tags.length > 4">+{{ r.tags.length - 4 }}</span>
               </div>
@@ -810,6 +816,7 @@ createApp({
     const sidebarOpen     = ref(false);
     const showAllTags     = ref(false);
     const showScoreOnly   = ref(false);
+    const showStandardsOnly = ref(false);
 
     // Tags relevant to the currently selected category (empty when no category selected)
     const visibleTags = computed(() => {
@@ -857,7 +864,29 @@ createApp({
       page.value = 1;
     }
 
-    const filtered = computed(() => {
+    const homeList = computed(() => {
+      if (showStandardsOnly.value) {
+        let list = standards.value.map(s => ({
+          ...s,
+          kind: "standard",
+          category: [s.category],
+        }));
+        const q = search.value.trim().toLowerCase();
+        if (q) list = list.filter(r =>
+          (r.title || "").toLowerCase().includes(q) ||
+          (r.reviewer || "").toLowerCase().includes(q)
+        );
+        if (filterCategories.value)
+          list = list.filter(r => (r.category || []).includes(filterCategories.value));
+        if (filterReviewers.value.length)
+          list = list.filter(r => filterReviewers.value.includes(r.reviewer));
+        const key = sortBy.value;
+        return [...list].sort((a, b) => {
+          if (key === "modified") return (b.modified||"").localeCompare(a.modified||"");
+          if (key === "title")    return (a.title || "").localeCompare(b.title || "", "zh");
+          return 0;
+        });
+      }
       let list = reviews.value;
       if (!showScoreOnly.value) {
         list = list.filter(r => !r.score_only);
@@ -892,10 +921,10 @@ createApp({
       });
     });
 
-    const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)));
+    const totalPages = computed(() => Math.max(1, Math.ceil(homeList.value.length / PAGE_SIZE)));
     const paged = computed(() => {
       const s = (page.value - 1) * PAGE_SIZE;
-      return filtered.value.slice(s, s + PAGE_SIZE);
+      return homeList.value.slice(s, s + PAGE_SIZE);
     });
     const pageRange = computed(() => {
       const total = totalPages.value, cur = page.value;
@@ -912,7 +941,7 @@ createApp({
       return result;
     });
 
-    watch(filtered, () => { if (page.value > totalPages.value) page.value = 1; });
+    watch(homeList, () => { if (page.value > totalPages.value) page.value = 1; });
 
     // ── Display helpers ───────────────────────────────────────────
     function primaryCategory(r) { return (r.category || [])[0] || "其他"; }
@@ -1082,7 +1111,7 @@ createApp({
     }
     function resetFilters() {
       search.value = ""; filterReviewers.value = []; filterCategories.value = "";
-      filterTags.value = []; showAllTags.value = false; showScoreOnly.value = false;
+      filterTags.value = []; showAllTags.value = false; showScoreOnly.value = false; showStandardsOnly.value = false;
       Object.keys(filterScores).forEach(k => delete filterScores[k]);
       page.value = 1;
     }
@@ -1130,8 +1159,8 @@ createApp({
       search, filterReviewers, filterCategories,
       filterScores, filterTags,
       sortBy, page, sidebarOpen, showAllTags,
-      showScoreOnly,
-      filtered, totalPages, paged, pageRange,
+      showScoreOnly, showStandardsOnly,
+      homeList, totalPages, paged, pageRange,
       reviewersInCategory,
       reviewerScoreSystem, isScoreSelected, toggleScore,
       visibleTags, visibleTagGroups,
