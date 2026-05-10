@@ -853,18 +853,7 @@ createApp({
         }
       }
 
-      if (!mapEntries) {
-        // No map: show all non-reserved keys with key name as label
-        return Object.entries(r)
-          .filter(([k, v]) =>
-            !REVIEW_RESERVED_KEYS.has(k) &&
-            v != null && v !== "" && (!Array.isArray(v) || v.length > 0)
-          )
-          .map(([k, v]) => ({
-            label: k,
-            value: Array.isArray(v) ? v.join(" / ") : String(v),
-          }));
-      }
+      if (!mapEntries) return [];
 
       const result = [];
       const usedKeys = new Set();
@@ -881,12 +870,6 @@ createApp({
           result.push({ label, value: parts.join(".") });
           keys.forEach(k => usedKeys.add(k));
         }
-      }
-      // Append any remaining non-reserved, non-mapped keys
-      for (const [k, v] of Object.entries(r)) {
-        if (REVIEW_RESERVED_KEYS.has(k) || usedKeys.has(k)) continue;
-        if (v == null || v === "" || (Array.isArray(v) && v.length === 0)) continue;
-        result.push({ label: k, value: Array.isArray(v) ? v.join(" / ") : String(v) });
       }
       return result;
     }
