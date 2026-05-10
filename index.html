@@ -285,6 +285,47 @@
     .article-meta-item { display: flex; align-items: center; gap: .3rem; color: var(--muted); }
     .article-meta-item strong { color: #1e293b; }
     .article-meta-sep { color: var(--border); }
+    .score-link-btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      border: none; background: none; padding: 0;
+      color: inherit;
+    }
+    .score-link-btn:hover strong { color: var(--accent); }
+    .score-link-hint { font-size: .75rem; color: var(--accent); }
+    .standards-panel {
+      margin: 0 0 1rem;
+      padding: .9rem 1rem;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .standards-panel-title {
+      font-size: .88rem; font-weight: 600;
+      margin-bottom: .6rem; color: #0f172a;
+    }
+    .standards-list {
+      display: flex; flex-direction: column; gap: .5rem;
+    }
+    .standard-link {
+      width: 100%;
+      display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+      text-align: left;
+      padding: .7rem .8rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: #1e293b;
+      transition: border-color .12s, transform .12s;
+    }
+    .standard-link:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .standard-link-meta {
+      flex-shrink: 0;
+      font-size: .76rem;
+      color: var(--muted);
+    }
 
     /* ── Markdown renderer ────────────────────────────────────────────── */
     .md-body {
@@ -568,7 +609,16 @@
               <span class="article-meta-sep">|</span>
               <span class="article-meta-item">
                 <span>评分</span>&nbsp;
-                <strong :class="scoreClass(article)" class="score-display">{{ article.score_raw }}</strong>
+                <button
+                  v-if="standardsForReview(article).length"
+                  type="button"
+                  class="score-link-btn"
+                  @click="toggleArticleStandards"
+                >
+                  <strong :class="scoreClass(article)" class="score-display">{{ article.score_raw }}</strong>
+                  <span class="score-link-hint">{{ articleStandardsOpen ? '收起标准' : '查看标准' }}</span>
+                </button>
+                <strong v-else :class="scoreClass(article)" class="score-display">{{ article.score_raw }}</strong>
               </span>
             </template>
             <template v-if="article.date">
@@ -598,10 +648,56 @@
             </template>
           </div>
 
+          <div class="standards-panel" v-if="articleStandardsOpen && standardsForReview(article).length">
+            <div class="standards-panel-title">评分标准</div>
+            <div class="standards-list">
+              <button
+                v-for="s in standardsForReview(article)"
+                :key="s.path"
+                type="button"
+                class="standard-link"
+                @click="navStandard(s)"
+              >
+                <span>{{ s.title }}</span>
+                <span class="standard-link-meta" v-if="(article.category || []).length > 1">{{ s.category }}</span>
+              </button>
+            </div>
+          </div>
+
           <div class="state-center" v-if="articleLoading">
             <div class="icon">⏳</div><p>加载文章…</p>
           </div>
           <div class="md-body" v-else v-html="articleHtml"></div>
+
+        </div>
+      </template>
+
+      <template v-else-if="view === 'standard' && standard">
+        <div class="article-wrap">
+
+          <a class="article-back" href="#/" @click.prevent="navBackFromStandard">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            {{ article ? '返回评测' : '返回列表' }}
+          </a>
+
+          <h1 class="article-title">{{ standard.title }}</h1>
+
+          <div class="article-meta-bar" style="margin-bottom:1rem">
+            <span class="article-meta-item">
+              <span>评测者</span>&nbsp;<strong>{{ standard.reviewer }}</strong>
+            </span>
+            <span class="article-meta-sep">|</span>
+            <span class="article-meta-item">
+              <span>分类</span>&nbsp;<strong>{{ standard.category }}</strong>
+            </span>
+          </div>
+
+          <div class="state-center" v-if="standardLoading">
+            <div class="icon">⏳</div><p>加载评分标准…</p>
+          </div>
+          <div class="md-body" v-else v-html="standardHtml"></div>
 
         </div>
       </template>
@@ -628,12 +724,13 @@ const PAGE_SIZE = 30;
 const TAG_LIMIT = 30;
 const DATA_URL  = "site_data.json";
 
-function renderMarkdown(raw, reviewPath, allReviews) {
+function renderMarkdown(raw, reviewPath, allReviews, options = {}) {
   if (!raw) return "";
   let src = raw;
+  const stripFrontmatter = options.stripFrontmatter !== false;
   // Strip YAML frontmatter (--- ... ---) from the top.
   // Use "\n---\n" to ensure the closing delimiter is on its own line.
-  if (src.startsWith("---")) {
+  if (stripFrontmatter && src.startsWith("---")) {
     const end = src.indexOf("\n---\n", 3);
     if (end !== -1) src = src.slice(end + 5).replace(/^\r?\n+/, "");
   }
@@ -689,6 +786,7 @@ createApp({
     const loading        = ref(true);
     const error          = ref("");
     const reviews        = ref([]);
+    const standards      = ref([]);
     const meta           = ref({ reviewers: [], categories: [], all_tags: [] });
 
     // ── Routing ───────────────────────────────────────────────────
@@ -696,6 +794,10 @@ createApp({
     const article        = ref(null);
     const articleHtml    = ref("");
     const articleLoading = ref(false);
+    const standard       = ref(null);
+    const standardHtml   = ref("");
+    const standardLoading = ref(false);
+    const articleStandardsOpen = ref(false);
 
     // ── Filters ───────────────────────────────────────────────────
     const search          = ref("");
@@ -874,20 +976,40 @@ createApp({
       return result;
     }
 
+    function standardsForReview(r) {
+      if (!r) return [];
+      const categories = new Set(r.category || []);
+      return standards.value.filter(s =>
+        s.reviewer === r.reviewer &&
+        categories.has(s.category)
+      );
+    }
+
+    function toggleArticleStandards() {
+      articleStandardsOpen.value = !articleStandardsOpen.value;
+    }
+
     // ── Navigation ────────────────────────────────────────────────
     function navHome() {
       view.value = "home";
       article.value = null;
       articleHtml.value = "";
+      standard.value = null;
+      standardHtml.value = "";
+      articleStandardsOpen.value = false;
       sidebarOpen.value = false;
       window.location.hash = "/";
     }
 
     async function navArticle(r) {
+      standard.value        = null;
+      standardHtml.value    = "";
+      standardLoading.value = false;
       article.value        = r;
       view.value           = "article";
       articleHtml.value    = "";
       articleLoading.value = true;
+      articleStandardsOpen.value = false;
       sidebarOpen.value    = false;
       window.location.hash = "/article/" + encodeURIComponent(r.path);
       window.scrollTo(0, 0);
@@ -906,6 +1028,35 @@ createApp({
       } finally {
         articleLoading.value = false;
       }
+    }
+
+    async function navStandard(s) {
+      standard.value        = s;
+      view.value            = "standard";
+      standardHtml.value    = "";
+      standardLoading.value = true;
+      articleStandardsOpen.value = false;
+      sidebarOpen.value     = false;
+      window.location.hash  = "/standard/" + encodeURIComponent(s.path);
+      window.scrollTo(0, 0);
+      try {
+        const resp = await fetch(s.path);
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const raw = await resp.text();
+        standardHtml.value = renderMarkdown(raw, s.path, reviews.value, { stripFrontmatter: false });
+      } catch (e) {
+        standardHtml.value = "<p style='color:red'>无法加载评分标准内容。</p>";
+      } finally {
+        standardLoading.value = false;
+      }
+    }
+
+    function navBackFromStandard() {
+      if (article.value) {
+        navArticle(article.value);
+        return;
+      }
+      navHome();
     }
 
     function filterByTag(tag) {
@@ -943,8 +1094,14 @@ createApp({
         const found = reviews.value.find(r => r.path === path);
         if (found) { navArticle(found); return; }
       }
+      if (hash.startsWith("/standard/")) {
+        const path = decodeURIComponent(hash.slice("/standard/".length));
+        const found = standards.value.find(s => s.path === path);
+        if (found) { navStandard(found); return; }
+      }
       view.value = "home";
       article.value = null;
+      standard.value = null;
     }
 
     // ── Bootstrap ─────────────────────────────────────────────────
@@ -955,6 +1112,7 @@ createApp({
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const data = await resp.json();
         reviews.value = data.reviews || [];
+        standards.value = data.standards || [];
         meta.value    = data.meta    || {};
       } catch (e) {
         error.value = "无法加载 site_data.json：" + e.message;
@@ -965,8 +1123,9 @@ createApp({
     });
 
     return {
-      loading, error, reviews, meta,
+      loading, error, reviews, standards, meta,
       view, article, articleHtml, articleLoading,
+      standard, standardHtml, standardLoading, articleStandardsOpen,
       search, filterReviewers, filterCategories,
       filterScores, filterTags,
       sortBy, page, sidebarOpen, showAllTags,
@@ -976,8 +1135,8 @@ createApp({
       reviewerScoreSystem, isScoreSelected, toggleScore,
       visibleTags, visibleTagGroups,
       primaryCategory, scoreClass, categoryBadgeClass,
-      extraMeta,
-      navHome, navArticle, filterByTag, toggleTag, resetFilters, onCategoryChange, selectCategory,
+      extraMeta, standardsForReview, toggleArticleStandards,
+      navHome, navArticle, navStandard, navBackFromStandard, filterByTag, toggleTag, resetFilters, onCategoryChange, selectCategory,
       TAG_LIMIT,
     };
   }

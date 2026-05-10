@@ -374,6 +374,28 @@ def extract_review(
 
 
 # ---------------------------------------------------------------------------
+# Rating standard extractor
+# ---------------------------------------------------------------------------
+
+def extract_standard(filepath: Path, rel_path: str) -> dict | None:
+    """Parse a rating standard markdown file under ``reviewer/Standard/category/``."""
+    parts = rel_path.split("/")
+    if len(parts) < 4 or parts[1] != "Standard":
+        return None
+    try:
+        filepath.read_text(encoding="utf-8")
+    except Exception:
+        return None
+    return {
+        "path": rel_path,
+        "reviewer": parts[0],
+        "category": parts[2],
+        "title": filepath.stem,
+        "modified": "",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Tag type loader  (reads type1.txt / type2.txt / type3.txt from scripts/)
 # ---------------------------------------------------------------------------
 
@@ -438,6 +460,8 @@ def is_content_file(filepath: Path, rel_path: str) -> bool:
     """Return ``True`` if the file is a candidate review (not a template, standard, etc.)."""
     if "/Templates/" in rel_path:
         return False
+    if "/Standard/" in rel_path:
+        return False
     if filepath.name.startswith("_"):
         return False
     if any(token in filepath.name for token in _NON_REVIEW_NAMES):
@@ -485,6 +509,20 @@ def scan(
     return results
 
 
+def scan_standards() -> list[dict]:
+    """Collect rating standard markdown files from ``reviewer/Standard/category/``."""
+    results: list[dict] = []
+    for filepath in sorted(ROOT.rglob("*.md")):
+        rel_path = filepath.relative_to(ROOT).as_posix()
+        try:
+            standard = extract_standard(filepath, rel_path)
+        except Exception:
+            standard = None
+        if standard is not None:
+            results.append(standard)
+    return results
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -496,6 +534,7 @@ def main() -> None:
     category_map = load_category_map(ROOT)
 
     reviews = scan(include_rules, category_map)
+    standards = scan_standards()
 
     # Populate modified: ask git for the last commit time of each file.
     # CI uses fetch-depth: 0 so the full history is always available.
@@ -503,9 +542,14 @@ def main() -> None:
         rel_path = str(review.get("path") or "")
         if rel_path:
             review["modified"] = git_commit_iso(rel_path)
+    for standard in standards:
+        rel_path = str(standard.get("path") or "")
+        if rel_path:
+            standard["modified"] = git_commit_iso(rel_path)
 
     # Sort: most recently modified first (front-end "recent updates" view)
     reviews.sort(key=lambda r: r.get("modified", ""), reverse=True)
+    standards.sort(key=lambda s: (str(s.get("reviewer") or ""), str(s.get("category") or ""), str(s.get("title") or "")))
 
     # Load tag type classification and apply aliases
     tag_types_data = load_tag_types(ROOT)
@@ -540,6 +584,7 @@ def main() -> None:
 
     site_data = {
         "reviews": reviews,
+        "standards": standards,
         "meta": {
             "total":         len(reviews),
             "generated":     datetime.now().isoformat(),
@@ -557,6 +602,7 @@ def main() -> None:
 
     print(f"✓ Written {out}")
     print(f"  Reviews    : {len(reviews)}")
+    print(f"  Standards  : {len(standards)}")
     print(f"  Reviewers  : {reviewers}")
     print(f"  Categories : {ordered_cats}")
     print(f"  Tags       : {len(all_tags)} unique")
