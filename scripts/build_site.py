@@ -382,10 +382,6 @@ def extract_standard(filepath: Path, rel_path: str) -> dict | None:
     parts = rel_path.split("/")
     if len(parts) < 4 or parts[1] != "Standard":
         return None
-    try:
-        filepath.read_text(encoding="utf-8")
-    except Exception:
-        return None
     return {
         "path": rel_path,
         "reviewer": parts[0],
@@ -549,7 +545,13 @@ def main() -> None:
 
     # Sort: most recently modified first (front-end "recent updates" view)
     reviews.sort(key=lambda r: r.get("modified", ""), reverse=True)
-    standards.sort(key=lambda s: (str(s.get("reviewer") or ""), str(s.get("category") or ""), str(s.get("title") or "")))
+    standards.sort(
+        key=lambda s: (
+            str(s.get("reviewer") or ""),
+            str(s.get("category") or ""),
+            str(s.get("title") or ""),
+        )
+    )
 
     # Load tag type classification and apply aliases
     tag_types_data = load_tag_types(ROOT)

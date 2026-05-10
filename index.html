@@ -727,10 +727,10 @@ const DATA_URL  = "site_data.json";
 function renderMarkdown(raw, reviewPath, allReviews, options = {}) {
   if (!raw) return "";
   let src = raw;
-  const stripFrontmatter = options.stripFrontmatter !== false;
+  const shouldStripFrontmatter = options.stripFrontmatter !== false;
   // Strip YAML frontmatter (--- ... ---) from the top.
   // Use "\n---\n" to ensure the closing delimiter is on its own line.
-  if (stripFrontmatter && src.startsWith("---")) {
+  if (shouldStripFrontmatter && src.startsWith("---")) {
     const end = src.indexOf("\n---\n", 3);
     if (end !== -1) src = src.slice(end + 5).replace(/^\r?\n+/, "");
   }
@@ -1043,6 +1043,7 @@ createApp({
         const resp = await fetch(s.path);
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const raw = await resp.text();
+        // Standards treat the entire file as article body, so frontmatter is not stripped.
         standardHtml.value = renderMarkdown(raw, s.path, reviews.value, { stripFrontmatter: false });
       } catch (e) {
         standardHtml.value = "<p style='color:red'>无法加载评分标准内容。</p>";
