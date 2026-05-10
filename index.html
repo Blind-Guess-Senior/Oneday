@@ -285,6 +285,47 @@
     .article-meta-item { display: flex; align-items: center; gap: .3rem; color: var(--muted); }
     .article-meta-item strong { color: #1e293b; }
     .article-meta-sep { color: var(--border); }
+    .score-link-btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      border: none; background: none; padding: 0;
+      color: inherit;
+    }
+    .score-link-btn:hover strong { color: var(--accent); }
+    .score-link-hint { font-size: .75rem; color: var(--accent); }
+    .standards-panel {
+      margin: 0 0 1rem;
+      padding: .9rem 1rem;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .standards-panel-title {
+      font-size: .88rem; font-weight: 600;
+      margin-bottom: .6rem; color: #0f172a;
+    }
+    .standards-list {
+      display: flex; flex-direction: column; gap: .5rem;
+    }
+    .standard-link {
+      width: 100%;
+      display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+      text-align: left;
+      padding: .7rem .8rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: #1e293b;
+      transition: border-color .12s, transform .12s;
+    }
+    .standard-link:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .standard-link-meta {
+      flex-shrink: 0;
+      font-size: .76rem;
+      color: var(--muted);
+    }
 
     /* ── Markdown renderer ────────────────────────────────────────────── */
     .md-body {
@@ -426,7 +467,7 @@
       </div>
 
       <!-- Score filter: per-reviewer chip selector, shown when ≥1 reviewer selected -->
-      <div class="filter-section" v-if="filterReviewers.length">
+      <div class="filter-section" v-if="filterReviewers.length && !showStandardsOnly">
         <div class="filter-title">分数筛选</div>
         <div v-for="rv in filterReviewers" :key="rv">
           <div class="score-reviewer-label">{{ rv }}</div>
@@ -446,7 +487,7 @@
       </div>
 
       <!-- Tags (only shown when a category is selected) -->
-      <div class="filter-section" v-if="filterCategories && visibleTags.length">
+      <div class="filter-section" v-if="!showStandardsOnly && filterCategories && visibleTags.length">
         <div class="filter-title">标签</div>
         <template v-for="(group, gi) in visibleTagGroups" :key="gi">
           <div v-if="group.length" class="tag-group">
@@ -475,6 +516,10 @@
           <input type="checkbox" v-model="showScoreOnly" @change="page=1">
           显示仅评分评测
         </label>
+        <label class="filter-option">
+          <input type="checkbox" v-model="showStandardsOnly" @change="page=1">
+          显示评分标准
+        </label>
       </div>
 
       <button class="filter-reset" @click="resetFilters">重置筛选</button>
@@ -498,7 +543,7 @@
 
         <template v-else>
           <div class="toolbar">
-            <span class="toolbar-count">共 {{ filtered.length }} 条结果</span>
+            <span class="toolbar-count">共 {{ homeList.length }} 条结果</span>
             <select class="sort-select" v-model="sortBy" @change="page=1">
               <option value="modified">最近更新</option>
               <option value="score_desc">评分从高到低</option>
@@ -508,18 +553,20 @@
           </div>
 
           <div class="cards-grid" v-if="paged.length">
-            <div class="card" v-for="r in paged" :key="r.path" @click="navArticle(r)">
+            <div class="card" v-for="r in paged" :key="r.path" @click="r.kind === 'standard' ? navStandard(r) : navArticle(r)">
               <div class="card-top">
                 <span class="badge" :class="categoryBadgeClass(r)">{{ primaryCategory(r) }}</span>
+                <span class="badge badge-default" v-if="r.kind === 'standard'">评分标准</span>
               </div>
               <div class="card-title">{{ r.title }}</div>
               <div class="card-meta">
                 <span class="reviewer-name">{{ r.reviewer }}</span>
                 <span style="color:var(--border)">·</span>
-                <span class="score-display" :class="scoreClass(r)">{{ r.score_raw || '未评分' }}</span>
+                <span class="score-display" v-if="r.kind === 'standard'">{{ (r.category || [])[0] || '—' }}</span>
+                <span class="score-display" :class="scoreClass(r)" v-else>{{ r.score_raw || '未评分' }}</span>
                 <span class="card-date">{{ r.date || '' }}</span>
               </div>
-              <div class="card-tags" v-if="r.tags && r.tags.length">
+              <div class="card-tags" v-if="r.kind !== 'standard' && r.tags && r.tags.length">
                 <span class="card-tag" v-for="t in r.tags.slice(0,4)" :key="t">{{ t }}</span>
                 <span class="card-tag" v-if="r.tags.length > 4">+{{ r.tags.length - 4 }}</span>
               </div>
@@ -568,7 +615,16 @@
               <span class="article-meta-sep">|</span>
               <span class="article-meta-item">
                 <span>评分</span>&nbsp;
-                <strong :class="scoreClass(article)" class="score-display">{{ article.score_raw }}</strong>
+                <button
+                  v-if="standardsForReview(article).length"
+                  type="button"
+                  class="score-link-btn"
+                  @click="toggleArticleStandards"
+                >
+                  <strong :class="scoreClass(article)" class="score-display">{{ article.score_raw }}</strong>
+                  <span class="score-link-hint">{{ articleStandardsOpen ? '收起标准' : '查看标准' }}</span>
+                </button>
+                <strong v-else :class="scoreClass(article)" class="score-display">{{ article.score_raw }}</strong>
               </span>
             </template>
             <template v-if="article.date">
@@ -598,10 +654,56 @@
             </template>
           </div>
 
+          <div class="standards-panel" v-if="articleStandardsOpen && standardsForReview(article).length">
+            <div class="standards-panel-title">评分标准</div>
+            <div class="standards-list">
+              <button
+                v-for="s in standardsForReview(article)"
+                :key="s.path"
+                type="button"
+                class="standard-link"
+                @click="navStandard(s)"
+              >
+                <span>{{ s.title }}</span>
+                <span class="standard-link-meta" v-if="(article.category || []).length > 1">{{ s.category }}</span>
+              </button>
+            </div>
+          </div>
+
           <div class="state-center" v-if="articleLoading">
             <div class="icon">⏳</div><p>加载文章…</p>
           </div>
           <div class="md-body" v-else v-html="articleHtml"></div>
+
+        </div>
+      </template>
+
+      <template v-else-if="view === 'standard' && standard">
+        <div class="article-wrap">
+
+          <a class="article-back" href="#/" @click.prevent="navBackFromStandard">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            {{ article ? '返回评测' : '返回列表' }}
+          </a>
+
+          <h1 class="article-title">{{ standard.title }}</h1>
+
+          <div class="article-meta-bar" style="margin-bottom:1rem">
+            <span class="article-meta-item">
+              <span>评测者</span>&nbsp;<strong>{{ standard.reviewer }}</strong>
+            </span>
+            <span class="article-meta-sep">|</span>
+            <span class="article-meta-item">
+              <span>分类</span>&nbsp;<strong>{{ standard.category }}</strong>
+            </span>
+          </div>
+
+          <div class="state-center" v-if="standardLoading">
+            <div class="icon">⏳</div><p>加载评分标准…</p>
+          </div>
+          <div class="md-body" v-else v-html="standardHtml"></div>
 
         </div>
       </template>
@@ -628,12 +730,13 @@ const PAGE_SIZE = 30;
 const TAG_LIMIT = 30;
 const DATA_URL  = "site_data.json";
 
-function renderMarkdown(raw, reviewPath, allReviews) {
+function renderMarkdown(raw, reviewPath, allReviews, options = {}) {
   if (!raw) return "";
   let src = raw;
+  const shouldStripFrontmatter = options.stripFrontmatter !== false;
   // Strip YAML frontmatter (--- ... ---) from the top.
   // Use "\n---\n" to ensure the closing delimiter is on its own line.
-  if (src.startsWith("---")) {
+  if (shouldStripFrontmatter && src.startsWith("---")) {
     const end = src.indexOf("\n---\n", 3);
     if (end !== -1) src = src.slice(end + 5).replace(/^\r?\n+/, "");
   }
@@ -689,6 +792,7 @@ createApp({
     const loading        = ref(true);
     const error          = ref("");
     const reviews        = ref([]);
+    const standards      = ref([]);
     const meta           = ref({ reviewers: [], categories: [], all_tags: [] });
 
     // ── Routing ───────────────────────────────────────────────────
@@ -696,6 +800,10 @@ createApp({
     const article        = ref(null);
     const articleHtml    = ref("");
     const articleLoading = ref(false);
+    const standard       = ref(null);
+    const standardHtml   = ref("");
+    const standardLoading = ref(false);
+    const articleStandardsOpen = ref(false);
 
     // ── Filters ───────────────────────────────────────────────────
     const search          = ref("");
@@ -708,6 +816,7 @@ createApp({
     const sidebarOpen     = ref(false);
     const showAllTags     = ref(false);
     const showScoreOnly   = ref(false);
+    const showStandardsOnly = ref(false);
 
     // Tags relevant to the currently selected category (empty when no category selected)
     const visibleTags = computed(() => {
@@ -755,7 +864,29 @@ createApp({
       page.value = 1;
     }
 
-    const filtered = computed(() => {
+    const homeList = computed(() => {
+      if (showStandardsOnly.value) {
+        let list = standards.value.map(s => ({
+          ...s,
+          kind: "standard",
+          category: [s.category],
+        }));
+        const q = search.value.trim().toLowerCase();
+        if (q) list = list.filter(r =>
+          (r.title || "").toLowerCase().includes(q) ||
+          (r.reviewer || "").toLowerCase().includes(q)
+        );
+        if (filterCategories.value)
+          list = list.filter(r => (r.category || []).includes(filterCategories.value));
+        if (filterReviewers.value.length)
+          list = list.filter(r => filterReviewers.value.includes(r.reviewer));
+        const key = sortBy.value;
+        return [...list].sort((a, b) => {
+          if (key === "modified") return (b.modified||"").localeCompare(a.modified||"");
+          if (key === "title")    return (a.title || "").localeCompare(b.title || "", "zh");
+          return 0;
+        });
+      }
       let list = reviews.value;
       if (!showScoreOnly.value) {
         list = list.filter(r => !r.score_only);
@@ -790,10 +921,10 @@ createApp({
       });
     });
 
-    const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)));
+    const totalPages = computed(() => Math.max(1, Math.ceil(homeList.value.length / PAGE_SIZE)));
     const paged = computed(() => {
       const s = (page.value - 1) * PAGE_SIZE;
-      return filtered.value.slice(s, s + PAGE_SIZE);
+      return homeList.value.slice(s, s + PAGE_SIZE);
     });
     const pageRange = computed(() => {
       const total = totalPages.value, cur = page.value;
@@ -810,7 +941,7 @@ createApp({
       return result;
     });
 
-    watch(filtered, () => { if (page.value > totalPages.value) page.value = 1; });
+    watch(homeList, () => { if (page.value > totalPages.value) page.value = 1; });
 
     // ── Display helpers ───────────────────────────────────────────
     function primaryCategory(r) { return (r.category || [])[0] || "其他"; }
@@ -853,18 +984,7 @@ createApp({
         }
       }
 
-      if (!mapEntries) {
-        // No map: show all non-reserved keys with key name as label
-        return Object.entries(r)
-          .filter(([k, v]) =>
-            !REVIEW_RESERVED_KEYS.has(k) &&
-            v != null && v !== "" && (!Array.isArray(v) || v.length > 0)
-          )
-          .map(([k, v]) => ({
-            label: k,
-            value: Array.isArray(v) ? v.join(" / ") : String(v),
-          }));
-      }
+      if (!mapEntries) return [];
 
       const result = [];
       const usedKeys = new Set();
@@ -882,13 +1002,20 @@ createApp({
           keys.forEach(k => usedKeys.add(k));
         }
       }
-      // Append any remaining non-reserved, non-mapped keys
-      for (const [k, v] of Object.entries(r)) {
-        if (REVIEW_RESERVED_KEYS.has(k) || usedKeys.has(k)) continue;
-        if (v == null || v === "" || (Array.isArray(v) && v.length === 0)) continue;
-        result.push({ label: k, value: Array.isArray(v) ? v.join(" / ") : String(v) });
-      }
       return result;
+    }
+
+    function standardsForReview(r) {
+      if (!r) return [];
+      const categories = new Set(r.category || []);
+      return standards.value.filter(s =>
+        s.reviewer === r.reviewer &&
+        categories.has(s.category)
+      );
+    }
+
+    function toggleArticleStandards() {
+      articleStandardsOpen.value = !articleStandardsOpen.value;
     }
 
     // ── Navigation ────────────────────────────────────────────────
@@ -896,15 +1023,22 @@ createApp({
       view.value = "home";
       article.value = null;
       articleHtml.value = "";
+      standard.value = null;
+      standardHtml.value = "";
+      articleStandardsOpen.value = false;
       sidebarOpen.value = false;
       window.location.hash = "/";
     }
 
     async function navArticle(r) {
+      standard.value        = null;
+      standardHtml.value    = "";
+      standardLoading.value = false;
       article.value        = r;
       view.value           = "article";
       articleHtml.value    = "";
       articleLoading.value = true;
+      articleStandardsOpen.value = false;
       sidebarOpen.value    = false;
       window.location.hash = "/article/" + encodeURIComponent(r.path);
       window.scrollTo(0, 0);
@@ -923,6 +1057,36 @@ createApp({
       } finally {
         articleLoading.value = false;
       }
+    }
+
+    async function navStandard(s) {
+      standard.value        = s;
+      view.value            = "standard";
+      standardHtml.value    = "";
+      standardLoading.value = true;
+      articleStandardsOpen.value = false;
+      sidebarOpen.value     = false;
+      window.location.hash  = "/standard/" + encodeURIComponent(s.path);
+      window.scrollTo(0, 0);
+      try {
+        const resp = await fetch(s.path);
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const raw = await resp.text();
+        // Standards render the raw markdown as-is, including any leading frontmatter text.
+        standardHtml.value = renderMarkdown(raw, s.path, reviews.value, { stripFrontmatter: false });
+      } catch (e) {
+        standardHtml.value = "<p style='color:red'>无法加载评分标准内容。</p>";
+      } finally {
+        standardLoading.value = false;
+      }
+    }
+
+    function navBackFromStandard() {
+      if (article.value) {
+        navArticle(article.value);
+        return;
+      }
+      navHome();
     }
 
     function filterByTag(tag) {
@@ -947,7 +1111,7 @@ createApp({
     }
     function resetFilters() {
       search.value = ""; filterReviewers.value = []; filterCategories.value = "";
-      filterTags.value = []; showAllTags.value = false; showScoreOnly.value = false;
+      filterTags.value = []; showAllTags.value = false; showScoreOnly.value = false; showStandardsOnly.value = false;
       Object.keys(filterScores).forEach(k => delete filterScores[k]);
       page.value = 1;
     }
@@ -960,8 +1124,14 @@ createApp({
         const found = reviews.value.find(r => r.path === path);
         if (found) { navArticle(found); return; }
       }
+      if (hash.startsWith("/standard/")) {
+        const path = decodeURIComponent(hash.slice("/standard/".length));
+        const found = standards.value.find(s => s.path === path);
+        if (found) { navStandard(found); return; }
+      }
       view.value = "home";
       article.value = null;
+      standard.value = null;
     }
 
     // ── Bootstrap ─────────────────────────────────────────────────
@@ -972,6 +1142,7 @@ createApp({
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const data = await resp.json();
         reviews.value = data.reviews || [];
+        standards.value = data.standards || [];
         meta.value    = data.meta    || {};
       } catch (e) {
         error.value = "无法加载 site_data.json：" + e.message;
@@ -982,19 +1153,20 @@ createApp({
     });
 
     return {
-      loading, error, reviews, meta,
+      loading, error, reviews, standards, meta,
       view, article, articleHtml, articleLoading,
+      standard, standardHtml, standardLoading, articleStandardsOpen,
       search, filterReviewers, filterCategories,
       filterScores, filterTags,
       sortBy, page, sidebarOpen, showAllTags,
-      showScoreOnly,
-      filtered, totalPages, paged, pageRange,
+      showScoreOnly, showStandardsOnly,
+      homeList, totalPages, paged, pageRange,
       reviewersInCategory,
       reviewerScoreSystem, isScoreSelected, toggleScore,
       visibleTags, visibleTagGroups,
       primaryCategory, scoreClass, categoryBadgeClass,
-      extraMeta,
-      navHome, navArticle, filterByTag, toggleTag, resetFilters, onCategoryChange, selectCategory,
+      extraMeta, standardsForReview, toggleArticleStandards,
+      navHome, navArticle, navStandard, navBackFromStandard, filterByTag, toggleTag, resetFilters, onCategoryChange, selectCategory,
       TAG_LIMIT,
     };
   }
