@@ -1043,7 +1043,7 @@ createApp({
         const resp = await fetch(s.path);
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const raw = await resp.text();
-        // Standards treat the entire file as article body, so frontmatter is not stripped.
+        // Standards render the raw markdown as-is, including any leading frontmatter text.
         standardHtml.value = renderMarkdown(raw, s.path, reviews.value, { stripFrontmatter: false });
       } catch (e) {
         standardHtml.value = "<p style='color:red'>无法加载评分标准内容。</p>";
