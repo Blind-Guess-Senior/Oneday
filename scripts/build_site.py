@@ -121,6 +121,11 @@ def aspark_score_from_filename(filepath: Path) -> tuple[str, int | None]:
     return stars, len(stars)
 
 
+def normalize_rel_token(value: str) -> str:
+    """Trim whitespace and surrounding slashes from a path token."""
+    return str(value).strip().strip("/")
+
+
 # ---------------------------------------------------------------------------
 # Metadata map loader
 # ---------------------------------------------------------------------------
@@ -377,15 +382,58 @@ def extract_review(
 # Rating standard extractor
 # ---------------------------------------------------------------------------
 
-def extract_standard(filepath: Path, rel_path: str) -> dict | None:
+def resolve_standard_category(
+    reviewer: str,
+    standard_category_rel: str,
+    category_map: dict[str, list[dict]],
+) -> str:
+    """Resolve a standard folder path to a display category name."""
+    candidate = normalize_rel_token(standard_category_rel)
+    if not candidate:
+        return ""
+
+    best_match_name = ""
+    best_match_len = -1
+    for entry in category_map.get(reviewer, []):
+        cat_name = normalize_rel_token(str(entry.get("name") or ""))
+        if not cat_name:
+            continue
+
+        keys = [cat_name]
+        for folder_rel in entry.get("folders", []):
+            folder = normalize_rel_token(str(folder_rel))
+            if folder:
+                keys.append(folder)
+
+        for key in keys:
+            if candidate == key or candidate.startswith(key + "/"):
+                if len(key) > best_match_len:
+                    best_match_name = cat_name
+                    best_match_len = len(key)
+
+    return best_match_name or candidate
+
+
+def extract_standard(
+    filepath: Path,
+    rel_path: str,
+    category_map: dict[str, list[dict]],
+) -> dict | None:
     """Parse a rating standard markdown file under ``reviewer/Standard/category/``."""
     parts = rel_path.split("/")
     if len(parts) < 4 or parts[1] != "Standard":
         return None
+
+    reviewer = parts[0]
+    standard_category_rel = "/".join(parts[2:-1])
+    category = resolve_standard_category(reviewer, standard_category_rel, category_map)
+    if not category:
+        return None
+
     return {
         "path": rel_path,
-        "reviewer": parts[0],
-        "category": parts[2],
+        "reviewer": reviewer,
+        "category": category,
         "title": filepath.stem,
         "modified": "",
     }
@@ -505,13 +553,13 @@ def scan(
     return results
 
 
-def scan_standards() -> list[dict]:
+def scan_standards(category_map: dict[str, list[dict]]) -> list[dict]:
     """Collect rating standard markdown files from ``reviewer/Standard/category/``."""
     results: list[dict] = []
     for filepath in sorted(ROOT.rglob("*.md")):
         rel_path = filepath.relative_to(ROOT).as_posix()
         try:
-            standard = extract_standard(filepath, rel_path)
+            standard = extract_standard(filepath, rel_path, category_map)
         except Exception:
             standard = None
         if standard is not None:
@@ -530,7 +578,7 @@ def main() -> None:
     category_map = load_category_map(ROOT)
 
     reviews = scan(include_rules, category_map)
-    standards = scan_standards()
+    standards = scan_standards(category_map)
 
     # Populate modified: ask git for the last commit time of each file.
     # CI uses fetch-depth: 0 so the full history is always available.
