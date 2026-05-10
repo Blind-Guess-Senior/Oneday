@@ -46,6 +46,7 @@
 ### ==最佳美术==
  Dead Cells | [[Dead Cells]] 
  COCOON | [[COCOON]] 
+ Monument Valley 2 | [[Monument Valley 2]] 
  
 ### ==最佳音乐==
  Dead Cells | [[Dead Cells]] 
