@@ -408,9 +408,9 @@ def resolve_standard_category(
         for key in keys:
             key_norm = key.rstrip("/")
             if candidate == key_norm or candidate.startswith(key_norm + "/"):
-                if len(key) > best_match_len:
+                if len(key_norm) > best_match_len:
                     best_match_name = cat_name
-                    best_match_len = len(key)
+                    best_match_len = len(key_norm)
 
     return best_match_name or candidate
 
@@ -426,7 +426,7 @@ def extract_standard(
         return None
 
     reviewer = parts[0]
-    standard_category_rel = "/".join(parts[2:-1]).strip("/")
+    standard_category_rel = "/".join(parts[2:-1])
     category = resolve_standard_category(reviewer, standard_category_rel, category_map)
     if not category:
         return None
