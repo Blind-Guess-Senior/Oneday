@@ -70,6 +70,17 @@ def parse_yaml_frontmatter(content: str) -> tuple[dict, str]:
     return meta, content[end + 4:].lstrip("\n")
 
 
+def extract_sub_scores(body: str) -> list[str]:
+    """Return the lines of the first fenced code block in *body* as a list of strings.
+
+    Returns an empty list when no code block is found.
+    """
+    match = re.search(r"^```[^\n]*\n(.*?)\n```", body, re.DOTALL | re.MULTILINE)
+    if not match:
+        return []
+    return [ln.strip() for ln in match.group(1).strip().split("\n") if ln.strip()]
+
+
 def coerce_int(val) -> int | None:
     """Safely coerce *val* to ``int``, returning ``None`` on failure."""
     if val is None:
@@ -374,6 +385,8 @@ def extract_review(
 
     # Special: tags → normalise to list[str]
     review["tags"] = to_str_list(meta.get("tags")) if has_yaml else []
+
+    review["sub_scores"] = extract_sub_scores(effective_body)
 
     return review
 
