@@ -327,6 +327,19 @@
       color: var(--muted);
     }
 
+    /* ── Sub-scores ─────────────────────────────────────────────────────── */
+    .sub-scores {
+      display: flex; flex-wrap: wrap; gap: .5rem;
+      padding-bottom: 1rem; margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sub-score-item {
+      background: #f1f5f9; border: 1px solid var(--border);
+      border-radius: 6px; padding: .3rem .65rem;
+      font-size: .82rem; font-weight: 500;
+      white-space: nowrap;
+    }
+
     /* ── Markdown renderer ────────────────────────────────────────────── */
     .md-body {
       line-height: 1.75; color: #1e293b;
@@ -673,7 +686,12 @@
           <div class="state-center" v-if="articleLoading">
             <div class="icon">⏳</div><p>加载文章…</p>
           </div>
-          <div class="md-body" v-else v-html="articleHtml"></div>
+          <div class="md-body" v-else>
+            <div class="sub-scores" v-if="article.sub_scores && article.sub_scores.length">
+              <span class="sub-score-item" v-for="line in article.sub_scores" :key="line">{{ line }}</span>
+            </div>
+            <div v-html="articleHtml"></div>
+          </div>
 
         </div>
       </template>
@@ -742,6 +760,11 @@ function renderMarkdown(raw, reviewPath, allReviews, options = {}) {
   }
   // Strip ---fin.--- completion marker wherever it appears
   src = src.replace(/^---fin\.---\s*\n?/m, "");
+  // Strip first fenced code block (sub-scores), now rendered separately.
+  // Only for reviews; standards pass { stripFirstCodeBlock: false }.
+  if (options.stripFirstCodeBlock !== false) {
+    src = src.replace(/```[^\n]*\n[\s\S]*?\n```\s*\n?/, "");
+  }
   // Resolve Obsidian-style image links ![[filename]] or ![[relative/path/file.ext]]
   // → standard markdown image. Images are looked up in the attachments/ subdirectory
   // relative to the review file's directory.
@@ -1073,7 +1096,7 @@ createApp({
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const raw = await resp.text();
         // Standards render the raw markdown as-is, including any leading frontmatter text.
-        standardHtml.value = renderMarkdown(raw, s.path, reviews.value, { stripFrontmatter: false });
+        standardHtml.value = renderMarkdown(raw, s.path, reviews.value, { stripFrontmatter: false, stripFirstCodeBlock: false });
       } catch (e) {
         standardHtml.value = "<p style='color:red'>无法加载评分标准内容。</p>";
       } finally {
