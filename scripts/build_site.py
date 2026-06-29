@@ -9,15 +9,16 @@ through verbatim. A YAML review is included when:
          rules (``key=value`` lines, any-match). If include.txt is absent,
          everything under that reviewer is treated as scored.
 
-The ``---fin.---`` marker no longer controls inclusion directly. Instead,
-reviews without that marker are marked as ``score_only`` so the frontend can
-choose whether to show them.
+The ``completed`` YAML key controls whether a review is complete. Reviews
+without ``completed: true`` are marked as ``score_only`` when they match the
+top-level reviewer ``include.txt`` rules.
 
-Two YAML keys receive special normalisation:
+Three YAML keys receive special normalisation:
 
   score   → also emitted as ``score_raw`` (original string) and ``score``
             (coerced to int, or None).
   tags    → normalised to a list[str] regardless of how YAML encodes it.
+  aka     → normalised to a list[str].
 
 All other YAML keys are written to the output dict exactly as-is.
 Three extra keys are always injected (never read from YAML):
@@ -313,18 +314,19 @@ def extract_review(
 ) -> dict | None:
     """Parse *filepath* and return a review dict, or ``None`` to skip.
 
-    All YAML keys are passed through verbatim except for the two special ones:
+    All YAML keys are passed through verbatim except for the three special ones:
 
     * ``score``  — kept as-is under ``score_raw`` (str); also emitted under
                    ``score`` as a coerced int (or None).
     * ``tags``   — normalised to list[str].
+    * ``aka``    — normalised to list[str].
 
     Four keys injected by the extractor (never read from YAML):
 
     * ``path``     — repo-relative path.
     * ``reviewer`` — top-level folder name (repository is organised by author).
     * ``modified`` — file mtime ISO string.
-    * ``score_only`` — True when body lacks ``---fin.---`` marker.
+    * ``score_only`` — True when ``completed`` is not boolean ``true``.
 
     A ``title`` fallback is applied when the YAML has no ``title`` key:
     the filename stem is used (trailing ``★…`` stripped).
@@ -344,10 +346,10 @@ def extract_review(
     effective_body = body if has_yaml else content
 
     # Inclusion order:
-    # 1) complete review: in category.txt folder AND has ---fin.---
+    # 1) complete review: in category.txt folder AND completed: true
     # 2) score-only review: not complete, in category.txt folder, and include.txt rule match
-    has_fin_marker = "---fin.---" in effective_body
-    if has_fin_marker:
+    is_completed = meta.get("completed") is True
+    if is_completed:
         score_only = False
     else:
         if not is_scored_review(meta, reviewer, include_rules):
@@ -385,6 +387,9 @@ def extract_review(
 
     # Special: tags → normalise to list[str]
     review["tags"] = to_str_list(meta.get("tags")) if has_yaml else []
+
+    # Special: aka → normalise to list[str]
+    review["aka"] = to_str_list(meta.get("aka")) if has_yaml else []
 
     review["sub_scores"] = extract_sub_scores(effective_body)
 
@@ -465,17 +470,18 @@ def load_tag_types(root: Path) -> dict:
         -书籍
         单元剧,公路片,自然+动物
 
-    A ``canonical+alias`` expression means *alias* is merged into *canonical*
-    (the alias tag is replaced by the canonical one when processing reviews).
+    A ``canonical+tag_alias`` expression means *tag_alias* is merged into
+    *canonical* (the alias tag is replaced by the canonical one when processing
+    reviews).
     Tags absent from all type files default to type 3.
 
     Returns a dict with two keys:
 
     * ``type_map``  – ``{canonical_tag: type_number}``  (1, 2, or 3)
-    * ``aliases``   – ``{alias_tag: canonical_tag}``
+    * ``tag_aliases`` – ``{alias_tag: canonical_tag}``
     """
     type_map: dict[str, int] = {}
-    aliases: dict[str, str] = {}
+    tag_aliases: dict[str, str] = {}
     for type_num in (1, 2, 3):
         type_file = root / "scripts" / f"type{type_num}.txt"
         if not type_file.exists():
@@ -492,14 +498,14 @@ def load_tag_types(root: Path) -> dict:
                     if "+" in tag_expr:
                         parts = [p.strip() for p in tag_expr.split("+")]
                         canonical = parts[0]
-                        for alias in parts[1:]:
-                            if alias:
-                                aliases[alias] = canonical
+                        for tag_alias in parts[1:]:
+                            if tag_alias:
+                                tag_aliases[tag_alias] = canonical
                         if canonical:
                             type_map[canonical] = type_num
                     else:
                         type_map[tag_expr] = type_num
-    return {"type_map": type_map, "aliases": aliases}
+    return {"type_map": type_map, "tag_aliases": tag_aliases}
 
 
 # ---------------------------------------------------------------------------
@@ -614,16 +620,16 @@ def main() -> None:
         )
     )
 
-    # Load tag type classification and apply aliases
+    # Load tag type classification and apply tag aliases
     tag_types_data = load_tag_types(ROOT)
-    aliases = tag_types_data["aliases"]
-    if aliases:
+    tag_aliases = tag_types_data["tag_aliases"]
+    if tag_aliases:
         for review in reviews:
             orig_tags = review.get("tags") or []
             new_tags: list[str] = []
             seen_tags: set[str] = set()
             for t in orig_tags:
-                canonical = aliases.get(t, t)
+                canonical = tag_aliases.get(t, t)
                 if canonical not in seen_tags:
                     seen_tags.add(canonical)
                     new_tags.append(canonical)
