@@ -5,18 +5,18 @@ All review metadata is read exclusively from YAML frontmatter and passed
 through verbatim. A YAML review is included when:
 
     1. It has a valid YAML frontmatter block (``---`` … ``---``).
-    2. It is considered "scored" by the top-level reviewer ``include.txt``
-         rules (``key=value`` lines, any-match). If include.txt is absent,
+    2. It is considered "scored" by the top-level reviewer
+         ``reviewer_config.toml`` score-only rules. If those rules are absent,
          everything under that reviewer is treated as scored.
 
 The ``completed`` YAML key controls whether a review is complete. Reviews
 without ``completed: true`` are marked as ``score_only`` when they match the
-top-level reviewer ``include.txt`` rules.
+top-level reviewer ``reviewer_config.toml`` score-only rules.
 
 Three YAML keys receive special normalisation:
 
-  score   → also emitted as ``score_raw`` (original string) and ``score``
-            (coerced to int, or None).
+  score   → emitted as ``score_raw`` (original string), ``score_rank``
+            (sortable position), and ``score_tier`` (1-based tier index).
   tags    → normalised to a list[str] regardless of how YAML encodes it.
   aka     → normalised to a list[str].
 
@@ -37,6 +37,7 @@ from __future__ import annotations
 import json
 import re
 import subprocess
+import tomllib
 from datetime import datetime
 from pathlib import Path
 
@@ -58,16 +59,16 @@ def parse_yaml_frontmatter(content: str) -> tuple[dict, str]:
 
     If no valid frontmatter is found, returns ``({}, content)``.
     """
-    if not content.startswith("---"):
-        return {}, content
-    end = content.find("\n---", 3)
-    if end == -1:
+    match = re.match(r"\A---[ \t]*\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", content, re.DOTALL)
+    if not match:
         return {}, content
     try:
-        meta = yaml.safe_load(content[3:end]) or {}
+        meta = yaml.safe_load(match.group(1)) or {}
     except Exception:
         meta = {}
-    return meta, content[end + 4:].lstrip("\n")
+    if not isinstance(meta, dict):
+        meta = {}
+    return meta, content[match.end():].lstrip("\r\n")
 
 
 def extract_sub_scores(body: str) -> list[str]:
@@ -81,16 +82,6 @@ def extract_sub_scores(body: str) -> list[str]:
     return [ln.strip() for ln in match.group(1).strip().split("\n") if ln.strip()]
 
 
-def coerce_int(val) -> int | None:
-    """Safely coerce *val* to ``int``, returning ``None`` on failure."""
-    if val is None:
-        return None
-    try:
-        return int(val)
-    except (TypeError, ValueError):
-        return None
-
-
 def to_str_list(val) -> list[str]:
     """Coerce *val* to a non-None list of non-empty strings."""
     if val is None:
@@ -99,6 +90,19 @@ def to_str_list(val) -> list[str]:
         return [str(v) for v in val if v is not None and str(v).strip()]
     s = str(val).strip()
     return [s] if s else []
+
+
+def load_toml(path: Path) -> dict:
+    """Load a TOML file, returning an empty dict when it does not exist."""
+    if not path.exists():
+        return {}
+    with path.open("rb") as fh:
+        return tomllib.load(fh)
+
+
+def score_key(val) -> str:
+    """Return the canonical string key used for score matching."""
+    return str(val).strip()
 
 
 def git_commit_iso(rel_path: str) -> str:
@@ -136,54 +140,172 @@ def normalize_rel_token(value: str) -> str:
 # Metadata map loader
 # ---------------------------------------------------------------------------
 
-def load_metadata_maps(root: Path) -> dict[str, list]:
-    """Load all metadata_map.txt files found anywhere in the repository.
+def load_metadata_maps(root: Path) -> dict[str, dict[str, list]]:
+    """Load category-scoped metadata maps from reviewer config files.
 
-    Returns a dict keyed by the folder path (relative to root) containing the
-    file.  Each value is an ordered list of mapping entries::
+    Returns a dict keyed first by reviewer, then by category name.  Each leaf is
+    an ordered list of mapping entries::
 
-        [{"keys": ["year", "month"], "label": "游玩日期"}, ...]
-
-    Line format (one per line):
-        key . label              – single key
-        key1+key2 . label        – merged keys (displayed as "val1.val2")
-    Lines starting with ``#`` or without `` . `` are ignored.
+        {"Reviewer": {"游戏": [{"keys": ["year", "month"], "separator": ".", "label": "游玩日期"}, ...]}}
     """
-    maps: dict[str, list] = {}
-    for map_file in root.rglob("metadata_map.txt"):
-        folder = map_file.parent.relative_to(root).as_posix()
-        entries: list[dict] = []
-        for line in map_file.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#"):
+    maps: dict[str, dict[str, list]] = {}
+    for top_dir in sorted(root.iterdir()):
+        if not top_dir.is_dir() or top_dir.name.startswith("."):
+            continue
+        config = load_toml(top_dir / "reviewer_config.toml")
+        metadata_maps = config.get("metadata_maps")
+        if not isinstance(metadata_maps, dict):
+            continue
+        reviewer_maps: dict[str, list] = {}
+        for category_name, entries_value in metadata_maps.items():
+            category_name = str(category_name).strip()
+            if not category_name or not isinstance(entries_value, list):
                 continue
-            if " . " in line:
-                # Merged-key format: key1+key2 . label  or  key . label
-                key_part, label = line.split(" . ", 1)
-                keys = [k.strip() for k in key_part.split("+")]
-                entries.append({"keys": keys, "label": label.strip()})
-            elif " " in line:
-                # Simple format: key label
-                key_part, label = line.split(None, 1)
-                entries.append({"keys": [key_part.strip()], "label": label.strip()})
-        maps[folder] = entries
+            entries: list[dict] = []
+            for raw_entry in entries_value:
+                if not isinstance(raw_entry, dict):
+                    continue
+                keys = to_str_list(raw_entry.get("keys"))
+                label = str(raw_entry.get("label") or "").strip()
+                if not keys or not label:
+                    continue
+                entry = {"keys": keys, "label": label}
+                separator = raw_entry.get("separator")
+                if separator is not None:
+                    entry["separator"] = str(separator)
+                entries.append(entry)
+            if entries:
+                reviewer_maps[category_name] = entries
+        if reviewer_maps:
+            maps[top_dir.name] = reviewer_maps
     return maps
 
 
+def load_score_configs(root: Path) -> dict[str, dict]:
+    """Load reviewer score ordering and tier rules."""
+    configs: dict[str, dict] = {}
+    for top_dir in sorted(root.iterdir()):
+        if not top_dir.is_dir() or top_dir.name.startswith("."):
+            continue
+        config = load_toml(top_dir / "reviewer_config.toml")
+        score_config = config.get("score")
+        if not isinstance(score_config, dict):
+            continue
+
+        order = to_str_list(score_config.get("order"))
+        order_map = {value: idx + 1 for idx, value in enumerate(order)}
+
+        tiers: list[set[str]] = []
+        raw_tiers = score_config.get("tiers")
+        if isinstance(raw_tiers, list):
+            for raw_tier in raw_tiers:
+                if not isinstance(raw_tier, dict):
+                    continue
+                values = set(to_str_list(raw_tier.get("values")))
+                if values:
+                    tiers.append(values)
+
+        configs[top_dir.name] = {
+            "order": order,
+            "order_map": order_map,
+            "tiers": tiers,
+        }
+    return configs
+
+
+def apply_score_configs(reviews: list[dict], score_configs: dict[str, dict]) -> None:
+    """Populate score_raw, score_rank, and score_tier for each review."""
+    for review in reviews:
+        score_raw = score_key(review.get("score_raw"))
+        review["score_raw"] = score_raw
+
+        config = score_configs.get(str(review.get("reviewer") or ""), {})
+        order_map = config.get("order_map") or {}
+        if score_raw in order_map:
+            score_rank = order_map[score_raw]
+        else:
+            score_rank = None
+        review["score_rank"] = score_rank
+        review["score"] = score_raw
+
+        score_tier = None
+        tiers = config.get("tiers") or []
+        for idx, tier_values in enumerate(tiers, start=1):
+            if score_raw in tier_values:
+                score_tier = idx
+                break
+        review["score_tier"] = score_tier
+
+
+def score_options_by_reviewer(reviews: list[dict], score_configs: dict[str, dict]) -> dict[str, list[str]]:
+    """Return ordered score filter options for each reviewer."""
+    seen_scores: dict[str, set[str]] = {}
+    for review in reviews:
+        reviewer = str(review.get("reviewer") or "")
+        score_raw = str(review.get("score_raw") or "")
+        if not reviewer or not score_raw:
+            continue
+        seen_scores.setdefault(reviewer, set()).add(score_raw)
+
+    result: dict[str, list[str]] = {}
+    for reviewer, scores in seen_scores.items():
+        order = score_configs.get(reviewer, {}).get("order") or []
+        ordered = [score for score in order if score in scores]
+        remaining = sorted(scores - set(ordered))
+        result[reviewer] = ordered + remaining
+    return result
+
+
+def css_attr_value(value: str) -> str:
+    """Escape a string for use in a double-quoted CSS attribute selector."""
+    return str(value).replace("\\", "\\\\").replace('"', '\\"')
+
+
+def scoped_reviewer_css(reviewer: str, css: str) -> str:
+    """Extract score-tier rules and scope them to a reviewer.
+
+    Reviewer CSS is intentionally treated as a small whitelist: only simple
+    ``.score-tier-N { ... }`` rule blocks are emitted.  Other selectors are
+    ignored so a malformed reviewer stylesheet cannot leak global styles.
+    """
+    prefix = f'[data-reviewer="{css_attr_value(reviewer)}"]'
+    scoped_rules: list[str] = []
+    for match in re.finditer(r"(?s)(\.score-tier-\d+\s*)\{([^{}]*)\}", css):
+        selector = match.group(1).strip()
+        declarations = match.group(2).strip()
+        if not declarations:
+            continue
+        scoped_rules.append(f"{prefix}{selector} {{\n{declarations}\n}}")
+    return "\n\n".join(scoped_rules).strip()
+
+
+def write_reviewer_styles(root: Path) -> str:
+    """Write generated reviewer score styles and return the repo-relative path."""
+    generated_dir = root / "generated"
+    generated_dir.mkdir(exist_ok=True)
+    out = generated_dir / "reviewer_styles.css"
+
+    css_parts: list[str] = []
+    for top_dir in sorted(root.iterdir()):
+        if not top_dir.is_dir() or top_dir.name.startswith("."):
+            continue
+        style_file = top_dir / "reviewer_style.css"
+        if not style_file.exists():
+            continue
+        css = style_file.read_text(encoding="utf-8").strip()
+        if css:
+            css_parts.append(f"/* {top_dir.name} */\n{scoped_reviewer_css(top_dir.name, css)}")
+
+    out.write_text("\n\n".join(css_parts) + ("\n" if css_parts else ""), encoding="utf-8")
+    return out.relative_to(root).as_posix()
+
+
 # ---------------------------------------------------------------------------
-# Category map loader  (reads category.txt from top-level reviewer dirs)
+# Reviewer config loader  (reads reviewer_config.toml from top-level reviewer dirs)
 # ---------------------------------------------------------------------------
 
 def load_category_map(root: Path) -> dict[str, list[dict]]:
-    """Load ``category.txt`` files from top-level reviewer directories.
-
-    Line format::
-
-        分类名 = folder1+folder2
-
-    The category name (left of ``=``) is the label shown on the website.
-    The right side lists one or more sub-folder paths (relative to the reviewer
-    directory) separated by ``+``.
+    """Load category mappings from top-level reviewer config files.
 
     Returns a dict keyed by reviewer name.  Each value is an ordered list of
     entries::
@@ -194,17 +316,14 @@ def load_category_map(root: Path) -> dict[str, list[dict]]:
     for top_dir in sorted(root.iterdir()):
         if not top_dir.is_dir() or top_dir.name.startswith("."):
             continue
-        cat_file = top_dir / "category.txt"
-        if not cat_file.exists():
+        config = load_toml(top_dir / "reviewer_config.toml")
+        categories = config.get("categories")
+        if not isinstance(categories, dict):
             continue
         entries: list[dict] = []
-        for line in cat_file.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            name, folders_str = line.split("=", 1)
-            name = name.strip()
-            folders = [f.strip() for f in folders_str.split("+") if f.strip()]
+        for name, folders_value in categories.items():
+            name = str(name).strip()
+            folders = to_str_list(folders_value)
             if name and folders:
                 entries.append({"name": name, "folders": folders})
         if entries:
@@ -217,7 +336,7 @@ def categories_from_path(
     rel_path: str,
     category_map: dict[str, list[dict]],
 ) -> list[str]:
-    """Return category names for *rel_path* based on category.txt folder mapping."""
+    """Return category names for *rel_path* based on reviewer config mapping."""
     matched: list[str] = []
     reviewer_prefix = reviewer + "/"
     for entry in category_map.get(reviewer, []):
@@ -235,42 +354,39 @@ def categories_from_path(
 
 
 # ---------------------------------------------------------------------------
-# Include rules loader  (reads include.txt from top-level reviewer dirs)
+# Include rules loader  (reads reviewer_config.toml from top-level reviewer dirs)
 # ---------------------------------------------------------------------------
 
 def load_include_rules(root: Path) -> dict[str, list[tuple[str, str]] | None]:
-    """Load include rules from top-level reviewer ``include.txt`` files.
-
-    Rule line format::
-
-        key=value
+    """Load score-only include rules from top-level reviewer config files.
 
     A review is considered "scored" when at least one rule matches exactly.
-    If a reviewer has no include.txt, all YAML reviews under that reviewer are
-    treated as scored by default.
+    If a reviewer has no score_only table, all YAML reviews under that reviewer
+    are treated as scored by default.
 
     Returns a dict keyed by reviewer folder name:
 
-    * ``None``          – no include.txt found; all reviews are scored.
-    * ``[(k, v), ...]`` – include.txt exists; any rule match marks scored.
+    * ``None``          – no score_only table found; all reviews are scored.
+    * ``[(k, v), ...]`` – score_only exists; any rule match marks scored.
     """
     result: dict[str, list[tuple[str, str]] | None] = {}
     for top_dir in sorted(root.iterdir()):
         if not top_dir.is_dir() or top_dir.name.startswith("."):
             continue
-        include_file = top_dir / "include.txt"
-        if not include_file.exists():
+        config_file = top_dir / "reviewer_config.toml"
+        if not config_file.exists():
+            continue
+        config = load_toml(config_file)
+        score_only = config.get("score_only")
+        if not isinstance(score_only, dict):
             result[top_dir.name] = None
             continue
         rules: list[tuple[str, str]] = []
-        for line in include_file.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
+        for key, values in score_only.items():
+            key = str(key).strip()
+            if not key:
                 continue
-            key, value = line.split("=", 1)
-            key = key.strip()
-            value = value.strip()
-            if key and value:
+            for value in to_str_list(values):
                 rules.append((key, value))
         result[top_dir.name] = rules
     return result
@@ -283,8 +399,8 @@ def is_scored_review(
 ) -> bool:
     """Return whether a YAML review should be treated as scored.
 
-    * No include.txt for reviewer => all reviews are scored.
-    * include.txt exists          => any ``key=value`` rule match is scored.
+    * No score_only table for reviewer => all reviews are scored.
+    * score_only exists               => any configured value match is scored.
     """
     rules = include_rules.get(reviewer, None)
     if rules is None:
@@ -310,8 +426,8 @@ def extract_review(
 
     All YAML keys are passed through verbatim except for the three special ones:
 
-    * ``score``  — kept as-is under ``score_raw`` (str); also emitted under
-                   ``score`` as a coerced int (or None).
+    * ``score``  — normalised to ``score_raw`` (str); later enriched with
+                   ``score_rank`` and ``score_tier`` from reviewer config.
     * ``tags``   — normalised to list[str].
     * ``aka``    — normalised to list[str].
 
@@ -341,8 +457,8 @@ def extract_review(
     effective_body = body if has_yaml else content
 
     # Inclusion order:
-    # 1) complete review: in category.txt folder AND completed: true
-    # 2) score-only review: not complete, in category.txt folder, and include.txt rule match
+    # 1) complete review: in configured category folder AND completed: true
+    # 2) score-only review: not complete, in configured category folder, and score-only rule match
     is_completed = meta.get("completed") is True
     if is_completed:
         score_only = False
@@ -367,12 +483,9 @@ def extract_review(
         else:
             review["title"] = filepath.stem.strip()
 
-    # Special: score → coerce to int; keep raw string form
+    # Special: score → keep raw string form. Ranking and tier are applied later.
     score_val = meta.get("score")
-    review["score_raw"] = str(score_val) if score_val is not None else ""
-    review["score"] = coerce_int(score_val)
-
-    review["score_system"] = "decimal"
+    review["score_raw"] = score_key(score_val) if score_val is not None else ""
 
     # Special: tags → normalise to list[str]
     review["tags"] = to_str_list(meta.get("tags")) if has_yaml else []
@@ -447,17 +560,11 @@ def extract_standard(
 
 
 # ---------------------------------------------------------------------------
-# Tag type loader  (reads type1.txt / type2.txt / type3.txt from scripts/)
+# Tag type loader  (reads scripts/site_config.toml)
 # ---------------------------------------------------------------------------
 
 def load_tag_types(root: Path) -> dict:
-    """Load tag type classification from ``scripts/type{1,2,3}.txt``.
-
-    File format — one or more sections, each opened by a ``-CategoryName``
-    header line followed by comma-separated tags::
-
-        -书籍
-        单元剧,公路片,自然+动物
+    """Load tag type classification from ``scripts/site_config.toml``.
 
     A ``canonical+tag_alias`` expression means *tag_alias* is merged into
     *canonical* (the alias tag is replaced by the canonical one when processing
@@ -471,29 +578,30 @@ def load_tag_types(root: Path) -> dict:
     """
     type_map: dict[str, int] = {}
     tag_aliases: dict[str, str] = {}
-    for type_num in (1, 2, 3):
-        type_file = root / "scripts" / f"type{type_num}.txt"
-        if not type_file.exists():
+    config = load_toml(root / "scripts" / "site_config.toml")
+    tag_types = config.get("tag_types", {})
+    if not isinstance(tag_types, dict):
+        return {"type_map": type_map, "tag_aliases": tag_aliases}
+
+    for type_key, categories in tag_types.items():
+        try:
+            type_num = int(type_key)
+        except (TypeError, ValueError):
             continue
-        with type_file.open(encoding="utf-8") as fh:
-            for line in fh:
-                line = line.strip()
-                if not line or line.startswith("-") or line.startswith("#"):
-                    continue
-                for tag_expr in line.split(","):
-                    tag_expr = tag_expr.strip()
-                    if not tag_expr:
-                        continue
-                    if "+" in tag_expr:
-                        parts = [p.strip() for p in tag_expr.split("+")]
-                        canonical = parts[0]
-                        for tag_alias in parts[1:]:
-                            if tag_alias:
-                                tag_aliases[tag_alias] = canonical
-                        if canonical:
-                            type_map[canonical] = type_num
-                    else:
-                        type_map[tag_expr] = type_num
+        if not isinstance(categories, dict):
+            continue
+        for tags_value in categories.values():
+            for tag_expr in to_str_list(tags_value):
+                if "+" in tag_expr:
+                    parts = [p.strip() for p in tag_expr.split("+")]
+                    canonical = parts[0]
+                    for tag_alias in parts[1:]:
+                        if tag_alias:
+                            tag_aliases[tag_alias] = canonical
+                    if canonical:
+                        type_map[canonical] = type_num
+                else:
+                    type_map[tag_expr] = type_num
     return {"type_map": type_map, "tag_aliases": tag_aliases}
 
 
@@ -584,9 +692,11 @@ def main() -> None:
 
     include_rules = load_include_rules(ROOT)
     category_map = load_category_map(ROOT)
+    score_configs = load_score_configs(ROOT)
 
     reviews = scan(include_rules, category_map)
     standards = scan_standards(category_map)
+    apply_score_configs(reviews, score_configs)
 
     # Populate modified: ask git for the last commit time of each file.
     # CI uses fetch-depth: 0 so the full history is always available.
@@ -628,7 +738,7 @@ def main() -> None:
     all_tags = sorted({t for r in reviews for t in (r.get("tags") or [])})
     reviewers = sorted({r["reviewer"] for r in reviews})
 
-    # Build ordered categories list from category.txt files (preserving order).
+    # Build ordered categories list from reviewer config files (preserving order).
     ordered_cats: list[str] = []
     seen_cats: set[str] = set()
     for _reviewer, entries in category_map.items():
@@ -639,6 +749,8 @@ def main() -> None:
                 seen_cats.add(name)
 
     metadata_maps = load_metadata_maps(ROOT)
+    score_options = score_options_by_reviewer(reviews, score_configs)
+    reviewer_stylesheet = write_reviewer_styles(ROOT)
 
     site_data = {
         "reviews": reviews,
@@ -650,6 +762,8 @@ def main() -> None:
             "reviewers":     reviewers,
             "all_tags":      all_tags,
             "metadata_maps": metadata_maps,
+            "score_options":  score_options,
+            "reviewer_stylesheet": reviewer_stylesheet,
             "tag_types":     tag_types_data,
         },
     }

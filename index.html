@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Oneday</title>
+  <link rel="stylesheet" href="generated/reviewer_styles.css">
   <style>
     /* ── Reset & base ─────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -233,10 +234,9 @@
     .card-meta { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
     .reviewer-name { font-size: .8rem; color: var(--muted); }
     .score-display { font-size: .9rem; font-weight: 700; }
-    .score-stars { color: var(--star); letter-spacing: .05em; }
-    .score-hi  { color: #16a34a; }
-    .score-mid { color: #cccc99; }
-    .score-lo  { color: #dc2626; }
+    .score-tier-1 { color: #16a34a; }
+    .score-tier-2 { color: #cccc99; }
+    .score-tier-3 { color: #dc2626; }
     .card-date { font-size: .78rem; color: var(--muted); margin-left: auto; }
 
     .card-tags { display: flex; flex-wrap: wrap; gap: .3rem; }
@@ -502,17 +502,10 @@
         <div class="filter-title">分数筛选</div>
         <div v-for="rv in filterReviewers" :key="rv">
           <div class="score-reviewer-label">{{ rv }}</div>
-          <!-- Stars (Aspark) -->
-          <div class="score-chips" v-if="reviewerScoreSystem(rv) === 'stars'">
-            <span v-for="n in [1,2,3,4,5]" :key="n"
-              class="score-chip" :class="{selected: isScoreSelected(rv, n)}"
-              @click="toggleScore(rv, n)">{{ '⭐'.repeat(n) }}</span>
-          </div>
-          <!-- Decimal (BGS, default) -->
-          <div class="score-chips" v-else>
-            <span v-for="n in [1,2,3,4,5,6,7,8,9,10]" :key="n"
-              class="score-chip" :class="{selected: isScoreSelected(rv, n)}"
-              @click="toggleScore(rv, n)">{{ n }}</span>
+          <div class="score-chips">
+            <span v-for="score in scoreOptions(rv)" :key="score"
+              class="score-chip" :class="{selected: isScoreSelected(rv, score)}"
+              @click="toggleScore(rv, score)">{{ score }}</span>
           </div>
         </div>
       </div>
@@ -533,7 +526,7 @@
           </div>
         </template>
         <button
-          v-if="visibleTags.length === TAG_LIMIT || showAllTags"
+          v-if="allVisibleCategoryTags.length > TAG_LIMIT"
           style="margin-top:.5rem;font-size:.78rem;color:var(--muted);background:none;border:none;"
           @click="showAllTags=!showAllTags"
         >
@@ -595,7 +588,7 @@
                 <span class="reviewer-name">{{ r.reviewer }}</span>
                 <span style="color:var(--border)">·</span>
                 <span class="score-display" v-if="r.kind === 'standard'">{{ (r.category || [])[0] || '—' }}</span>
-                <span class="score-display" :class="scoreClass(r)" v-else>{{ r.score_raw || '未评分' }}</span>
+                <span class="score-display" :class="scoreClass(r)" :data-reviewer="r.reviewer" v-else>{{ r.score_raw || '未评分' }}</span>
                 <span class="card-date">{{ r.date || '' }}</span>
               </div>
               <div class="card-tags" v-if="r.kind !== 'standard' && r.tags && r.tags.length">
@@ -656,10 +649,10 @@
                   class="score-link-btn"
                   @click="toggleArticleStandards"
                 >
-                  <strong :class="scoreClass(article)" class="score-display">{{ article.score_raw }}</strong>
+                  <strong :class="scoreClass(article)" class="score-display" :data-reviewer="article.reviewer">{{ article.score_raw }}</strong>
                   <span class="score-link-hint">{{ articleStandardsOpen ? '收起标准' : '查看标准' }}</span>
                 </button>
-                <strong v-else :class="scoreClass(article)" class="score-display">{{ article.score_raw }}</strong>
+                <strong v-else :class="scoreClass(article)" class="score-display" :data-reviewer="article.reviewer">{{ article.score_raw }}</strong>
               </span>
             </template>
             <template v-if="article.date">
@@ -775,13 +768,9 @@ function renderMarkdown(raw, reviewPath, allReviews, options = {}) {
   let src = raw;
   const shouldStripFrontmatter = options.stripFrontmatter !== false;
   // Strip YAML frontmatter (--- ... ---) from the top.
-  // Use "\n---\n" to ensure the closing delimiter is on its own line.
   if (shouldStripFrontmatter && src.startsWith("---")) {
-    const end = src.indexOf("\n---\n", 3);
-    if (end !== -1) src = src.slice(end + 5).replace(/^\r?\n+/, "");
+    src = src.replace(/^---[ \t]*\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/, "");
   }
-  // Strip ---fin.--- completion marker wherever it appears
-  src = src.replace(/^---fin\.---\s*\n?/m, "");
   // Strip first fenced code block (sub-scores), now rendered separately.
   // Only for reviews; standards pass { stripFirstCodeBlock: false }.
   if (options.stripFirstCodeBlock !== false) {
@@ -806,11 +795,7 @@ function renderMarkdown(raw, reviewPath, allReviews, options = {}) {
     const target = rawTarget.split('#')[0].trim();
     const displayText = escapeHtml(alias || rawTarget.split('/').pop().split('#')[0].trim());
     if (!target) return displayText;
-    // Look up a matching review by file stem or title
-    const found = (allReviews || []).find(r => {
-      const stem = r.path.split('/').pop().replace(/\.md$/i, '');
-      return stem === target || r.title === target;
-    });
+    const found = resolveWikiReview(target, reviewPath, allReviews);
     if (found) {
       const href = '#/article/' + encodeURIComponent(found.path);
       return `<a href="${href}" class="wiki-link">${displayText}</a>`;
@@ -821,6 +806,30 @@ function renderMarkdown(raw, reviewPath, allReviews, options = {}) {
   src = src.replace(/==([^=\n]+)==/g, (_, text) => `<mark class="hl">${text}</mark>`);
   const html = marked.parse(src, { breaks: true, gfm: true });
   return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+}
+
+function normalizeWikiPath(s) {
+  return String(s || "")
+    .trim()
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "")
+    .replace(/^\.\//, "")
+    .replace(/\.md$/i, "");
+}
+
+function resolveWikiReview(target, reviewPath, allReviews) {
+  const normalizedTarget = normalizeWikiPath(target);
+  if (!normalizedTarget) return null;
+
+  const reviews = allReviews || [];
+  if (normalizedTarget.includes("/")) {
+    return reviews.find(r => normalizeWikiPath(r.path) === normalizedTarget) || null;
+  }
+
+  return reviews.find(r => {
+    const stem = normalizeWikiPath(r.path.split("/").pop());
+    return stem === normalizedTarget || r.title === target;
+  }) || null;
 }
 
 function escapeHtml(s) {
@@ -854,7 +863,7 @@ createApp({
     const search          = ref("");
     const filterReviewers = ref([]);
     const filterCategories = ref("");
-    const filterScores    = Vue.reactive({}); // { [reviewer]: number[] }
+    const filterScores    = Vue.reactive({}); // { [reviewer]: string[] }
     const filterTags      = ref([]);
     const sortBy          = ref("modified");
     const page            = ref(1);
@@ -864,13 +873,16 @@ createApp({
     const showStandardsOnly = ref(false);
 
     // Tags relevant to the currently selected category (empty when no category selected)
-    const visibleTags = computed(() => {
+    const allVisibleCategoryTags = computed(() => {
       if (!filterCategories.value) return [];
       const catReviews = reviews.value.filter(r =>
         (r.category || []).includes(filterCategories.value)
       );
-      const catTags = [...new Set(catReviews.flatMap(r => r.tags || []))].sort();
-      return showAllTags.value ? catTags : (catTags.length > TAG_LIMIT ? catTags.slice(0, TAG_LIMIT) : catTags);
+      return [...new Set(catReviews.flatMap(r => r.tags || []))].sort();
+    });
+    const visibleTags = computed(() => {
+      const catTags = allVisibleCategoryTags.value;
+      return showAllTags.value ? catTags : catTags.slice(0, TAG_LIMIT);
     });
 
     // Tags grouped by type (type1 / type2 / type3) for display — based on visibleTags
@@ -896,17 +908,29 @@ createApp({
       );
     });
 
-    // Score system for a given reviewer (used for chip display)
-    function reviewerScoreSystem(rv) {
-      const r = reviews.value.find(rev => rev.reviewer === rv);
-      return r ? (r.score_system || "decimal") : "decimal";
+    function scoreOptions(rv) {
+      const configured = (meta.value.score_options || {})[rv];
+      if (configured && configured.length) return configured;
+      return [...new Set(reviews.value
+        .filter(r => r.reviewer === rv && r.score_raw)
+        .map(r => r.score_raw))]
+        .sort((a, b) => a.localeCompare(b, "zh"));
     }
-    function isScoreSelected(rv, n) { return (filterScores[rv] || []).includes(n); }
-    function toggleScore(rv, n) {
+    function isScoreSelected(rv, score) { return (filterScores[rv] || []).includes(score); }
+    function toggleScore(rv, score) {
       if (!filterScores[rv]) filterScores[rv] = [];
-      const idx = filterScores[rv].indexOf(n);
-      if (idx === -1) filterScores[rv].push(n); else filterScores[rv].splice(idx, 1);
+      const idx = filterScores[rv].indexOf(score);
+      if (idx === -1) filterScores[rv].push(score); else filterScores[rv].splice(idx, 1);
       page.value = 1;
+    }
+    function compareScore(a, b, direction = "asc") {
+      const ar = a.score_rank;
+      const br = b.score_rank;
+      const factor = direction === "desc" ? -1 : 1;
+      if (ar != null && br != null) return (ar - br) * factor;
+      if (ar != null) return -1;
+      if (br != null) return 1;
+      return (a.score_raw || "").localeCompare(b.score_raw || "", "zh") * factor;
     }
 
     const homeList = computed(() => {
@@ -952,15 +976,15 @@ createApp({
       if (filterReviewers.value.some(rv => (filterScores[rv] || []).length > 0)) {
         list = list.filter(r => {
           const sel = filterScores[r.reviewer] || [];
-          return sel.length === 0 || sel.includes(r.score);
+          return sel.length === 0 || sel.includes(r.score_raw);
         });
       }
 
       const key = sortBy.value;
       return [...list].sort((a, b) => {
         if (key === "modified")   return (b.modified||"").localeCompare(a.modified||"");
-        if (key === "score_desc") return (b.score ?? -1)  - (a.score ?? -1);
-        if (key === "score_asc")  return (a.score ?? 999) - (b.score ?? 999);
+        if (key === "score_desc") return compareScore(a, b, "desc");
+        if (key === "score_asc")  return compareScore(a, b, "asc");
         if (key === "title")      return (a.title || "").localeCompare(b.title || "", "zh");
         return 0;
       });
@@ -991,11 +1015,8 @@ createApp({
     // ── Display helpers ───────────────────────────────────────────
     function primaryCategory(r) { return (r.category || [])[0] || "其他"; }
     function scoreClass(r) {
-      if (!r || r.score == null) return "";
-      if (r.score_system === "stars") return "score-stars";
-      if (r.score >= 7) return "score-hi";
-      if (r.score >= 5) return "score-mid";
-      return "score-lo";
+      if (!r || r.score_tier == null) return "";
+      return `score-tier-${r.score_tier}`;
     }
     function categoryBadgeClass(r) {
       const cats = r.category || [];
@@ -1013,19 +1034,17 @@ createApp({
     }
     const REVIEW_RESERVED_KEYS = new Set([
       "path", "modified", "title", "reviewer",
-      "score", "score_raw", "score_system",
+      "score", "score_raw", "score_rank", "score_tier",
       "category", "status", "tags", "completed", "aka", "score_only",
     ]);
     function extraMeta(r) {
-      // Find the most specific metadata map for this review's path
-      const maps = meta.value.metadata_maps || {};
+      const maps = ((meta.value.metadata_maps || {})[r.reviewer]) || {};
       let mapEntries = null;
-      let bestLen = -1;
-      for (const [folder, entries] of Object.entries(maps)) {
-        const matches = folder === "." || r.path.startsWith(folder + "/");
-        if (matches && folder.length > bestLen) {
+      for (const category of r.category || []) {
+        const entries = maps[category];
+        if (entries) {
           mapEntries = entries;
-          bestLen = folder.length;
+          break;
         }
       }
 
@@ -1033,7 +1052,8 @@ createApp({
 
       const result = [];
       const usedKeys = new Set();
-      for (const { keys, label } of mapEntries) {
+      for (const item of mapEntries) {
+        const { keys, label } = item;
         if (keys.length === 1) {
           const v = r[keys[0]];
           if (v == null || v === "" || (Array.isArray(v) && v.length === 0)) continue;
@@ -1043,7 +1063,7 @@ createApp({
           // Merged keys (e.g. year+month → "2025.8")
           const parts = keys.map(k => r[k]).filter(v => v != null && v !== "");
           if (parts.length === 0) continue;
-          result.push({ label, value: parts.join(".") });
+          result.push({ label, value: parts.join(item.separator || ".") });
           keys.forEach(k => usedKeys.add(k));
         }
       }
@@ -1207,8 +1227,8 @@ createApp({
       showScoreOnly, showStandardsOnly,
       homeList, totalPages, paged, pageRange,
       reviewersInCategory,
-      reviewerScoreSystem, isScoreSelected, toggleScore,
-      visibleTags, visibleTagGroups,
+      scoreOptions, isScoreSelected, toggleScore,
+      visibleTags, visibleTagGroups, allVisibleCategoryTags,
       primaryCategory, scoreClass, categoryBadgeClass,
       extraMeta, standardsForReview, toggleArticleStandards,
       navHome, navArticle, navStandard, navBackFromStandard, filterByTag, toggleTag, resetFilters, onCategoryChange, selectCategory,

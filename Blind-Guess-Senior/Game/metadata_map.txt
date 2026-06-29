@@ -1,3 +1,0 @@
-developer 开发商
-publisher 发行商
-year+month . 游玩时间
