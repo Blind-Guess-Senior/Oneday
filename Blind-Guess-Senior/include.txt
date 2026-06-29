@@ -1,2 +1,0 @@
-status=已完成
-status=全成就

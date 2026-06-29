@@ -12,6 +12,7 @@ category:
 tags:
   - 指向点击
   - 解谜
+completed: true
 ---
 TBA 2025 *提名* **==最佳创意==** [[The Blind Award 2025#游戏提名]] 
 TBA 2025 *提名* **==最佳美术==** [[The Blind Award 2025#游戏提名]] 
@@ -31,4 +32,3 @@ TBA 2025 *提名* **==最佳演出==** [[The Blind Award 2025#游戏提名]]
 体验 4/4 Superb
 ```
 
----fin.---

@@ -8,4 +8,5 @@ month:
 category:
   - 书籍
 tags:
+completed:
 ---
