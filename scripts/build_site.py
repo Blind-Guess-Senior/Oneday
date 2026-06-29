@@ -47,7 +47,6 @@ import yaml  # PyYAML — already available in this environment
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).parent.parent
-ASPARK_SCORE_RE = re.compile(r"(★{1,5})$")
 
 
 # ---------------------------------------------------------------------------
@@ -123,14 +122,9 @@ def git_commit_iso(rel_path: str) -> str:
     return ""
 
 
-def aspark_score_from_filename(filepath: Path) -> tuple[str, int | None]:
-    """Return (raw_score, numeric_score) for an Aspark filename."""
-    stem = filepath.stem
-    match = ASPARK_SCORE_RE.search(stem)
-    if not match:
-        return "", None
-    stars = match.group(1)
-    return stars, len(stars)
+def title_from_aspark_filename(filepath: Path) -> str:
+    """Return the Aspark filename stem with any trailing star score removed."""
+    return re.sub(r"★+$", "", filepath.stem).strip()
 
 
 def normalize_rel_token(value: str) -> str:
@@ -329,7 +323,8 @@ def extract_review(
     * ``score_only`` — True when ``completed`` is not boolean ``true``.
 
     A ``title`` fallback is applied when the YAML has no ``title`` key:
-    the filename stem is used (trailing ``★…`` stripped).
+    the filename stem is used. Aspark filenames additionally strip trailing
+    ``★…``.
     """
     try:
         content = filepath.read_text(encoding="utf-8")
@@ -366,24 +361,18 @@ def extract_review(
     review["score_only"] = score_only
     review["category"] = categories
 
-    if reviewer.lower() == "aspark":
-        score_raw, score_num = aspark_score_from_filename(filepath)
-        if score_num is None:
-            return None
-        review["score_raw"] = score_raw
-        review["score"] = score_num
-        review["title"] = re.sub(r"★+$", "", filepath.stem).strip()
-    elif not str(review.get("title") or "").strip():
-        review["title"] = re.sub(r"★.*$", "", filepath.stem).strip()
+    if not str(review.get("title") or "").strip():
+        if reviewer.lower() == "aspark":
+            review["title"] = title_from_aspark_filename(filepath)
+        else:
+            review["title"] = filepath.stem.strip()
 
     # Special: score → coerce to int; keep raw string form
-    if reviewer.lower() != "aspark":
-        score_val = meta.get("score")
-        review["score_raw"] = str(score_val) if score_val is not None else ""
-        review["score"] = coerce_int(score_val)
+    score_val = meta.get("score")
+    review["score_raw"] = str(score_val) if score_val is not None else ""
+    review["score"] = coerce_int(score_val)
 
-    # Auto-detect score system: Aspark uses star ratings (1–5), others decimal (1–10)
-    review["score_system"] = "stars" if reviewer.lower() == "aspark" else "decimal"
+    review["score_system"] = "decimal"
 
     # Special: tags → normalise to list[str]
     review["tags"] = to_str_list(meta.get("tags")) if has_yaml else []
