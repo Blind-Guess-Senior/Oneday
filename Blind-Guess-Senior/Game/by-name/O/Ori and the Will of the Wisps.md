@@ -11,6 +11,7 @@ category:
   - 游戏
 tags:
   - 类银河城
+completed: false
 ---
 前：
 [[Ori and the Blind Forest]] 

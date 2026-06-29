@@ -12,6 +12,7 @@ category:
   - 游戏
 tags:
   - Rougelike
+completed: false
 ---
 
 

@@ -7,6 +7,7 @@ category:
   - 游戏
 tags:
   - 策略
+completed: false
 ---
 
 

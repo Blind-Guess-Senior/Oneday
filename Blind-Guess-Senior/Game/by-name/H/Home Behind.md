@@ -8,6 +8,7 @@ category:
 tags:
   - 策略
   - 生存
+completed: false
 ---
 
 

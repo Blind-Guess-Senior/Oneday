@@ -11,6 +11,7 @@ month:
 category:
   - 游戏
 tags:
+completed: false
 ---
 重制版：
 [[The Talos Principle- Reawakened]] 

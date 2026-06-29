@@ -13,6 +13,7 @@ category:
 tags:
   - Rougelike
   - ARPG
+completed: false
 ---
 系列原作：
 [[Elden Ring]] 

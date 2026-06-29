@@ -12,6 +12,7 @@ category:
   - 游戏
 tags:
   - 类银河城
+completed: false
 ---
 前：
 [[ENDER LILIES- Quietus of the Knights]] 

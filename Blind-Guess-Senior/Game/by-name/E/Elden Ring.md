@@ -13,6 +13,7 @@ category:
 tags:
   - ARPG
   - 魂
+completed: false
 ---
 衍生作：
 [[Elden Ring NightReign]] 

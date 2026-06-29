@@ -13,6 +13,7 @@ tags:
   - 卡牌
   - 策略
   - Rougelike
+completed: false
 ---
 TBA 2025 *提名* **==最受期待==** [[The Blind Award 2025#游戏提名]] 
 TBA 2026 *提名* **==年度游戏==** [[The Blind Award 2026#游戏提名]] 

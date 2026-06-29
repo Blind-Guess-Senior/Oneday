@@ -13,6 +13,7 @@ tags:
   - 策略
   - 卡牌
   - Rougelike
+completed: false
 ---
 
 

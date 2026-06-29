@@ -12,6 +12,7 @@ category:
 tags:
   - 指向点击
   - 解谜
+completed: false
 ---
 TBA 2024 **==最佳创意==** [[The Blind Award 2024#游戏]] 
 

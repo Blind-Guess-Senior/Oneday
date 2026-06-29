@@ -12,6 +12,7 @@ category:
 tags:
   - 指向点击
   - 解谜
+completed: false
 ---
 	首评于 2025.8.6
 	重评分 2025.8.13

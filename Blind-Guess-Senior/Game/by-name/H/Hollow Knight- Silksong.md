@@ -11,6 +11,9 @@ category:
   - 游戏
 tags:
   - 类银河城
+completed:
+aka:
+  - 空洞骑士：丝之歌
 ---
 前：
 [[Hollow Knight]] 

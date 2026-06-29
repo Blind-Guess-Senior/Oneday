@@ -10,5 +10,6 @@ category:
 tags:
   - 轻小说
   - 奇幻
+completed: false
 ---
 7/10 不虚此行

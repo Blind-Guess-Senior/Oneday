@@ -11,6 +11,7 @@ category:
   - 游戏
 tags:
   - 类银河城
+completed: false
 ---
 续：
 [[Bloodstained- The Scarlet Engagement]] 

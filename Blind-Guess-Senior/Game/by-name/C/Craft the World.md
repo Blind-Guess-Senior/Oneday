@@ -12,6 +12,7 @@ category:
 tags:
   - 模拟经营
   - 沙盒
+completed: false
 ---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

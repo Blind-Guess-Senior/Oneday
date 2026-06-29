@@ -12,4 +12,5 @@ category:
 tags:
   - ARPG
   - Cyberpunk
+completed: false
 ---

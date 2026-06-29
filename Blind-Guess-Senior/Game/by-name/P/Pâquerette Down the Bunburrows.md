@@ -12,6 +12,7 @@ category:
 tags:
   - 解谜
   - 推箱子
+completed: false
 ---
 10/10 神
 

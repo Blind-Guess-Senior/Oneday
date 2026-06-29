@@ -8,6 +8,7 @@ category:
 tags:
   - Rougelike
   - 卡牌
+completed: false
 ---
 
 

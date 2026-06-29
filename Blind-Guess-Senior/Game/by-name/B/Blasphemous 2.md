@@ -10,4 +10,5 @@ month:
 category:
   - 游戏
 tags:
+completed: false
 ---

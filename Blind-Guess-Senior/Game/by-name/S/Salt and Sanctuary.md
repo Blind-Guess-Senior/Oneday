@@ -13,6 +13,7 @@ tags:
   - 类银河城
   - 类魂
   - ARPG
+completed: false
 ---
 续：
 [[Salt and Sacrifice]] 

@@ -14,6 +14,7 @@ tags:
   - 类银河城
   - 类魂
   - ARPG
+completed: false
 ---
 前：
 [[Salt and Sanctuary]] 

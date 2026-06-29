@@ -10,6 +10,7 @@ category:
 tags:
   - 文学
   - 推理
+completed: false
 ---
 同：
 [[侦探AI]] 

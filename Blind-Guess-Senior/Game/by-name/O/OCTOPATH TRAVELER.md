@@ -11,6 +11,7 @@ developer:
   - ACQUIRE Corp.
 publisher:
   - Square Enix
+completed: false
 ---
 
 

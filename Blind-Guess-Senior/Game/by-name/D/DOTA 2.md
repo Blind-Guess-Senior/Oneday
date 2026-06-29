@@ -13,6 +13,7 @@ tags:
   - DOTA
   - 策略
   - 竞技
+completed: false
 ---
 TBA 2025 *提名* **==最佳创意==** [[The Blind Award 2025#游戏提名]] 
 

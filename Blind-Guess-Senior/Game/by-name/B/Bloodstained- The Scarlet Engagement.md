@@ -10,6 +10,7 @@ month:
 category:
   - 游戏
 tags:
+completed: false
 ---
 前：
 [[Bloodstained- Ritual of the Night]] 

@@ -11,6 +11,7 @@ category:
   - 游戏
 tags:
   - 建造
+completed: false
 ---
 
 

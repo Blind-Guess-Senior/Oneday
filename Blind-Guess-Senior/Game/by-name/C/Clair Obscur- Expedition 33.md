@@ -12,6 +12,7 @@ category:
 tags:
   - RPG
   - 回合制
+completed: false
 ---
 
 

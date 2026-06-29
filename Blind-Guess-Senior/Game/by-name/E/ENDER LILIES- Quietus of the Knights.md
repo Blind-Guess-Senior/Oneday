@@ -7,6 +7,7 @@ category:
   - 游戏
 tags:
   - 类银河城
+completed: false
 ---
 续：
 [[ENDER MAGNOLIA- Bloom in the Mist]] 

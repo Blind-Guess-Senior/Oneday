@@ -7,4 +7,5 @@ category:
   - 游戏
 tags:
   - 视觉小说
+completed: false
 ---

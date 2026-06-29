@@ -10,5 +10,6 @@ category:
 tags:
   - 科幻
   - 地外生命
+completed: false
 ---
 10/10 神

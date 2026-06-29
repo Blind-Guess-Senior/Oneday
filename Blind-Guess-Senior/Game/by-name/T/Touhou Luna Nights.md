@@ -12,6 +12,7 @@ developer:
 publisher:
   - WSS playground
   - PLAYISM
+completed: false
 ---
 
 

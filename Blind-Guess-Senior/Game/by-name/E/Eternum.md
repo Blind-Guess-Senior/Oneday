@@ -11,6 +11,7 @@ category:
   - 游戏
 tags:
   - 视觉小说
+completed: false
 ---
 	完成v0.9 2026.5.12
 

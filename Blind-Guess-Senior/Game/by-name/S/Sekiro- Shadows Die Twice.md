@@ -12,6 +12,7 @@ publisher:
   - Activision
   - FromSoftware, Inc.
   - 方块游戏
+completed: false
 ---
 
 
