@@ -1,4 +1,12 @@
-边狱巴士
+---
+aka:
+  - 边狱巴士
+score: ★★★
+category:
+  - 游戏
+tags:
+completed: true
+---
 ```
 玩法★★★★
 叙事★★★★★
