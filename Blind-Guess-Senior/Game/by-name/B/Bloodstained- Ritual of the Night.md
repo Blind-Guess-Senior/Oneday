@@ -12,6 +12,8 @@ category:
 tags:
   - 类银河城
 completed: false
+aka:
+  - 赤痕：夜之仪式
 ---
 续：
 [[Bloodstained- The Scarlet Engagement]] 

@@ -13,6 +13,8 @@ category:
 tags:
   - 类银河城
 completed: false
+aka:
+  - 终焉之玛格诺利亚：雾中盛放之花
 ---
 前：
 [[ENDER LILIES- Quietus of the Knights]] 

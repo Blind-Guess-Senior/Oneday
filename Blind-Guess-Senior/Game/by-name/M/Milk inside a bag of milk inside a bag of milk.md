@@ -13,6 +13,8 @@ tags:
   - 视觉小说
   - Metagame
 completed: true
+aka:
+  - 牛奶袋内袋装牛奶
 ---
 续：
 [[Milk outside a bag of milk outside a bag of milk]] 

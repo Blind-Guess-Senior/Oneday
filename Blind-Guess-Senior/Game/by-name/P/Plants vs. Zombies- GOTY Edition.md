@@ -13,6 +13,8 @@ category:
 tags:
   - 塔防
 completed: false
+aka:
+  - 植物大战僵尸：年度版
 ---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
@@ -26,4 +28,7 @@ completed: false
 玩法 4/4 Superb
 体验 4/4 Superb
 ```
+
+### 我只是又一次陷入了那个从未到达结局的故事
+
 

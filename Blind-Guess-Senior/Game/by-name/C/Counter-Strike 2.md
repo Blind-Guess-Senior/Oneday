@@ -12,6 +12,8 @@ category:
 tags:
   - FPS
 completed: false
+aka:
+  - 反恐精英2
 ---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
@@ -26,6 +28,8 @@ completed: false
 体验 2/4 Average
 ```
 
+我并没有尊重这个游戏。
+
+
+
 draft: 平衡性，地图设计，开创性
-
-

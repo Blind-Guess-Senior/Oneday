@@ -13,6 +13,8 @@ tags:
   - Rougelike
   - ACT
 completed: false
+aka:
+  - 死亡细胞
 ---
 TBA 2026 *提名* **==年度游戏==** [[The Blind Award 2026#游戏提名]] 
 TBA 2026 *提名* **==年度独立==** [[The Blind Award 2026#游戏提名]] 

@@ -11,6 +11,8 @@ category:
   - 游戏
 tags:
 completed: false
+aka:
+  - 苍穹浩瀚：奥里西斯重生
 ---
 TBA 2025 *提名* **==最受期待==** [[The Blind Award 2025#游戏提名]] 
 TBA 2026 *提名* **==最受期待==** [[The Blind Award 2026#游戏提名]] 

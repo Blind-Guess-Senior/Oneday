@@ -14,6 +14,8 @@ tags:
   - 策略
   - Rougelike
 completed: false
+aliases:
+  - 杀戮尖塔
 ---
 TBA 2024 **==年度独立==** [[The Blind Award 2024#游戏]] 
 TBA 2024 *提名* **==年度游戏==** [[The Blind Award 2024#游戏提名]] 

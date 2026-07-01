@@ -1,5 +1,10 @@
 ---
 status: 全成就
+developer:
+  - Live Wire
+  - Adglobe
+publisher:
+  - Binary Haze Interactive
 score: 7
 year: 2024
 month: 7
@@ -8,6 +13,8 @@ category:
 tags:
   - 类银河城
 completed: false
+aka:
+  - 终焉之莉莉：骑士寂夜
 ---
 续：
 [[ENDER MAGNOLIA- Bloom in the Mist]] 
