@@ -42,6 +42,7 @@
 ### ==最佳创意==
  Slay the Spire 2 (Early Access) | [[Slay the Spire 2]] 
  COCOON | [[COCOON]] 
+ Leap Year | [[Leap Year]] 
  
 ### ==最佳美术==
  Dead Cells | [[Dead Cells]] 
@@ -125,7 +126,8 @@
 ### ==最佳推理&悬疑==
  无
 ### ==最佳科幻&奇幻==
- 无
+ 《末日邮差》 | [[末日邮差]] 
+ 
 ### ==最佳短篇==
  无
 ### ==最受期待（未完结）==

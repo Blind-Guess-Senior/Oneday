@@ -13,6 +13,8 @@ tags:
   - 指向点击
   - 解谜
 completed: true
+aka:
+  - 纪念碑谷2
 ---
 TBA 2026 *提名* **==最佳美术==** [[The Blind Award 2026#游戏提名]] 
 

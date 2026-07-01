@@ -11,6 +11,8 @@ category:
   - 游戏
 tags:
 completed: false
+aka:
+  - 神之天平
 ---
 
 

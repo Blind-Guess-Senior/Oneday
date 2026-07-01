@@ -14,6 +14,8 @@ tags:
   - ARPG
   - 魂
 completed: false
+aka:
+  - 艾尔登法环
 ---
 衍生作：
 [[Elden Ring NightReign]] 

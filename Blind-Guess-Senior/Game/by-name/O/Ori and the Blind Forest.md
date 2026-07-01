@@ -12,6 +12,8 @@ category:
 tags:
   - 类银河城
 completed: false
+aka:
+  - 奥日与黑暗森林
 ---
 续：
 [[Ori and the Will of the Wisps]] 

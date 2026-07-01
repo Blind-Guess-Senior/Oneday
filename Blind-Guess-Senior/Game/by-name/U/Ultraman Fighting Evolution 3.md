@@ -12,6 +12,8 @@ category:
 tags:
   - 格斗
 completed: false
+aka:
+  - 奥特曼格斗进化3
 ---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

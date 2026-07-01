@@ -13,6 +13,8 @@ tags:
   - 沙盒
   - 像素
 completed: false
+aka:
+  - 泰拉瑞亚
 ---
 Ver1.4.5 TBA 2025 **==最受期待==** [[The Blind Award 2025#游戏]] 
 

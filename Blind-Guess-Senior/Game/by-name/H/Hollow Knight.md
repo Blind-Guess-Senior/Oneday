@@ -12,6 +12,8 @@ category:
 tags:
   - 类银河城
 completed: false
+aka:
+  - 空洞骑士
 ---
 续：
 [[Hollow Knight- Silksong]] 

@@ -14,6 +14,8 @@ tags:
   - 类魂
   - ARPG
 completed: false
+aka:
+  - 盐与避难所
 ---
 续：
 [[Salt and Sacrifice]] 

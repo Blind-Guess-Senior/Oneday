@@ -14,6 +14,8 @@ tags:
   - Rougelike
   - ARPG
 completed: false
+aka:
+  - 艾尔登法环：黑夜君临
 ---
 系列原作：
 [[Elden Ring]] 
@@ -31,4 +33,4 @@ completed: false
 体验 2/4 Average
 ```
 
-缺点不少，包括但不限于野排体验差，价格贵，boss疯狗。但因为我是嫖的家庭库而且一直和好哥们玩，所以避开了绝大部分的缺点，总体体验挺好。
+

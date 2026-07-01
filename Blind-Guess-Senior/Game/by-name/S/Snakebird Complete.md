@@ -8,6 +8,8 @@ category:
 tags:
   - 解谜
 completed: false
+aka:
+  - 蛇鸟：完全版
 ---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

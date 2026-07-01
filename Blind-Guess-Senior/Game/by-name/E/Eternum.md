@@ -12,6 +12,8 @@ category:
 tags:
   - 视觉小说
 completed: false
+aka:
+  - 永恒世界
 ---
 	完成v0.9 2026.5.12
 

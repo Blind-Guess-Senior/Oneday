@@ -8,6 +8,8 @@ category:
 tags:
   - 沙盒
 completed: false
+aka:
+  - 我的世界
 ---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
