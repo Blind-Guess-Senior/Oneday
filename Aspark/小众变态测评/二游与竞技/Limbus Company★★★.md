@@ -5,6 +5,9 @@ score: ★★★
 category:
   - 游戏
 tags:
+  - 剧情
+  - 回合制
+  - 二游
 completed: true
 ---
 ```
