@@ -13,6 +13,7 @@ tags:
   - 平台跳跃
   - 解谜
   - 线性
+  - AVG
 completed: false
 aka:
   - 地狱边境

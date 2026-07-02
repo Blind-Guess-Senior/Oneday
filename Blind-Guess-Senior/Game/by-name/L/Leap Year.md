@@ -14,6 +14,7 @@ tags:
   - 平台跳跃
   - 解谜
   - 知识锁
+  - AVG
 completed: false
 aka:
   - 闰跃之年

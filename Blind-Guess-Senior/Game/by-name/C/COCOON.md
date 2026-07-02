@@ -12,6 +12,7 @@ category:
 tags:
   - 解谜
   - 线性
+  - AVG
 completed: true
 aka:
   - 茧
