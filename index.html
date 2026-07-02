@@ -887,10 +887,12 @@ createApp({
 
     // Tags grouped by type (type1 / type2 / type3) for display — based on visibleTags
     const visibleTagGroups = computed(() => {
-      const typeMap = (meta.value.tag_types || {}).type_map || {};
+      const typeMaps = (meta.value.tag_types || {}).type_map || {};
+      const typeMap = typeMaps[filterCategories.value] || {};
       const groups = [[], [], []];
       for (const t of visibleTags.value) {
-        const idx = (typeMap[t] || 3) - 1;
+        const typeNum = Number(typeMap[t] || 3);
+        const idx = typeNum >= 1 && typeNum <= 3 ? typeNum - 1 : 2;
         groups[idx].push(t);
       }
       return groups;

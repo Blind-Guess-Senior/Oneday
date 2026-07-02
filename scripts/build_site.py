@@ -569,15 +569,15 @@ def load_tag_types(root: Path) -> dict:
     A ``canonical+tag_alias`` expression means *tag_alias* is merged into
     *canonical* (the alias tag is replaced by the canonical one when processing
     reviews).
-    Tags absent from all type files default to type 3.
+    Tags absent from the selected category's type config default to type 3.
 
     Returns a dict with two keys:
 
-    * ``type_map``  – ``{canonical_tag: type_number}``  (1, 2, or 3)
-    * ``tag_aliases`` – ``{alias_tag: canonical_tag}``
+    * ``type_map``  – ``{category_name: {canonical_tag: type_number}}``
+    * ``tag_aliases`` – ``{category_name: {alias_tag: canonical_tag}}``
     """
-    type_map: dict[str, int] = {}
-    tag_aliases: dict[str, str] = {}
+    type_map: dict[str, dict[str, int]] = {}
+    tag_aliases: dict[str, dict[str, str]] = {}
     config = load_toml(root / "scripts" / "site_config.toml")
     tag_types = config.get("tag_types", {})
     if not isinstance(tag_types, dict):
@@ -590,18 +590,23 @@ def load_tag_types(root: Path) -> dict:
             continue
         if not isinstance(categories, dict):
             continue
-        for tags_value in categories.values():
+        for category_name, tags_value in categories.items():
+            category_name = str(category_name).strip()
+            if not category_name:
+                continue
+            category_type_map = type_map.setdefault(category_name, {})
+            category_aliases = tag_aliases.setdefault(category_name, {})
             for tag_expr in to_str_list(tags_value):
                 if "+" in tag_expr:
-                    parts = [p.strip() for p in tag_expr.split("+")]
+                    parts = [p.strip() for p in tag_expr.split("+") if p.strip()]
+                    if not parts:
+                        continue
                     canonical = parts[0]
                     for tag_alias in parts[1:]:
-                        if tag_alias:
-                            tag_aliases[tag_alias] = canonical
-                    if canonical:
-                        type_map[canonical] = type_num
+                        category_aliases[tag_alias] = canonical
+                    category_type_map[canonical] = type_num
                 else:
-                    type_map[tag_expr] = type_num
+                    category_type_map[tag_expr] = type_num
     return {"type_map": type_map, "tag_aliases": tag_aliases}
 
 
@@ -721,14 +726,20 @@ def main() -> None:
 
     # Load tag type classification and apply tag aliases
     tag_types_data = load_tag_types(ROOT)
-    tag_aliases = tag_types_data["tag_aliases"]
-    if tag_aliases:
+    tag_aliases_by_category = tag_types_data["tag_aliases"]
+    if tag_aliases_by_category:
         for review in reviews:
             orig_tags = review.get("tags") or []
+            review_categories = to_str_list(review.get("category"))
             new_tags: list[str] = []
             seen_tags: set[str] = set()
             for t in orig_tags:
-                canonical = tag_aliases.get(t, t)
+                canonical = t
+                for category in review_categories:
+                    category_aliases = tag_aliases_by_category.get(category, {})
+                    if t in category_aliases:
+                        canonical = category_aliases[t]
+                        break
                 if canonical not in seen_tags:
                     seen_tags.add(canonical)
                     new_tags.append(canonical)
