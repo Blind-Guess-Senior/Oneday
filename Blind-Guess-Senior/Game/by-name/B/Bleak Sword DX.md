@@ -12,7 +12,7 @@ category:
 tags:
   - 清版
   - 像素
-completed: false
+completed: true
 aka:
   - 荒绝之剑DX
 ---
