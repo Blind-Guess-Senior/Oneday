@@ -6,9 +6,8 @@ category:
   - 游戏
 tags:
   - 类银恶
-  - 横版动作
-  - 塔防
   - 平台跳跃
+  - 横版
 completed: true
 ---
 ```

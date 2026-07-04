@@ -1,3 +1,14 @@
+---
+aka:
+  - FSN
+score: ★★★
+category:
+  - 游戏
+tags:
+  - 剧情
+  - AVG
+completed:
+---
 ```
 玩法N/A
 叙事★★★★★

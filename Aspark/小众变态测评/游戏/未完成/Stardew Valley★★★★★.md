@@ -1,4 +1,13 @@
-星露谷物语
+---
+aka:
+  - 星露谷物语
+score: ★★★★★
+category:
+  - 游戏
+tags:
+  - SLG
+completed:
+---
 ```
 玩法★★★★★
 叙事★★★★★

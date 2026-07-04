@@ -1,3 +1,14 @@
+---
+aka:
+score: ★★★
+category:
+  - 游戏
+tags:
+  - 联机
+  - 派对
+  - 恐怖
+completed: true
+---
 ```
 玩法★★★★
 叙事★★★

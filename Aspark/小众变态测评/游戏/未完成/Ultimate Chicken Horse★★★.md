@@ -1,4 +1,14 @@
-超级鸡马
+---
+aka:
+  - 超级鸡马
+score: ★★★
+category:
+  - 游戏
+tags:
+  - 派对
+  - 联机
+completed:
+---
 ```
 玩法★★★★
 叙事N/A

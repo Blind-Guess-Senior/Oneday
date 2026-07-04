@@ -1,3 +1,14 @@
+---
+aka:
+  - FSR
+score: ★★★
+category:
+  - 游戏
+tags:
+  - 剧情
+  - ARPG
+completed:
+---
 ```
 玩法★★★★
 叙事★★★★

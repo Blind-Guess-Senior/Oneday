@@ -1,4 +1,14 @@
-脑叶公司
+---
+aka:
+  - 脑叶公司
+score: ★★★
+category:
+  - 游戏
+tags:
+  - SLG
+  - 剧情
+completed:
+---
 ```
 玩法★★★★
 叙事★★★★★

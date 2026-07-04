@@ -1,4 +1,14 @@
-杀戮尖塔
+---
+aka:
+  - 杀戮尖塔
+score: ★★★★★
+category:
+  - 游戏
+tags:
+  - Rougelike
+  - 卡牌
+completed:
+---
 ```
 玩法★★★★★
 叙事N/A

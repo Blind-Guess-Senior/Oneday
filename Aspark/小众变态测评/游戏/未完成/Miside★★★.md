@@ -1,4 +1,15 @@
-米塔
+---
+aka:
+  - 米塔
+score: ★★★
+category:
+  - 游戏
+tags:
+  - 恐怖
+  - AVG
+  - 解密
+completed:
+---
 ```
 玩法★★★★
 叙事★★★★

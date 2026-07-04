@@ -1,3 +1,18 @@
+---
+aka:
+  - 艾尔登法环：黑夜君临
+  - 黑环
+  - 黑夜君临
+score: ★★★
+category:
+  - 游戏
+tags:
+  - 联机
+  - 派对
+  - Rougelike
+  - ACT
+completed:
+---
 ```
 玩法★★★★
 叙事★★★

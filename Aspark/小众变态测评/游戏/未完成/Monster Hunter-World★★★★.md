@@ -1,4 +1,13 @@
-怪物猎人：世界
+---
+aka:
+  - 怪物猎人：世界
+score: ★★★★
+category:
+  - 游戏
+tags:
+  - ARPG
+completed:
+---
 ```
 玩法★★★★★
 叙事★★★★

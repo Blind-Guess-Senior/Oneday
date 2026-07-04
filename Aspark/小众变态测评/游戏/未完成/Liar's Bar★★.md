@@ -1,4 +1,14 @@
-骗子酒吧
+---
+aka:
+  - 骗子酒吧
+score: ★★
+category:
+  - 游戏
+tags:
+  - 联机
+  - 派对
+completed:
+---
 ```
 玩法★★★
 叙事N/A
