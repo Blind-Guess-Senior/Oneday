@@ -7,6 +7,7 @@ category:
 tags:
   - SRPG
   - 剧情
+  - AVG
 completed: true
 ---
 ```

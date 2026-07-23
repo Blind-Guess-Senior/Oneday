@@ -1,4 +1,15 @@
-永恒之夏
+---
+aka:
+  - 永恒之夏
+score: ★★
+category:
+  - 游戏
+tags:
+  - 剧情
+  - 恐怖
+  - AVG
+completed:
+---
 玩法N/A
 叙事★★★★
 美术★★★

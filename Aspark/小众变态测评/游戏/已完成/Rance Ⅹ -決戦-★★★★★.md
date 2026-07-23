@@ -8,6 +8,7 @@ tags:
   - AVG
   - 回合制
   - 剧情
+  - 卡牌
 completed: true
 ---
 
