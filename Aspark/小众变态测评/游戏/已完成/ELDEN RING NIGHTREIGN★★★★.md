@@ -36,10 +36,10 @@ completed: true
 ## 尾巴
 唉，心里五味杂陈，最后却发现也难以写出什么，回头想想，怎么会在这么一个单调又各种重复素材的肉鸽里发疯似的沉迷呢？
 可能就是因为它真的好玩吧
-![[d978245355de7576e8a1c9c5998134dd.jpeg]]
-![[0e4ec81199f512c68ada2c5240d27fba.jpg]]
-![[b58b0e638bcb5a6c4008c8978aad99ba.jpg]]
-![[b61bf273354c49e48d6f65c11f2980fb.jpg]]
+![[ELDEN RING NIGHTREIGN图1.jpeg]]
+![[ELDEN RING NIGHTREIGN图2.jpg]]
+![[ELDEN RING NIGHTREIGN图3.jpg]]
+![[ELDEN RING NIGHTREIGN图4.jpg]]
 
 -----------------------------------------------------------
 
