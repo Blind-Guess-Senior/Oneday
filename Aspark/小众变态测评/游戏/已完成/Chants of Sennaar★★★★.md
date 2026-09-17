@@ -1,7 +1,7 @@
 ---
 aka:
   - 巴别塔圣歌
-score: ★★★★★
+score: ★★★★
 category:
   - 游戏
 tags:
