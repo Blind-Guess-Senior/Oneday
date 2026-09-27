@@ -71,12 +71,33 @@ const Content = scoreOnly ? null : (await render(entry)).Content;
                 <span class="article-meta-sep">|</span>
                 <span class="article-meta-item">
                   <span>评分</span>&nbsp;
-                  <strong
-                    class:list={["score-display", tier ? `score-tier-${tier}` : ""]}
-                    data-reviewer={reviewer}
-                  >
-                    {scoreRaw}
-                  </strong>
+                  {standards.length > 0 ? (
+                    <details class="score-standards">
+                      <summary class="score-link-btn">
+                        <strong
+                          class:list={["score-display", tier ? `score-tier-${tier}` : ""]}
+                          data-reviewer={reviewer}
+                        >
+                          {scoreRaw}
+                        </strong>
+                        <span class="score-link-hint">查看标准</span>
+                      </summary>
+                      <div class="standards-list">
+                        {standards.map((standard) => (
+                          <a class="standard-link" href={entryUrl(`standard/${standard.id}`)}>
+                            <span>{standard.title}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </details>
+                  ) : (
+                    <strong
+                      class:list={["score-display", tier ? `score-tier-${tier}` : ""]}
+                      data-reviewer={reviewer}
+                    >
+                      {scoreRaw}
+                    </strong>
+                  )}
                 </span>
               </>
             )
@@ -109,21 +130,6 @@ const Content = scoreOnly ? null : (await render(entry)).Content;
                 </>
               ))}
             </div>
-          )
-        }
-
-        {
-          standards.length > 0 && (
-            <details class="standards-panel">
-              <summary class="standards-panel-title">评分标准</summary>
-              <div class="standards-list">
-                {standards.map((standard) => (
-                  <a class="standard-link" href={entryUrl(`standard/${standard.id}`)}>
-                    <span>{standard.title}</span>
-                  </a>
-                ))}
-              </div>
-            </details>
           )
         }
 

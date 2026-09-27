@@ -21,10 +21,6 @@ import {
 import { note } from "./report";
 import { toSlug } from "./site";
 
-// ---------------------------------------------------------------------------
-// 类型
-// ---------------------------------------------------------------------------
-
 export interface ReviewRecord {
   /** collection entry id，同时也是 URL 的 `/<author>/<slug>/` 两段。 */
   id: string;
@@ -60,10 +56,6 @@ export interface LinkIndex {
   byPath: Map<string, ReviewRecord>;
 }
 
-// ---------------------------------------------------------------------------
-// 文件遍历
-// ---------------------------------------------------------------------------
-
 let fileListCache: string[] | null = null;
 
 /** 内容根下的全部文件，POSIX 相对路径，跳过点开头的目录。 */
@@ -90,12 +82,6 @@ export async function listFiles(): Promise<string[]> {
 function isMarkdown(name: string): boolean {
   return name.toLowerCase().endsWith(".md");
 }
-
-
-
-// ---------------------------------------------------------------------------
-// frontmatter / 正文解析
-// ---------------------------------------------------------------------------
 
 const FRONTMATTER = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
 
@@ -153,10 +139,6 @@ function slugFor(title: string, authorRel: string, contentRel: string): string {
   return `entry-${hash}`;
 }
 
-// ---------------------------------------------------------------------------
-// 收录规则
-// ---------------------------------------------------------------------------
-
 /**
  * 一个文件属于哪些分类。命中任意一个 include glob 就算。
  * **没有任何 include 命中 = 这个文件不存在**，这是「正面清单」的全部含义。
@@ -175,10 +157,6 @@ function matchesScoreOnly(meta: Record<string, unknown>, rules: Array<[string, s
   }
   return false;
 }
-
-// ---------------------------------------------------------------------------
-// 评测
-// ---------------------------------------------------------------------------
 
 async function buildReviews(): Promise<ReviewRecord[]> {
   const [configs, files] = await Promise.all([readReviewerConfigs(), listFiles()]);
@@ -205,8 +183,6 @@ async function buildReviews(): Promise<ReviewRecord[]> {
 
       const title = titleFor(authorRel, config.reviewer, meta);
       const slug = slugFor(title, authorRel, contentRel);
-      // URL = /<author>/<category id_name>/<slug>/。分类段用 ASCII 的 id_name，
-      // 分类进路径之后「轻小说 + 它的动画」这类同作者同名作品也不再撞车。
       const primaryCategory = matched[0];
       const id = `${config.reviewer}/${primaryCategory?.idName ?? ""}/${slug}`;
 
@@ -254,8 +230,6 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         contentRel,
         category,
         data,
-        // 代码块在 loader 里就剥掉。注意剥完正文很可能以一行破折号开头
-        // （sub_scores 后面通常跟一条分隔线），loader 会把它归一化成 `***`。
         body: subScores.body,
         subScores: subScores.lines,
       });
@@ -266,12 +240,6 @@ async function buildReviews(): Promise<ReviewRecord[]> {
   return records;
 }
 
-/**
- * 同一作者下两个文件落到同一个 slug = 构建硬失败。
- *
- * 不给自动 `-2`：静默变化的 URL 比构建失败糟糕得多。
- * 临时绕过（spike 用）：`ONEDAY_ALLOW_SLUG_COLLISION=1`，此时后者加 `-2` 后缀并记入报告。
- */
 function detectIdCollisions(records: ReviewRecord[]): void {
   const groups = new Map<string, ReviewRecord[]>();
   for (const record of records) {
@@ -312,10 +280,6 @@ export function getReviews(): Promise<ReviewRecord[]> {
   reviewsPromise ??= buildReviews();
   return reviewsPromise;
 }
-
-// ---------------------------------------------------------------------------
-// 评分标准
-// ---------------------------------------------------------------------------
 
 async function buildStandards(): Promise<StandardRecord[]> {
   const [configs, files] = await Promise.all([readReviewerConfigs(), listFiles()]);
@@ -358,10 +322,6 @@ export function getStandards(): Promise<StandardRecord[]> {
   return standardsPromise;
 }
 
-// ---------------------------------------------------------------------------
-// 链接索引
-// ---------------------------------------------------------------------------
-
 /** 去掉 `.md`、前导 `/`、`./`，反斜杠转正斜杠。 */
 export function normalizeWikiPath(value: string): string {
   return value
@@ -388,20 +348,6 @@ export function getLinkIndex(): Promise<LinkIndex> {
   return linkIndexPromise;
 }
 
-/**
- * 同步版本。
- *
- * **只认内容根相对的完整路径，不做任何兜底。** 也就是说
- * `[[Blind-Guess-Senior/Game/by-name/H/Hollow Knight]]` 能解析，
- * `[[Hollow Knight]]` 不能 —— 裸文件名一律当坏链接报出来。
- * 理由：按文件名/标题兜底会随内容重名而默默指向另一个页面，
- * 而链接是内容，应该一眼能看出它指向哪个文件。
- *
- * satteri 的访问器是**并发派发**的：同一个文档里多个 text 节点会同时进入 JS，
- * 异步访问器里的 `ctx.replaceNode()` 因此会互相干扰（实测同一张图片被插入 4 次）。
- * 所以索引必须在访问器之前预热好（插件的 `before` 钩子 await `ensureIndexes()`），
- * 访问器本身保持同步。
- */
 export function resolveWikiTargetSync(target: string): ReviewRecord | null {
   const index = linkIndexSync;
   if (!index) return null;
@@ -409,10 +355,6 @@ export function resolveWikiTargetSync(target: string): ReviewRecord | null {
   if (!normalized) return null;
   return index.byPath.get(normalized) ?? null;
 }
-
-// ---------------------------------------------------------------------------
-// 附件（`![[图片]]`）
-// ---------------------------------------------------------------------------
 
 /** 预热所有索引，让访问器可以走同步路径。插件的 `before` 钩子调用它。 */
 export async function ensureIndexes(): Promise<void> {
@@ -424,13 +366,6 @@ export interface AttachmentLookup {
   rel: string | null;
 }
 
-/**
- * 找一个附件。**同样只认内容根相对的完整路径，不做按文件名的兜底。**
- *
- * 旧站在浏览器里硬编码 `<目录>/attachments/<文件名>`，而仓库里附件目录本来就有
- * 两种约定（BGS 用 `<目录>/attachments/`，Aspark 用 `<目录>/游戏测评附件/` 等），
- * 所以只能按真实路径找。
- */
 export function findAttachmentSync(target: string): AttachmentLookup {
   const normalized = normalizeWikiPath(target);
   if (!normalized) return { rel: null };
@@ -439,7 +374,3 @@ export function findAttachmentSync(target: string): AttachmentLookup {
   return { rel: files.includes(normalized) ? normalized : null };
 }
 
-
-// ---------------------------------------------------------------------------
-// 全量链接审计
-// ---------------------------------------------------------------------------

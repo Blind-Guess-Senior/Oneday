@@ -77,8 +77,6 @@ function compareScore(a: Card, b: Card, direction: "asc" | "desc"): number {
   if (a.rank != null && b.rank != null) return (a.rank - b.rank) * factor;
   if (a.rank != null) return -1;
   if (b.rank != null) return 1;
-  // 作者没配 [score].order 时的兜底：
-  // 纯字符串比较会把 "10" 排在 "9" 前面，所以两边都是数字就按数值比。
   const left = Number(a.score);
   const right = Number(b.score);
   if (a.score !== "" && b.score !== "" && Number.isFinite(left) && Number.isFinite(right)) {
@@ -113,22 +111,10 @@ export function pageWindow(total: number, current: number): Array<number | "…"
   return result;
 }
 
-/**
- * 分类徽章的配色类名。
- *
- * 旧代码是按中文分类名硬编码 `游戏/动漫/书籍 → badge-game/anime/book`，
- * 结果是「加一个分类就悄悄变成默认样式，还得改代码」。
- * 现在按分类的 `id_name` 生成，加分类只要在 toml 里写个 ASCII 名，
- * 想单独配色就在 global.css 里加一条 `.badge-<id_name 小写>`。
- */
 export function categoryBadgeClass(categoryIds: string[]): string {
   const id = categoryIds[0]?.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
   return id ? `badge-${id}` : "badge-default";
 }
-
-// ---------------------------------------------------------------------------
-// 地址栏状态
-// ---------------------------------------------------------------------------
 
 export interface UrlState {
   query: string;
@@ -159,11 +145,6 @@ export function defaultUrlState(): UrlState {
 
 const SORT_KEYS: SortKey[] = ["modified", "score_desc", "score_asc", "title"];
 
-/**
- * 解析地址栏。参数名：`q` 搜索 / `c` 分类 id_name / `r` 评测者（可重复）/
- * `s` `评测者:分数`（可重复）/ `t` tag（可重复）/ `only=1` / `std=1` / `sort` / `page`。
- * 认不出的值一律忽略，回落默认值。
- */
 export function parseFilterSearch(search: string): UrlState {
   const params = new URLSearchParams(search);
   const state = defaultUrlState();

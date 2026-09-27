@@ -1,10 +1,4 @@
-/**
- * 作者自定义的评分档位配色。
- *
- * 每个作者可以在自己目录下放 `reviewer_style.css`。这里只提取
- * `.score-tier-N { … }` 规则，并加上 `[data-reviewer="<作者>"]` 作用域，
- * 避免作者之间互相影响；其它选择器一律忽略（一个写坏的样式表不该泄漏成全局样式）。
- */
+
 
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";

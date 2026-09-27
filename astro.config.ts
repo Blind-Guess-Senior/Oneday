@@ -14,8 +14,6 @@ export default defineConfig({
   // 只有首页那一个筛选岛屿用 Vue；文章页和标准页是零 JS 的静态页
   integrations: [vue()],
   markdown: {
-    // Astro 7 的 markdown 管线是 satteri，扩展点是 mdast/hast 插件而不是 remark/rehype。
-    // 内置的图片收集、标题 id、图片打标插件会自动附加在用户插件之后，不会被顶掉。
     processor: satteri({
       mdastPlugins: [obsidianPlugin, highlightPlugin],
     }),

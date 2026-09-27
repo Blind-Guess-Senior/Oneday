@@ -1,13 +1,4 @@
-/**
- * 全站/作者配置的读取。
- *
- * 两个来源：
- *   - `src/config/site.toml`            全站配置（tag 分排与别名）
- *   - `src/content/<作者>/reviewer_config.toml`  作者配置（什么算评测）
- *
- * 设计原则：**正面清单**。作者配置里 include 命中的文件才是「评测候选」，
- * 没被任何 include 命中的文件一律不存在——不需要任何全局文件名黑名单。
- */
+
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -18,14 +9,6 @@ import { parse as parseToml } from "smol-toml";
 import { note } from "./report";
 import { toSlug } from "./site";
 
-/**
- * 仓库根（Oneday/）。
- *
- * 不能只用 `import.meta.url`：页面渲染阶段这些模块会被打进 `dist/.prerender/`，
- * 那时 `import.meta.url` 指向产物目录，路径就全错了。`process.cwd()` 在
- * dev / build / loader / 页面渲染里都是工程根，所以以它为准，
- * 只在 cwd 找不到配置时回退到 `import.meta.url`（源码内直接跑的情况）。
- */
 function findProjectRoot(): string {
   const candidates = [process.cwd()];
   try {
@@ -45,10 +28,6 @@ export const PROJECT_ROOT = findProjectRoot();
 export const CONTENT_ROOT = path.join(PROJECT_ROOT, "src", "content");
 
 const SITE_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "site.toml");
-
-// ---------------------------------------------------------------------------
-// 类型
-// ---------------------------------------------------------------------------
 
 export interface CategoryConfig {
   /** 显示用的分类名，例如「游戏」。 */
@@ -92,10 +71,6 @@ export interface TagConfig {
   rows: Array<Record<string, string[]>>;
 }
 
-// ---------------------------------------------------------------------------
-// 小工具
-// ---------------------------------------------------------------------------
-
 function asStringArray(value: unknown): string[] {
   if (value === undefined || value === null) return [];
   if (Array.isArray(value)) {
@@ -113,10 +88,6 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 function asString(value: unknown): string {
   return value === undefined || value === null ? "" : String(value).trim();
 }
-
-// ---------------------------------------------------------------------------
-// 作者配置
-// ---------------------------------------------------------------------------
 
 function normalizeReviewerConfig(reviewer: string, dir: string, raw: Record<string, unknown>): ReviewerConfig {
   const categories: CategoryConfig[] = [];
@@ -203,20 +174,8 @@ export async function readReviewerConfigs(): Promise<ReviewerConfig[]> {
   return configs.sort((a, b) => a.reviewer.localeCompare(b.reviewer));
 }
 
-// ---------------------------------------------------------------------------
-// 全站配置（tag 分排）
-// ---------------------------------------------------------------------------
-
 let tagConfigCache: TagConfig | null = null;
 
-/**
- * 读 `src/config/site.toml`。
- *
- * `[tag_rows.N]` 的语义是「第 N 排」，每个分类一张有序列表：
- *   - 数组顺序 = 该分类下 tag 的显示顺序
- *   - 同一个 tag 在不同分类下可以落在不同排（例如「战斗」动漫第 2 排、书籍第 3 排）
- *   - `"主名+别名"` 表示别名并入主名
- */
 export function loadTagConfig(): TagConfig {
   if (tagConfigCache) return tagConfigCache;
 
@@ -249,19 +208,8 @@ export function loadTagConfig(): TagConfig {
   return tagConfigCache;
 }
 
-// ---------------------------------------------------------------------------
-// git 提交时间
-// ---------------------------------------------------------------------------
-
 let gitDatesCache: Map<string, string> | null = null;
 
-/**
- * 一次 `git log` 拿到所有文件的最近提交时间（仓库相对路径 → ISO 字符串）。
- *
- * 旧 Python 对每个文件跑一次 `git log -1`（约 1300 次子进程），这里改成一次。
- * git log 是新→旧，所以首次出现的就是最近一次提交。合并提交没有文件列表，跳过即可。
- * CI 里必须 `fetch-depth: 0`。
- */
 export function loadGitDates(): Map<string, string> {
   if (gitDatesCache) return gitDatesCache;
 

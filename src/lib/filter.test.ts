@@ -1,9 +1,4 @@
-/**
- * 筛选与排序的语义测试。
- *
- * 这套逻辑是旧前端 `homeList` / `compareScore` 的移植，行为必须逐条对齐，
- * 所以把边界固定下来：`node --test src/lib/filter.test.ts`（或 `npm test`）。
- */
+
 
 import assert from "node:assert/strict";
 import { test } from "node:test";

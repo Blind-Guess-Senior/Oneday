@@ -1,9 +1,4 @@
-/**
- * Obsidian 高亮 `==文字==` → `<mark class="hl">文字</mark>`。
- *
- * 旧前端是在 marked 之前对整个源串做正则替换；这里改成 mdast 层替换，
- * 所以不会误伤代码块里的 `==`（代码块不是 text 节点）。
- */
+
 
 import type { MdastNode, MdastPluginDefinition, MdastVisitorContext } from "satteri";
 
