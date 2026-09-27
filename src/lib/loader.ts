@@ -79,7 +79,7 @@ export function reviewsLoader(): Loader {
       // 只审计渲染过的正文不够：大部分评测是「仅评分」，正文从不渲染
       const audit = await auditContent();
       logger.info(
-        `全 vault 共 wikilink ${audit.links} 处、图片嵌入 ${audit.embeds} 处；其中没写完整路径的 ${audit.bare} 处`,
+        `全 vault：wikilink ${audit.links} 处、图片嵌入 ${audit.embeds} 处`,
       );
       printReports(logger);
 

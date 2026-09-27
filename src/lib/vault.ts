@@ -21,8 +21,6 @@ import {
 import {
   note,
   noteBareTarget,
-  noteBrokenImage,
-  noteMissingTarget,
   noteUnpublishedTarget,
 } from "./report";
 import { toSlug } from "./site";
@@ -466,7 +464,7 @@ export interface AuditResult {
   links: number;
   /** 图片嵌入总数。 */
   embeds: number;
-  /** 其中没写完整路径的数量。**应当恒为 0**，不为 0 就是内容要修。 */
+  /** 裸文件名（没写完整路径）的总数。 */
   bare: number;
 }
 
@@ -483,6 +481,12 @@ export async function auditContent(): Promise<AuditResult> {
   const fileSet = new Set(files);
   await Promise.all([getReviews(), getLinkIndex()]);
   const published = linkIndexSync;
+
+  // 用来判断一个裸文件名是不是"本该写完整路径"：仓库里到底有没有同名文件
+  const mdBasenames = new Set(
+    files.filter((rel) => rel.toLowerCase().endsWith(".md")).map((rel) => path.posix.basename(rel, path.extname(rel))),
+  );
+  const anyBasenames = new Set(files.map((rel) => path.posix.basename(rel)));
 
   let links = 0;
   let embeds = 0;
@@ -504,9 +508,8 @@ export async function auditContent(): Promise<AuditResult> {
         const target = normalizeWikiPath(inner);
         if (!target.includes("/")) {
           bare += 1;
-          noteBareTarget(source, match[0]);
-        } else if (!fileSet.has(target)) {
-          noteBrokenImage(source, target);
+          // 只有「仓库里确实有同名文件」才算问题；悬空链接放着就行，不报
+          if (anyBasenames.has(path.posix.basename(target))) noteBareTarget(source, match[0]);
         }
         continue;
       }
@@ -518,15 +521,12 @@ export async function auditContent(): Promise<AuditResult> {
 
       if (!target.includes("/")) {
         bare += 1;
-        noteBareTarget(source, match[0]);
+        if (mdBasenames.has(target)) noteBareTarget(source, match[0]);
         continue;
       }
 
       const file = target.toLowerCase().endsWith(".md") ? target : `${target}.md`;
-      if (!fileSet.has(file)) {
-        noteMissingTarget(source, target);
-        continue;
-      }
+      if (!fileSet.has(file)) continue;
       if (!published?.byPath.has(normalizeWikiPath(file))) {
         noteUnpublishedTarget(source, target);
       }

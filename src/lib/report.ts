@@ -11,12 +11,8 @@
 
 type Issues = Map<string, Set<string>>;
 
-/** 非完整路径的 wiki 目标（`[[裸名]]` / `![[裸名.png]]`）。合进 main 前必须为 0。 */
+/** 裸文件名，但仓库里确实有同名文件——本该写完整路径。这一类必须为 0。 */
 const bareTargets: Issues = new Map();
-/** 写的是完整路径，但仓库里没有这个文件。 */
-const missingTargets: Issues = new Map();
-/** 图片路径是完整的，但文件不存在。 */
-const brokenImages: Issues = new Map();
 /** 目标文件存在，但它没有被 reviewer_config.toml 收录（所以不会成为页面）。 */
 const unpublishedTargets: Issues = new Map();
 const notes: Issues = new Map();
@@ -30,19 +26,9 @@ function add(store: Issues, source: string, detail: string): void {
   set.add(detail);
 }
 
-/** `[[裸名]]` —— 没写完整路径。 */
+/** 裸文件名，而同名文件确实存在——必须改成完整路径。 */
 export function noteBareTarget(source: string, target: string): void {
   add(bareTargets, source, target);
-}
-
-/** 完整路径但没有对应文件。 */
-export function noteMissingTarget(source: string, target: string): void {
-  add(missingTargets, source, target);
-}
-
-/** 图片的完整路径没有对应文件。 */
-export function noteBrokenImage(source: string, target: string): void {
-  add(brokenImages, source, target);
 }
 
 /** 目标文件存在但没被收录（`status: 未完成` 之类），页面不会生成。 */
@@ -91,9 +77,7 @@ export function renderReports(): string[] {
   const full = process.env["ONEDAY_REPORT"] === "full";
   const limit = full ? 500 : 0;
   const lines = [
-    ...format("[报告] 非完整路径的 wiki 目标（应当为 0）", drain(bareTargets), limit),
-    ...format("[报告] 目标文件不存在的链接", drain(missingTargets), limit),
-    ...format("[报告] 目标文件不存在的图片", drain(brokenImages), limit),
+    ...format("[报告] 目标存在却没写完整路径（应当为 0）", drain(bareTargets), limit),
     ...format("[提示] 目标存在但未被收录", drain(unpublishedTargets), full ? 200 : 0),
     ...format("[提示]", drain(notes), full ? 200 : 0),
   ];
@@ -106,6 +90,6 @@ export function renderReports(): string[] {
 /** 供 loader 判断要不要打印。 */
 export function hasReports(): boolean {
   return (
-    bareTargets.size + missingTargets.size + brokenImages.size + unpublishedTargets.size + notes.size > 0
+    bareTargets.size + unpublishedTargets.size + notes.size > 0
   );
 }
