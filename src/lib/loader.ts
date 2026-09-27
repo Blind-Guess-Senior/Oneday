@@ -12,7 +12,7 @@ import { pathToFileURL } from "node:url";
 import type { Loader } from "astro/loaders";
 import { note, renderReports } from "./report";
 import { buildIndexPayload } from "./index-data";
-import { auditContent, splitFrontmatter, getReviews, getStandards } from "./vault";
+import { splitFrontmatter, getReviews, getStandards } from "./vault";
 
 interface Reporter {
   info: (message: string) => void;
@@ -47,7 +47,6 @@ export function reviewsLoader(): Loader {
 
       for (const review of reviews) {
         // 仅评分评测不渲染正文（旧站也是这样：只看得到元信息）。
-        // 它们正文里的链接/图片由 auditContent() 单独审计。
         const scoreOnly = review.data["score_only"] === true;
         const rendered = scoreOnly
           ? undefined
@@ -76,11 +75,6 @@ export function reviewsLoader(): Loader {
       // 首页岛屿的数据在这里先算一次：tag 分排的提示要在打印报告之前记进 report
       await buildIndexPayload();
 
-      // 只审计渲染过的正文不够：大部分评测是「仅评分」，正文从不渲染
-      const audit = await auditContent();
-      logger.info(
-        `全 vault：wikilink ${audit.links} 处、图片嵌入 ${audit.embeds} 处`,
-      );
       printReports(logger);
 
       if (process.env["ONEDAY_DATA_DUMP"]) {

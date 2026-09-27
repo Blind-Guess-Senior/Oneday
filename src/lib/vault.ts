@@ -18,11 +18,7 @@ import {
   type CategoryConfig,
   type ReviewerConfig,
 } from "./config";
-import {
-  note,
-  noteBareTarget,
-  noteUnpublishedTarget,
-} from "./report";
+import { note } from "./report";
 import { toSlug } from "./site";
 
 // ---------------------------------------------------------------------------
@@ -456,82 +452,3 @@ export async function findAttachment(target: string): Promise<AttachmentLookup> 
 // ---------------------------------------------------------------------------
 // 全量链接审计
 // ---------------------------------------------------------------------------
-
-const AUDIT_PATTERN = /!?\[\[([^\]\r\n]+)\]\]/g;
-
-export interface AuditResult {
-  /** 全 vault md 里的 wikilink 总数。 */
-  links: number;
-  /** 图片嵌入总数。 */
-  embeds: number;
-  /** 裸文件名（没写完整路径）的总数。 */
-  bare: number;
-}
-
-/**
- * 扫描 **vault 里所有 md**（不只被收录的评测）的 wikilink 与图片嵌入。
- *
- * 两个原因必须扫全集：
- * 1. 链接只认完整路径、不做兜底，所以「非完整路径」是硬错误，得一个不漏；
- * 2. 354 篇评测里只有 73 篇会渲染，而 `[[The Blind Award 2025#游戏]]` 这类链接
- *    恰好都在仅评分评测里——旧站从来不渲染它们，这个问题此前完全不可见。
- */
-export async function auditContent(): Promise<AuditResult> {
-  const files = await listFiles();
-  const fileSet = new Set(files);
-  await Promise.all([getReviews(), getLinkIndex()]);
-  const published = linkIndexSync;
-
-  // 用来判断一个裸文件名是不是"本该写完整路径"：仓库里到底有没有同名文件
-  const mdBasenames = new Set(
-    files.filter((rel) => rel.toLowerCase().endsWith(".md")).map((rel) => path.posix.basename(rel, path.extname(rel))),
-  );
-  const anyBasenames = new Set(files.map((rel) => path.posix.basename(rel)));
-
-  let links = 0;
-  let embeds = 0;
-  let bare = 0;
-
-  for (const rel of files) {
-    if (!rel.toLowerCase().endsWith(".md")) continue;
-    const source = path.posix.join("src/content", rel);
-    const raw = await readFile(path.join(CONTENT_ROOT, rel), "utf8");
-    const body = splitFrontmatter(raw).body;
-
-    AUDIT_PATTERN.lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while ((match = AUDIT_PATTERN.exec(body)) !== null) {
-      const inner = match[1] ?? "";
-
-      if (match[0].startsWith("!")) {
-        embeds += 1;
-        const target = normalizeWikiPath(inner);
-        if (!target.includes("/")) {
-          bare += 1;
-          // 只有「仓库里确实有同名文件」才算问题；悬空链接放着就行，不报
-          if (anyBasenames.has(path.posix.basename(target))) noteBareTarget(source, match[0]);
-        }
-        continue;
-      }
-
-      const destination = inner.split("|")[0] ?? "";
-      const target = normalizeWikiPath((destination.split("#")[0] ?? "").trim());
-      if (!target) continue;
-      links += 1;
-
-      if (!target.includes("/")) {
-        bare += 1;
-        if (mdBasenames.has(target)) noteBareTarget(source, match[0]);
-        continue;
-      }
-
-      const file = target.toLowerCase().endsWith(".md") ? target : `${target}.md`;
-      if (!fileSet.has(file)) continue;
-      if (!published?.byPath.has(normalizeWikiPath(file))) {
-        noteUnpublishedTarget(source, target);
-      }
-    }
-  }
-
-  return { links, embeds, bare };
-}
