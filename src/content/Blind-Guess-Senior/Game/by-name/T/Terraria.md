@@ -13,8 +13,6 @@ tags:
   - 沙盒
   - 像素
 completed: false
-aka:
-  - 泰拉瑞亚
 updated: 2026-07-01
 ---
 Ver1.4.5 TBA 2025 **==最受期待==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏]] 

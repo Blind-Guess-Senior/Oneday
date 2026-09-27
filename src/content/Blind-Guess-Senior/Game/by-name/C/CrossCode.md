@@ -15,8 +15,6 @@ category:
 tags:
   - ARPG
 completed: false
-aka:
-  - 远星物语
 ---
 
 

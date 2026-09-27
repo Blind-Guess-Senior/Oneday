@@ -12,8 +12,6 @@ category:
 tags:
   - CRPG
 completed: false
-aka:
-  - 博德之门3
 ---
 
 

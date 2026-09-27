@@ -11,8 +11,6 @@ category:
   - 游戏
 tags:
 completed: false
-aka:
-  - 蟹蟹寻宝奇遇
 ---
 
 

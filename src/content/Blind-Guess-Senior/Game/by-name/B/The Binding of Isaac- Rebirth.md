@@ -13,8 +13,6 @@ category:
 tags:
   - Rougelike
 completed: false
-aka:
-  - 以撒的结合：重生
 ---
 
 

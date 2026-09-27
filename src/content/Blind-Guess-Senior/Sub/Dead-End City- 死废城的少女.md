@@ -15,9 +15,6 @@ tags:
   - 女主
   - SLG
 completed: true
-aka:
-  - Dead-End City Blues
-  - "Dead-End City: 死废城的少女"
 ---
 OD Edition
 

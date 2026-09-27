@@ -1,6 +1,4 @@
 ---
-aka:
-  - 艾尔登法环
 score: ★★★★★
 category:
   - 游戏

@@ -1,6 +1,4 @@
 ---
-aka:
-  - 星露谷物语
 score: ★★★★★
 category:
   - 游戏

@@ -1,6 +1,4 @@
 ---
-aka:
-  - 博德之门3
 score: ★★★★★
 category:
   - 游戏

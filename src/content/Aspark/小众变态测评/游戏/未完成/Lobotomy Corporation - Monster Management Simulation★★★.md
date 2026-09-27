@@ -1,6 +1,4 @@
 ---
-aka:
-  - 脑叶公司
 score: ★★★
 category:
   - 游戏

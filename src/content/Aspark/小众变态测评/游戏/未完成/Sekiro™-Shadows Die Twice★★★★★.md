@@ -1,6 +1,4 @@
 ---
-aka:
-  - 只狼：影逝二度
 score: ★★★★★
 category:
   - 游戏

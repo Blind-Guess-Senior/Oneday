@@ -13,8 +13,6 @@ category:
 tags:
   - 类银河城
 completed: false
-aka:
-  - 终焉之莉莉：骑士寂夜
 updated: 2026-07-01
 ---
 续：  

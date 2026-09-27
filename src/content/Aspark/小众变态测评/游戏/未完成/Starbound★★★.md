@@ -1,6 +1,4 @@
 ---
-aka:
-  - 星界边境
 score: ★★★
 category:
   - 游戏

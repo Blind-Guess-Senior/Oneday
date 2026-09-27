@@ -1,6 +1,4 @@
 ---
-aka:
-  - FSR
 score: ★★★
 category:
   - 游戏

@@ -1,6 +1,4 @@
 ---
-aka:
-  - 拔作岛
 score: ★★★
 category:
   - 游戏

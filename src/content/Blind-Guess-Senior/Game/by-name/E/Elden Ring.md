@@ -14,8 +14,6 @@ tags:
   - ARPG
   - 魂
 completed: false
-aka:
-  - 艾尔登法环
 ---
 衍生作：  
 [[Blind-Guess-Senior/Game/by-name/E/Elden Ring NightReign]] 

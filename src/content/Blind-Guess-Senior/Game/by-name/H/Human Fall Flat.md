@@ -13,8 +13,6 @@ tags:
   - 解谜
   - 物理
 completed: true
-aka:
-  - 人类一败涂地
 updated: 2026-07-01
 ---
 	首评于 2025.8.6

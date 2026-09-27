@@ -13,8 +13,6 @@ tags:
   - 类银河城
   - 像素
 completed: false
-aka:
-  - 神之亵渎
 updated: 2026-07-01
 ---
 TBA 2025 **==最佳音乐==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏]]  

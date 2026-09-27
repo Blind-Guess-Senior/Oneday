@@ -13,8 +13,6 @@ tags:
   - 指向点击
   - 解谜
 completed: true
-aka:
-  - 纪念碑谷
 updated: 2026-07-01
 ---
 TBA 2025 *提名* **==最佳创意==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]]  

@@ -12,8 +12,6 @@ category:
 tags:
   - FPS
 completed: false
-aka:
-  - 反恐精英2
 ---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

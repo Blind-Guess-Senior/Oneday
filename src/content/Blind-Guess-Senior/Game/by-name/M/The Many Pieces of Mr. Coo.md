@@ -15,8 +15,6 @@ tags:
   - 指向点击
   - 解谜
 completed: true
-aka:
-  - 裂开了！裤先生
 updated: 2026-07-01
 ---
 	首评于 2025.8.6

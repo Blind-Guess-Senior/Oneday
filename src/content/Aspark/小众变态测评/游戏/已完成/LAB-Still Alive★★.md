@@ -1,5 +1,4 @@
 ---
-aka:
 score: ★★
 category:
   - 游戏

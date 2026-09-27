@@ -12,8 +12,6 @@ category:
 tags:
   - 类银河城
 completed: false
-aka:
-  - 赤痕：夜之仪式
 updated: 2026-07-01
 ---
 续：  

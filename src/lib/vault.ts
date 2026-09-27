@@ -13,6 +13,7 @@ import { parse as parseYaml } from "yaml";
 import {
   CONTENT_ROOT,
   gitDatesFor,
+  loadAka,
   loadTagConfig,
   loadTitleNames,
   readReviewerConfigs,
@@ -175,6 +176,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
   const [configs, files] = await Promise.all([readReviewerConfigs(), listFiles()]);
   const tagConfig = loadTagConfig();
   const titleNames = loadTitleNames();
+  const akaConfig = loadAka();
   const records: ReviewRecord[] = [];
 
   for (const config of configs) {
@@ -213,6 +215,14 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         tags.push(canonical);
       }
 
+      // 别名来自 aka.toml，按「分类 + 显示标题」查；同名作品命中多个分类时取并集
+      const aka: string[] = [];
+      for (const categoryName of category) {
+        for (const alias of akaConfig.get(categoryName)?.get(title) ?? []) {
+          if (!aka.includes(alias)) aka.push(alias);
+        }
+      }
+
       const subScores = extractSubScores(body);
 
       const relPath = path.posix.join("src/content", contentRel);
@@ -231,7 +241,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         score_rank: rankIndex === -1 ? null : rankIndex + 1,
         score_tier: tierIndex === -1 ? null : tierIndex + 1,
         tags,
-        aka: toStringList(meta["aka"]),
+        aka,
         sub_scores: subScores.lines,
         score_only: !completed,
         published: dates.published,

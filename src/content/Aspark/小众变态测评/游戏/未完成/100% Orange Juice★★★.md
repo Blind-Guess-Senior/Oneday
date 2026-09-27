@@ -1,6 +1,4 @@
 ---
-aka:
-  - 100%鲜橙汁
 score: ★★★
 category:
 tags:

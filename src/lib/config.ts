@@ -29,6 +29,7 @@ export const CONTENT_ROOT = path.join(PROJECT_ROOT, "src", "content");
 
 const TAGS_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "tags.toml");
 const TITLE_NAMES_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "title_names.toml");
+const AKA_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "aka.toml");
 
 export interface CategoryConfig {
   /** 显示用的分类名，例如「游戏」。 */
@@ -229,6 +230,28 @@ export function loadTitleNames(): Map<string, string> {
   }
   titleNamesCache = names;
   return titleNamesCache;
+}
+
+let akaCache: Map<string, Map<string, string[]>> | null = null;
+
+/**
+ * aka.toml 的 `[aka.<分类>]`：显示标题 → 别名列表。
+ * 标题是过完 title_names 的显示标题，分类用 reviewer_config.toml 里的分类名。
+ */
+export function loadAka(): Map<string, Map<string, string[]>> {
+  if (akaCache) return akaCache;
+  const raw = asRecord(parseToml(readFileSync(AKA_CONFIG_PATH, "utf8"))) ?? {};
+  const byCategory = new Map<string, Map<string, string[]>>();
+  for (const [category, titles] of Object.entries(asRecord(raw["aka"]) ?? {})) {
+    const entries = new Map<string, string[]>();
+    for (const [title, aliases] of Object.entries(asRecord(titles) ?? {})) {
+      const list = asStringArray(aliases);
+      if (title && list.length) entries.set(title, list);
+    }
+    if (entries.size) byCategory.set(category, entries);
+  }
+  akaCache = byCategory;
+  return akaCache;
 }
 
 export interface GitDates {

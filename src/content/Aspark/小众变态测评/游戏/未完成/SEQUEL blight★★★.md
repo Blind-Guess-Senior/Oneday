@@ -1,6 +1,4 @@
 ---
-aka:
-  - 凋零余波
 score: ★★★
 category:
   - 游戏

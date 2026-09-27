@@ -15,8 +15,6 @@ tags:
   - 线性
   - AVG
 completed: false
-aka:
-  - 地狱边境
 updated: 2026-07-02
 ---
 	首评于 2025.8.6

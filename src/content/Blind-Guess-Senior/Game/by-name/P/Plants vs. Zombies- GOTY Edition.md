@@ -13,8 +13,6 @@ category:
 tags:
   - 塔防
 completed: false
-aka:
-  - 植物大战僵尸：年度版
 updated: 2026-07-01
 ---
 	首评于 2025.8.6

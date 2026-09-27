@@ -9,8 +9,6 @@ category:
   - 游戏
 tags:
 completed: false
-aka:
-  - 皇牌空战7：未知空域
 ---
 
 

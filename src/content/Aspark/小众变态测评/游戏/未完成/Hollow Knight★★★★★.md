@@ -1,6 +1,4 @@
 ---
-aka:
-  - 空洞骑士
 score: ★★★★★
 category:
   - 游戏

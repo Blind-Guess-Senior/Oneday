@@ -1,6 +1,4 @@
 ---
-aka:
-  - 兰斯2：反叛的少女们
 score: ★★
 category:
   - 游戏

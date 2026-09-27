@@ -11,8 +11,6 @@ tags:
   - Rougelike
   - 卡牌
 completed: false
-aka:
-  - 暗黑地牢
 ---
 
 

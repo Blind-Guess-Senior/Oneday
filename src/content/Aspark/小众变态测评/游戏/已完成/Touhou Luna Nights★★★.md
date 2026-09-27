@@ -1,6 +1,4 @@
 ---
-aka:
-  - 东方月神夜
 score: ★★★
 category:
   - 游戏

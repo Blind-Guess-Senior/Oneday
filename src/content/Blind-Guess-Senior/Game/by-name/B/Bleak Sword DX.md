@@ -13,8 +13,6 @@ tags:
   - 清版
   - 像素
 completed: true
-aka:
-  - 荒绝之剑DX
 updated: 2026-07-04
 ---
 	完成 2026.7.2

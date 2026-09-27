@@ -1,6 +1,4 @@
 ---
-aka:
-  - 米塔
 score: ★★★
 category:
   - 游戏

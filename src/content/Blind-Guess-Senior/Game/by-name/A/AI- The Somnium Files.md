@@ -9,8 +9,6 @@ category:
   - 游戏
 tags:
 completed: false
-aka:
-  - AI：梦境档案
 ---
 
 

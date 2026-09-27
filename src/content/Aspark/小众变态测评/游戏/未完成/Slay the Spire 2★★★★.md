@@ -1,6 +1,4 @@
 ---
-aka:
-  - 杀戮尖塔2
 score: ★★★★
 category:
   - 游戏

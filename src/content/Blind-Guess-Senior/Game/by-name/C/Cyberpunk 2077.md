@@ -13,8 +13,6 @@ tags:
   - ARPG
   - Cyberpunk
 completed: false
-aka:
-  - 赛博朋克2077
 ---
 
 

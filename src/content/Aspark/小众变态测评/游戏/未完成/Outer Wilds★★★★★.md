@@ -1,6 +1,4 @@
 ---
-aka:
-  - 星际拓荒
 score: ★★★★★
 category:
   - 游戏

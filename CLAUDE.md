@@ -44,7 +44,7 @@
 ├─ src/
 │  ├─ content/                ← 内容根，同时也是 Obsidian vault 根
 │  │  └─ <作者>/              ← 作者目录
-│  ├─ config/                 全站配置（site.toml、tags.toml、title_names.toml）
+│  ├─ config/                 全站配置（site.toml、tags.toml、title_names.toml、aka.toml）
 │  ├─ content.config.ts       两个集合：reviews / standards
 │  ├─ styles/global.css       全站样式
 │  ├─ lib/
@@ -193,9 +193,6 @@ tags:
   - ARPG
   - 类魂
 completed: true
-aka:
-  - Another Title
-  - 另一个标题
 year: 2026
 month: 3
 ---
@@ -214,7 +211,6 @@ month: 3
 - 标题来自文件名，再经 `title_names.toml` 的 `[title_names]` 映射（除非 frontmatter 写了 `title`）。
   `Aspark` 作者目录下末尾的 `★` 会被剥掉。
 - 正文开头的第一个 fenced code block 按约定是 `sub_scores`，抽出来渲染在元信息下方。
-- `aka` 是别名列表（卡片显示第一个，文章页显示全部）。
 - `updated: 2026-03-08` 可选：写了就用它当「更新于」，不写取该文件 `git log --follow`
   的最近一次提交。只认 `YYYY-MM-DD`，写坏了当没写。
 
@@ -272,8 +268,16 @@ month: 3
 "NieR:Automata™" = ["NieR-Automata™", "NieR Automata"]
 ```
 
+```toml
+# aka.toml：分类 → 显示标题 → 别名
+[aka."游戏"]
+"NieR:Automata™" = ["尼尔：机械纪元", "NieR Automata"]
+```
+
 - `[title_names]` 是多对一的：左边是页面上显示的标题，右边是文件名里可能出现的写法。
   标题、卡片、RSS、搜索都取映射后的标题；URL 的 slug 仍由文件里的名字生成。
+- `[aka.<分类>]`：显示标题 → 别名，标题是过完 `title_names` 之后的那个。
+  卡片显示第一个，文章页显示全部，搜索也匹配别名。
 - `[tag_rows.N]` 是第 N 排，只影响首页 tag 筛选区的排布。
 - 分类名必须和 `reviewer_config.toml` 里的分类名一致：分排按分类生效，
   同一个 tag 在不同分类下可以落在不同排。

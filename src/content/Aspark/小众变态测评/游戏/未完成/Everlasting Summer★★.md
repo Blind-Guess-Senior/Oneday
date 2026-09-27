@@ -1,6 +1,4 @@
 ---
-aka:
-  - 永恒之夏
 score: ★★
 category:
   - 游戏

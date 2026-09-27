@@ -12,8 +12,6 @@ tags:
   - 模拟经营
   - 城市规划
 completed: false
-aka:
-  - 城市：天际线
 ---
 
 

@@ -1,6 +1,4 @@
 ---
-aka:
-  - 天国：拯救2
 score: ★★★★★
 category:
   - 游戏

@@ -1,7 +1,4 @@
 ---
-aka:
-  - 绝地求生
-  - 吃鸡
 score: ★★
 category:
   - 游戏

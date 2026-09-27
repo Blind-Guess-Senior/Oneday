@@ -1,6 +1,4 @@
 ---
-aka:
-  - 赛博朋克酒保行动
 score: ★★★★
 category:
   - 游戏

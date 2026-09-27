@@ -12,8 +12,6 @@ category:
   - 游戏
 tags:
 completed: false
-aka:
-  - 装甲核心 VI 境界天火
 ---
 
 

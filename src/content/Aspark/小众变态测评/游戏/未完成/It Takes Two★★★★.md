@@ -1,6 +1,4 @@
 ---
-aka:
-  - 双人成行
 score: ★★★★
 category:
   - 游戏

@@ -1,6 +1,4 @@
 ---
-aka:
-  - 超级鸡马
 score: ★★★
 category:
   - 游戏

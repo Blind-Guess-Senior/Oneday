@@ -14,8 +14,6 @@ tags:
   - 卡牌
   - Rougelike
 completed: false
-aka:
-  - 密教模拟器
 ---
 
 

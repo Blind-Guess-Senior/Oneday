@@ -1,6 +1,4 @@
 ---
-aka:
-  - 双影奇境
 score: ★★★★
 category:
   - 游戏

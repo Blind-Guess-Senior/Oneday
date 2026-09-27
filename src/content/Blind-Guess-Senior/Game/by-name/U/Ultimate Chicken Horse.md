@@ -12,8 +12,6 @@ category:
 tags:
   - 派对
 completed: false
-aka:
-  - 超级鸡马
 updated: 2026-07-01
 ---
 	首评于 2025.8.6

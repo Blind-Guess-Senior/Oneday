@@ -1,6 +1,4 @@
 ---
-aka:
-  - 黑暗之魂重制版
 score: ★★★★
 category:
 tags:

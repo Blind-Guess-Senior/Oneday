@@ -14,8 +14,6 @@ tags:
   - 类魂
   - ARPG
 completed: false
-aka:
-  - 盐与避难所
 updated: 2026-07-01
 ---
 续：  

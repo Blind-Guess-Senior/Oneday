@@ -12,8 +12,6 @@ category:
 tags:
   - 类银河城
 completed:
-aka:
-  - 空洞骑士：丝之歌
 updated: 2026-06-29
 ---
 前：  

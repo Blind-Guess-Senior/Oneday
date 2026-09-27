@@ -1,6 +1,4 @@
 ---
-aka:
-  - 我的世界
 score: ★★★★★
 category:
   - 游戏

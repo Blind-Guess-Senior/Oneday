@@ -1,6 +1,4 @@
 ---
-aka:
-  - 兰斯10：决战
 score: ★★★★★
 category:
   - 游戏

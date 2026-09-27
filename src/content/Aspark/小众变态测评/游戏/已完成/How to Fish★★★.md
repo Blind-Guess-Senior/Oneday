@@ -1,6 +1,4 @@
 ---
-aka:
-  - 渔力全开
 score: ★★★
 category:
   - 游戏

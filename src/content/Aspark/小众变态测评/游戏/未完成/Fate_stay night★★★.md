@@ -1,6 +1,4 @@
 ---
-aka:
-  - FSN
 score: ★★★
 category:
   - 游戏

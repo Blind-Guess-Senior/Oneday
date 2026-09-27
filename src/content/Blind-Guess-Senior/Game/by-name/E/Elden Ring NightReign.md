@@ -14,8 +14,6 @@ tags:
   - Rougelike
   - ARPG
 completed: false
-aka:
-  - 艾尔登法环：黑夜君临
 ---
 系列原作：  
 [[Blind-Guess-Senior/Game/by-name/E/Elden Ring]] 

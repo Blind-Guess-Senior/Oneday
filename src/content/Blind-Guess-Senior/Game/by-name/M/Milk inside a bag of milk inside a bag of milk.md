@@ -13,8 +13,6 @@ tags:
   - 视觉小说
   - Metagame
 completed: true
-aka:
-  - 牛奶袋内袋装牛奶
 updated: 2026-07-01
 ---
 续：  

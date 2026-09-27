@@ -15,8 +15,6 @@ category:
   - 游戏
 tags:
 completed: false
-aka:
-  - 方舟：生存进化
 ---
 
 

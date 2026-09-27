@@ -14,8 +14,6 @@ tags:
   - JRPG
   - 回合制
 completed: true
-aka:
-  - 水晶传说
 updated: 2026-07-01
 ---
 	首评于 2025.8.6

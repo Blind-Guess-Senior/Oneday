@@ -13,8 +13,6 @@ tags:
   - 指向点击
   - 解谜
 completed: false
-aka:
-  - 机械迷城
 updated: 2026-07-01
 ---
 	首评于 2025.8.6

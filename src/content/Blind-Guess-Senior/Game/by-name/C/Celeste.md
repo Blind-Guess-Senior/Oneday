@@ -13,8 +13,6 @@ category:
 tags:
   - 平台跳跃
 completed: false
-aka:
-  - 蔚蓝
 ---
 
 

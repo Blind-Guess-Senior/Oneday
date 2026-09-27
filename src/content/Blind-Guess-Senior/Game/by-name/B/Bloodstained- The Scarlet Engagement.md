@@ -11,8 +11,6 @@ category:
   - 游戏
 tags:
 completed: false
-aka:
-  - 赤痕：绯红誓约
 ---
 前：  
 [[Blind-Guess-Senior/Game/by-name/B/Bloodstained- Ritual of the Night]] 

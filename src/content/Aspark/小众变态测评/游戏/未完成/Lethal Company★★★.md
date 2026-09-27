@@ -1,6 +1,4 @@
 ---
-aka:
-  - 致命公司
 score: ★★★
 category:
   - 游戏

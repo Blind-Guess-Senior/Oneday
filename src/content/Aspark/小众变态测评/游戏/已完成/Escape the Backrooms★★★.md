@@ -1,6 +1,4 @@
 ---
-aka:
-  - 逃离后室
 score: ★★★
 category:
   - 游戏

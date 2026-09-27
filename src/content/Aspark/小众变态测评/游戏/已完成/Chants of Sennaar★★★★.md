@@ -1,6 +1,4 @@
 ---
-aka:
-  - 巴别塔圣歌
 score: ★★★★★
 category:
   - 游戏
