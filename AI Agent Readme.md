@@ -386,7 +386,6 @@ npm run preview    # 预览 dist/
 
 | 环境变量 | 作用 |
 |---|---|
-| `ONEDAY_DATA_DUMP=<路径>` | 把全部评测的 data 导出成 JSON（做行为对齐比对用） |
 | `ONEDAY_ALLOW_SLUG_COLLISION=1` | slug 撞车时不报错，后者加 `-2` 后缀 |
 | `ONEDAY_REPORT=full` | 构建报告打印逐条明细，而不只是汇总行 |
 

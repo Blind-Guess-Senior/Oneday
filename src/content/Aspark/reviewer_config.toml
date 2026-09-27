@@ -2,7 +2,6 @@
 #
 # 这个文件的存在 = 这个目录是一个作者目录。
 # 只有被 include 命中的文件才算「评测候选」，没被命中的一律不存在。
-# 候选还要过收录规则：有 completed = true 才是完整评测，否则要在 [score_only] 里命中。
 
 [[categories]]
 name = "游戏"
@@ -12,3 +11,22 @@ include = [
   "小众变态测评/游戏/未完成/**/*.md",
 ]
 standard = ["Standard/游戏/**/*.md"]
+
+# 这里没有 [score_only]：没有这张表 = 全部候选都收录，不完整的记成「仅评分」。
+# Aspark 正好就用这个默认：已完成/ 里的文件带 completed: true，渲染完整正文；
+# 未完成/ 里的没有，只显示元信息。所以不需要写收录条件（也没有 status 可写）。
+#
+# 这里也没有 [metadata_maps]：Aspark 的 frontmatter 只有
+# aka / score / category / tags / completed，没有要额外展示的键。
+
+[score]
+# 星级评分。order 决定筛选区里分数 chip 的顺序，以及「按评分排序」的次序。
+order = ["★", "★★", "★★★", "★★★★", "★★★★★"]
+
+# 评分档位 → score-tier-N，配色见 src/styles/global.css（BGS 用自己的
+# reviewer_style.css 覆盖，Aspark 用默认的那三档）。
+tiers = [
+  { values = ["★★★★★", "★★★★"] },
+  { values = ["★★★"] },
+  { values = ["★★"] },
+]

@@ -7,7 +7,7 @@
  * 保持「改 toml 就能加作者/分类/tag，不用碰代码」这个性质。
  */
 
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import type { Loader } from "astro/loaders";
 import { note, renderReports } from "./report";
@@ -77,13 +77,6 @@ export function reviewsLoader(): Loader {
 
       printReports(logger);
 
-      if (process.env["ONEDAY_DATA_DUMP"]) {
-        await writeFile(
-          process.env["ONEDAY_DATA_DUMP"],
-          JSON.stringify(reviews.map((review) => review.data)),
-          "utf8",
-        );
-      }
     },
   };
 }

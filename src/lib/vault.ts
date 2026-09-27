@@ -388,11 +388,6 @@ export function getLinkIndex(): Promise<LinkIndex> {
   return linkIndexPromise;
 }
 
-export async function resolveWikiTarget(target: string): Promise<ReviewRecord | null> {
-  await getLinkIndex();
-  return resolveWikiTargetSync(target);
-}
-
 /**
  * 同步版本。
  *
@@ -444,10 +439,6 @@ export function findAttachmentSync(target: string): AttachmentLookup {
   return { rel: files.includes(normalized) ? normalized : null };
 }
 
-export async function findAttachment(target: string): Promise<AttachmentLookup> {
-  await ensureIndexes();
-  return findAttachmentSync(target);
-}
 
 // ---------------------------------------------------------------------------
 // 全量链接审计
