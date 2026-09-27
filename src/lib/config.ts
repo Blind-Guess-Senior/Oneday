@@ -27,7 +27,8 @@ export const PROJECT_ROOT = findProjectRoot();
 /** 内容根（Oneday/src/content/），同时也是 Obsidian vault 根。 */
 export const CONTENT_ROOT = path.join(PROJECT_ROOT, "src", "content");
 
-const SITE_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "site.toml");
+const TAGS_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "tags.toml");
+const TITLE_NAMES_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "title_names.toml");
 
 export interface CategoryConfig {
   /** 显示用的分类名，例如「游戏」。 */
@@ -182,7 +183,7 @@ export function loadTagConfig(): TagConfig {
   const aliases = new Map<string, string>();
   const rows: Array<Record<string, string[]>> = [];
 
-  const raw = asRecord(parseToml(readFileSync(SITE_CONFIG_PATH, "utf8"))) ?? {};
+  const raw = asRecord(parseToml(readFileSync(TAGS_CONFIG_PATH, "utf8"))) ?? {};
   const rawRows = asRecord(raw["tag_rows"]) ?? {};
 
   const rowKeys = Object.keys(rawRows).sort((a, b) => Number(a) - Number(b));
@@ -206,6 +207,28 @@ export function loadTagConfig(): TagConfig {
 
   tagConfigCache = { aliases, rows };
   return tagConfigCache;
+}
+
+let titleNamesCache: Map<string, string> | null = null;
+
+/**
+ * title_names.toml 的 `[title_names]`：显示标题 → 文件里可能出现的名字（多对一）。
+ * 返回反过来的索引：文件里的名字 → 显示标题。
+ *
+ * 文件名不能带 `/ \ : * ? " < > |`，只能用替代字符写，所以需要这一层映射。
+ */
+export function loadTitleNames(): Map<string, string> {
+  if (titleNamesCache) return titleNamesCache;
+  const raw = asRecord(parseToml(readFileSync(TITLE_NAMES_CONFIG_PATH, "utf8"))) ?? {};
+  const table = asRecord(raw["title_names"]) ?? {};
+  const names = new Map<string, string>();
+  for (const [title, aliases] of Object.entries(table)) {
+    const display = asString(title);
+    if (!display) continue;
+    for (const name of asStringArray(aliases)) names.set(name, display);
+  }
+  titleNamesCache = names;
+  return titleNamesCache;
 }
 
 export interface GitDates {

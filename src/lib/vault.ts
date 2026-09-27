@@ -14,6 +14,7 @@ import {
   CONTENT_ROOT,
   gitDatesFor,
   loadTagConfig,
+  loadTitleNames,
   readReviewerConfigs,
   type CategoryConfig,
   type ReviewerConfig,
@@ -173,6 +174,7 @@ function matchesScoreOnly(meta: Record<string, unknown>, rules: Array<[string, s
 async function buildReviews(): Promise<ReviewRecord[]> {
   const [configs, files] = await Promise.all([readReviewerConfigs(), listFiles()]);
   const tagConfig = loadTagConfig();
+  const titleNames = loadTitleNames();
   const records: ReviewRecord[] = [];
 
   for (const config of configs) {
@@ -192,8 +194,9 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       const completed = meta["completed"] === true;
       if (!completed && !matchesScoreOnly(meta, config.scoreOnly)) continue;
 
-      const title = titleFor(authorRel, config.reviewer, meta);
-      const slug = slugFor(title, authorRel, contentRel);
+      const name = titleFor(authorRel, config.reviewer, meta);
+      const title = titleNames.get(name) ?? name;
+      const slug = slugFor(name, authorRel, contentRel);
       const primaryCategory = matched[0];
       const id = `${config.reviewer}/${primaryCategory?.idName ?? ""}/${slug}`;
 
@@ -298,6 +301,7 @@ export function getReviews(): Promise<ReviewRecord[]> {
 
 async function buildStandards(): Promise<StandardRecord[]> {
   const [configs, files] = await Promise.all([readReviewerConfigs(), listFiles()]);
+  const titleNames = loadTitleNames();
   const records: StandardRecord[] = [];
 
   for (const config of configs) {
@@ -320,7 +324,7 @@ async function buildStandards(): Promise<StandardRecord[]> {
         id: `${config.reviewer}/${category.idName}/${slug}`,
         reviewer: config.reviewer,
         slug,
-        title: stem,
+        title: titleNames.get(stem) ?? stem,
         category: category.name,
         filePath: path.join(CONTENT_ROOT, contentRel),
         relPath,

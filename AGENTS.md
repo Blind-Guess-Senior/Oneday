@@ -44,7 +44,7 @@
 ├─ src/
 │  ├─ content/                ← 内容根，同时也是 Obsidian vault 根
 │  │  └─ <作者>/              ← 作者目录
-│  ├─ config/site.toml        全站配置（tag 分排与别名）
+│  ├─ config/                 全站配置（site.toml、tags.toml、title_names.toml）
 │  ├─ content.config.ts       两个集合：reviews / standards
 │  ├─ styles/global.css       全站样式
 │  ├─ lib/
@@ -211,7 +211,8 @@ month: 3
 正文……
 ```
 
-- 标题来自文件名（除非 frontmatter 写了 `title`）。`Aspark` 作者目录下末尾的 `★` 会被剥掉。
+- 标题来自文件名，再经 `title_names.toml` 的 `[title_names]` 映射（除非 frontmatter 写了 `title`）。
+  `Aspark` 作者目录下末尾的 `★` 会被剥掉。
 - 正文开头的第一个 fenced code block 按约定是 `sub_scores`，抽出来渲染在元信息下方。
 - `aka` 是别名列表（卡片显示第一个，文章页显示全部）。
 - `updated: 2026-03-08` 可选：写了就用它当「更新于」，不写取该文件 `git log --follow`
@@ -250,11 +251,12 @@ month: 3
 
 ---
 
-## 6. `src/config/site.toml` 规格
+## 6. `src/config/` 规格
 
-只放全站配置。目前只有 tag 的分排与顺序：
+`site.toml` 是空的；配置按用途各占一个文件。
 
 ```toml
+# tags.toml
 [tag_rows.1]
 "游戏" = ["ARPG", "类银河城+类银恶", "平台跳跃"]
 "动漫" = ["漫改", "小说改+轻改"]
@@ -264,6 +266,14 @@ month: 3
 "游戏" = ["模拟经营", "像素"]
 ```
 
+```toml
+# title_names.toml：显示标题 = [文件里可能出现的名字, …]
+[title_names]
+"NieR:Automata™" = ["NieR-Automata™", "NieR Automata"]
+```
+
+- `[title_names]` 是多对一的：左边是页面上显示的标题，右边是文件名里可能出现的写法。
+  标题、卡片、RSS、搜索都取映射后的标题；URL 的 slug 仍由文件里的名字生成。
 - `[tag_rows.N]` 是第 N 排，只影响首页 tag 筛选区的排布。
 - 分类名必须和 `reviewer_config.toml` 里的分类名一致：分排按分类生效，
   同一个 tag 在不同分类下可以落在不同排。
@@ -287,7 +297,7 @@ astro build
 - 正文渲染走 Astro 7 的 markdown 管线（**satteri**，不是 remark/rehype），
   插件注册在 `astro.config.ts` 的 `markdown.processor`。
 - 构建期的提示（`note()`）只用于「配置和数据对不上」：分类没写 `id_name`、
-  数据里出现了 `site.toml` 没声明的 tag。它不检查内容怎么写。
+  数据里出现了 `tags.toml` 没声明的 tag。它不检查内容怎么写。
 
 构建日志里你会看到：
 
