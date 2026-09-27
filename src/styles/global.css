@@ -448,3 +448,10 @@ button.card-tag {
   text-align: left;
 }
 button.filter-option { background: none; border: none; width: 100%; }
+
+/* 筛选分区里的说明文字（例如分数筛选未选评测者时） */
+.filter-hint {
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.5;
+}

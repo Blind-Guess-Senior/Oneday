@@ -240,23 +240,26 @@ onMounted(readUrlState);
         </div>
       </div>
 
-      <div v-if="reviewers.length && !showStandardsOnly" class="filter-section">
+      <div v-if="!showStandardsOnly" class="filter-section">
         <div class="filter-title">分数筛选</div>
-        <div v-for="reviewer in reviewers" :key="reviewer">
-          <div class="score-reviewer-label">{{ reviewer }}</div>
-          <div class="score-chips">
-            <button
-              v-for="score in scoreOptions(reviewer)"
-              :key="score"
-              type="button"
-              class="score-chip"
-              :class="{ selected: isScoreSelected(reviewer, score) }"
-              @click="toggleScore(reviewer, score)"
-            >
-              {{ score }}
-            </button>
+        <template v-if="reviewers.length">
+          <div v-for="reviewer in reviewers" :key="reviewer">
+            <div class="score-reviewer-label">{{ reviewer }}</div>
+            <div class="score-chips">
+              <button
+                v-for="score in scoreOptions(reviewer)"
+                :key="score"
+                type="button"
+                class="score-chip"
+                :class="{ selected: isScoreSelected(reviewer, score) }"
+                @click="toggleScore(reviewer, score)"
+              >
+                {{ score }}
+              </button>
+            </div>
           </div>
-        </div>
+        </template>
+        <p v-else class="filter-hint">分数按评测者划分，选中评测者后显示</p>
       </div>
 
       <div v-if="!showStandardsOnly && category && visibleTags.length" class="filter-section">
