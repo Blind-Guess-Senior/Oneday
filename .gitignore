@@ -14,9 +14,7 @@ __pycache__/
 
 # AI Agents
 .claude/
-CLAUDE.md
 .agents/
-AGENTS.md
 
 # Astro
 node_modules/
