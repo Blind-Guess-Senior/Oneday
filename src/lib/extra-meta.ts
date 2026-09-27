@@ -12,6 +12,13 @@ export interface MetaItem {
   value: string;
 }
 
+/** 取一个 frontmatter 值并拉平成显示文本；数组按 ` / ` 拼。取不到就是空串。 */
+function flatten(value: unknown): string {
+  if (Array.isArray(value)) return value.map(String).join(" / ");
+  if (value === undefined || value === null) return "";
+  return String(value);
+}
+
 export async function extraMeta(
   reviewer: string,
   category: string[],
@@ -29,21 +36,7 @@ export async function extraMeta(
 
   const items: MetaItem[] = [];
   for (const entry of entries) {
-    if (entry.keys.length === 1) {
-      const key = entry.keys[0] ?? "";
-      const value = data[key];
-      if (value === undefined || value === null || value === "") continue;
-      if (Array.isArray(value) && value.length === 0) continue;
-      items.push({
-        label: entry.label,
-        value: Array.isArray(value) ? value.map(String).join(" / ") : String(value),
-      });
-      continue;
-    }
-    const parts = entry.keys
-      .map((key) => data[key])
-      .filter((value) => value !== undefined && value !== null && value !== "")
-      .map(String);
+    const parts = entry.keys.map((key) => flatten(data[key])).filter((text) => text !== "");
     if (parts.length === 0) continue;
     items.push({ label: entry.label, value: parts.join(entry.separator) });
   }
