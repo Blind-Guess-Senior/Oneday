@@ -356,6 +356,13 @@ npm run preview    # 预览 dist/
 - Node ≥ 24（用了内置的 `path.matchesGlob`）。
 - Astro 遥测会往 `~/.config/astro` 写文件；受限环境里加 `ASTRO_TELEMETRY_DISABLED=1`。
 - 受限环境里 npm 缓存要指到可写目录：`npm install --cache <可写目录>`。
+- **`NODE_ENV` 不能是 `production`**，否则 Astro 的 dev server 会以生产模式启动：
+  `/_image` 图片端点直接 500（日志：`The dev image endpoint can only be used in dev mode.`），
+  热更新也失效。本仓库的开发环境预置了 `NODE_ENV=production`，所以本地起服务要用
+  `NODE_ENV=development npx astro dev`。
+- 在 AI agent 里跑 `astro dev` 时它会**自动把服务后台化**并写 `.astro/dev.json` 锁文件，
+  杀不掉也停不干净。想让它老实跑在前台，加 `--ignore-lock`（代价是
+  `astro dev stop/status/logs` 不管它）。
 
 ---
 
