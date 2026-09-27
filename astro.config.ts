@@ -4,6 +4,7 @@ import vue from "@astrojs/vue";
 import { defineConfig } from "astro/config";
 import { BASE, SITE } from "./src/lib/site";
 import { highlightPlugin } from "./src/plugins/highlight";
+import { lineBreakPlugin } from "./src/plugins/line-breaks";
 import { obsidianPlugin } from "./src/plugins/obsidian";
 
 // https://astro.build/config
@@ -16,6 +17,7 @@ export default defineConfig({
   markdown: {
     processor: satteri({
       mdastPlugins: [obsidianPlugin, highlightPlugin],
+      hastPlugins: [lineBreakPlugin],
     }),
   },
 });

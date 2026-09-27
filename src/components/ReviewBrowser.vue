@@ -50,14 +50,6 @@ const reviewersInCategory = computed(() => {
   );
 });
 
-/** 当前视图下被隐藏的「仅评分」评测数量，用来告诉用户默认没看到全部 */
-const hiddenScoreOnly = computed(() => {
-  if (showScoreOnly.value || showStandardsOnly.value) return 0;
-  return props.payload.reviews.filter(
-    (card) => card.scoreOnly && (!category.value || hasCategory(card, category.value)),
-  ).length;
-});
-
 const categoryTagRows = computed(() => (category.value ? props.payload.tagRows[category.value] ?? [] : []));
 const allCategoryTags = computed(() => categoryTagRows.value.flat());
 const visibleTags = computed(() =>
@@ -259,7 +251,6 @@ onMounted(readUrlState);
             </div>
           </div>
         </template>
-        <p v-else class="filter-hint">分数按评测者划分，选中评测者后显示</p>
       </div>
 
       <div v-if="!showStandardsOnly && category && visibleTags.length" class="filter-section">
@@ -287,11 +278,11 @@ onMounted(readUrlState);
         <div class="filter-title">显示选项</div>
         <label class="filter-option">
           <input v-model="showScoreOnly" type="checkbox" @change="page = 1" />
-          显示仅评分评测<span v-if="hiddenScoreOnly">（{{ hiddenScoreOnly }}）</span>
+          显示仅评分评测
         </label>
         <label class="filter-option">
           <input v-model="showStandardsOnly" type="checkbox" @change="page = 1" />
-          只看评分标准
+          显示评分标准
         </label>
       </div>
 

@@ -72,24 +72,15 @@ const Content = scoreOnly ? null : (await render(entry)).Content;
                 <span class="article-meta-item">
                   <span>评分</span>&nbsp;
                   {standards.length > 0 ? (
-                    <details class="score-standards">
-                      <summary class="score-link-btn">
-                        <strong
-                          class:list={["score-display", tier ? `score-tier-${tier}` : ""]}
-                          data-reviewer={reviewer}
-                        >
-                          {scoreRaw}
-                        </strong>
-                        <span class="score-link-hint">查看标准</span>
-                      </summary>
-                      <div class="standards-list">
-                        {standards.map((standard) => (
-                          <a class="standard-link" href={entryUrl(`standard/${standard.id}`)}>
-                            <span>{standard.title}</span>
-                          </a>
-                        ))}
-                      </div>
-                    </details>
+                    <button type="button" class="score-link-btn" id="standards-toggle">
+                      <strong
+                        class:list={["score-display", tier ? `score-tier-${tier}` : ""]}
+                        data-reviewer={reviewer}
+                      >
+                        {scoreRaw}
+                      </strong>
+                      <span class="score-link-hint">查看标准</span>
+                    </button>
                   ) : (
                     <strong
                       class:list={["score-display", tier ? `score-tier-${tier}` : ""]}
@@ -133,6 +124,21 @@ const Content = scoreOnly ? null : (await render(entry)).Content;
           )
         }
 
+        {
+          standards.length > 0 && (
+            <div class="standards-panel" id="standards-panel" hidden>
+              <div class="standards-panel-title">评分标准</div>
+              <div class="standards-list">
+                {standards.map((standard) => (
+                  <a class="standard-link" href={entryUrl(`standard/${standard.id}`)}>
+                    <span>{standard.title}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
         <div class="md-body">
           {
             subScores.length > 0 && (
@@ -149,3 +155,11 @@ const Content = scoreOnly ? null : (await render(entry)).Content;
     </div>
   </div>
 </Layout>
+
+<script>
+  const toggle = document.getElementById("standards-toggle");
+  const panel = document.getElementById("standards-panel");
+  toggle?.addEventListener("click", () => {
+    if (panel) panel.hidden = !panel.hidden;
+  });
+</script>

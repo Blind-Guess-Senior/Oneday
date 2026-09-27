@@ -39,14 +39,14 @@ export function obsidianPlugin(factory: PluginFactoryContext): MdastPluginDefini
     const [destination, alias] = splitOnce(inner, "|");
     const [rawTarget, heading] = splitOnce(destination, "#");
     const target = rawTarget.trim();
+    const label = alias ?? destination.split("/").pop()?.split("#")[0]?.trim() ?? target;
 
-    // `[[#小节]]` 这类纯锚点：旧站直接显示文本，这里保持一致
-    if (!target) return null;
+    // 纯锚点 `[[#小节]]` 和指不到东西的链接：只留显示文本，不留下 `[[ ]]` 记号
+    if (!target) return [{ type: "text", value: label }];
 
     const found = resolveWikiTargetSync(target);
-    if (!found) return null;
+    if (!found) return [{ type: "text", value: label || target }];
 
-    const label = alias ?? destination.split("/").pop()?.split("#")[0]?.trim() ?? target;
     const anchor = heading ? `#${slugify(heading)}` : "";
     const link: MdastNode = {
       type: "link",

@@ -389,8 +389,6 @@ header {
 .md-body th,.md-body td { border: 1px solid var(--border); padding: .4rem .7rem; text-align: left; }
 .md-body th { background: var(--bg); font-weight: 600; }
 .md-body img { max-width: 100%; height: auto; border-radius: 6px; }
-.md-body .wiki-link { color: var(--accent); text-decoration: underline; cursor: pointer; }
-.md-body .wiki-link-missing { color: #c0605a; text-decoration: underline dotted; cursor: default; }
 .md-body mark.hl {
   background: none;
   border-bottom: 2px solid #f59e0b;
@@ -432,23 +430,9 @@ header {
 }
 .tag-toggle:hover { color: var(--accent); }
 
-button.filter-option,
 button.tag-chip,
-button.score-chip,
-button.card-tag {
+button.score-chip {
   font: inherit;
   color: inherit;
   text-align: left;
 }
-button.filter-option { background: none; border: none; width: 100%; }
-
-.filter-hint { font-size: .78rem; color: var(--muted); line-height: 1.5; }
-
-.score-standards { display: inline-block; }
-.score-standards > summary {
-  display: inline-flex; align-items: center; gap: .35rem;
-  cursor: pointer; list-style: none;
-}
-.score-standards > summary::-webkit-details-marker { display: none; }
-.score-standards .standards-list { margin-top: .7rem; }
-.article-meta-item:has(.score-standards[open]) { flex-basis: 100%; }
