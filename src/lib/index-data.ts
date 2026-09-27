@@ -21,8 +21,8 @@ export interface StandardCard {
 export interface IndexPayload {
   reviews: Card[];
   standards: StandardCard[];
-  /** 有评测的分类，顺序按作者配置里的书写顺序 */
-  categories: string[];
+  /** 有评测的分类，顺序按作者配置里的书写顺序。id 是 URL/徽章用的 ASCII 名 */
+  categories: Array<{ name: string; id: string }>;
   reviewers: string[];
   /** 评测者 → 有序的分数选项（来自该作者的 [score].order，未列出的按字典序补在后面） */
   scoreOptions: Record<string, string[]>;
@@ -85,27 +85,34 @@ export function buildIndexPayload(): Promise<IndexPayload> {
       readReviewerConfigs(),
     ]);
 
-    const cards: Card[] = reviews.map((review) => ({
-      url: entryUrl(review.id),
-      title: review.title,
-      aka: asList(review.data["aka"]),
-      reviewer: review.reviewer,
-      category: asList(review.data["category"]),
-      tags: asList(review.data["tags"]),
-      score: String(review.data["score_raw"] ?? ""),
-      rank: typeof review.data["score_rank"] === "number" ? review.data["score_rank"] : null,
-      tier: typeof review.data["score_tier"] === "number" ? review.data["score_tier"] : null,
-      scoreOnly: review.data["score_only"] === true,
-      modified: String(review.data["modified"] ?? ""),
-    }));
-
-    // 分类顺序 = 作者配置里的书写顺序，去重
-    const categories: string[] = [];
+    // 分类顺序 = 作者配置里的书写顺序，去重；同时记下 name → id_name
+    const categories: Array<{ name: string; id: string }> = [];
+    const categoryIds = new Map<string, string>();
     for (const config of configs) {
       for (const category of config.categories) {
-        if (!categories.includes(category.name)) categories.push(category.name);
+        if (categoryIds.has(category.name)) continue;
+        categoryIds.set(category.name, category.idName);
+        categories.push({ name: category.name, id: category.idName });
       }
     }
+
+    const cards: Card[] = reviews.map((review) => {
+      const names = asList(review.data["category"]);
+      return {
+        url: entryUrl(review.id),
+        title: review.title,
+        aka: asList(review.data["aka"]),
+        reviewer: review.reviewer,
+        category: names,
+        categoryIds: names.map((name) => categoryIds.get(name) ?? name),
+        tags: asList(review.data["tags"]),
+        score: String(review.data["score_raw"] ?? ""),
+        rank: typeof review.data["score_rank"] === "number" ? review.data["score_rank"] : null,
+        tier: typeof review.data["score_tier"] === "number" ? review.data["score_tier"] : null,
+        scoreOnly: review.data["score_only"] === true,
+        modified: String(review.data["modified"] ?? ""),
+      };
+    });
 
     const reviewers = [...new Set(cards.map((card) => card.reviewer))].sort((a, b) =>
       a.localeCompare(b, "zh"),
@@ -134,7 +141,7 @@ export function buildIndexPayload(): Promise<IndexPayload> {
       categories,
       reviewers,
       scoreOptions,
-      tagRows: buildTagRows(cards, categories),
+      tagRows: buildTagRows(cards, categories.map((category) => category.name)),
     };
   })();
 

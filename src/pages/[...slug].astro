@@ -87,7 +87,7 @@ const Content = scoreOnly ? null : (await render(entry)).Content;
                 <span class="article-meta-sep">|</span>
                 <span class="article-meta-item article-meta-tags">
                   {tags.map((tag) => (
-                    <a class="card-tag" href={`${BASE}/?tag=${encodeURIComponent(tag)}`}>
+                    <a class="card-tag" href={`${BASE}/?t=${encodeURIComponent(tag)}`}>
                       {tag}
                     </a>
                   ))}

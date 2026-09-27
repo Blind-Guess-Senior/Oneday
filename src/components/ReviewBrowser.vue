@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { categoryBadgeClass, filterCards, pageWindow, sortCards, type Filters, type SortKey } from "../lib/filter";
+import {
+  buildFilterSearch,
+  categoryBadgeClass,
+  filterCards,
+  pageWindow,
+  parseFilterSearch,
+  sortCards,
+  type Filters,
+  type SortKey,
+} from "../lib/filter";
 import type { IndexPayload } from "../lib/index-data";
 
 const props = defineProps<{ payload: IndexPayload }>();
@@ -29,12 +38,24 @@ const filters = computed<Filters>(() => ({
   showScoreOnly: showScoreOnly.value,
 }));
 
+function hasCategory(card: { category: string[] }, name: string): boolean {
+  return card.category.includes(name);
+}
+
 /** 选了分类之后，只列该分类下有评测的评测者 */
 const reviewersInCategory = computed(() => {
   if (!category.value) return props.payload.reviewers;
   return props.payload.reviewers.filter((reviewer) =>
-    props.payload.reviews.some((card) => card.reviewer === reviewer && card.category.includes(category.value)),
+    props.payload.reviews.some((card) => card.reviewer === reviewer && hasCategory(card, category.value)),
   );
+});
+
+/** 当前视图下被隐藏的「仅评分」评测数量，用来告诉用户默认没看到全部 */
+const hiddenScoreOnly = computed(() => {
+  if (showScoreOnly.value || showStandardsOnly.value) return 0;
+  return props.payload.reviews.filter(
+    (card) => card.scoreOnly && (!category.value || hasCategory(card, category.value)),
+  ).length;
 });
 
 const categoryTagRows = computed(() => (category.value ? props.payload.tagRows[category.value] ?? [] : []));
@@ -59,9 +80,7 @@ const list = computed(() => {
         standard.title.toLowerCase().includes(needle) || standard.reviewer.toLowerCase().includes(needle)
       );
     });
-    return sortBy.value === "title"
-      ? [...matched].sort((a, b) => a.title.localeCompare(b.title, "zh"))
-      : matched;
+    return [...matched].sort((a, b) => a.title.localeCompare(b.title, "zh"));
   }
   return sortCards(filterCards(props.payload.reviews, filters.value), sortBy.value);
 });
@@ -72,6 +91,22 @@ const pageRange = computed(() => pageWindow(totalPages.value, page.value));
 
 watch(list, () => {
   if (page.value > totalPages.value) page.value = 1;
+});
+
+// 取消勾选评测者时顺手丢掉它的分数选择，免得再勾回来时状态莫名其妙地"复活"
+watch(reviewers, (selected) => {
+  const kept: Record<string, string[]> = {};
+  for (const [reviewer, chosen] of Object.entries(scores.value)) {
+    if (selected.includes(reviewer)) kept[reviewer] = chosen;
+  }
+  scores.value = kept;
+});
+
+// 评分标准没有分数可排，切过去时把评分排序退回默认
+watch(showStandardsOnly, (standardsOnly) => {
+  if (standardsOnly && sortBy.value !== "title" && sortBy.value !== "modified") {
+    sortBy.value = "modified";
+  }
 });
 
 function scoreOptions(reviewer: string): string[] {
@@ -91,12 +126,23 @@ function toggleScore(reviewer: string, score: string): void {
   page.value = 1;
 }
 
+/**
+ * 切换分类。
+ *
+ * 旧版这里会把评测者、分数、tag 全部清空，切一下就白选了。
+ * 现在只做必要的清理：tag 池是按分类算的所以清掉；
+ * 新分类下没有任何内容的评测者才取消勾选，其余的连同分数选择一起保留。
+ */
 function selectCategory(name: string): void {
-  category.value = category.value === name ? "" : name;
-  reviewers.value = [];
+  const next = category.value === name ? "" : name;
+  category.value = next;
   tags.value = [];
-  scores.value = {};
   showAllTags.value = false;
+  if (next) {
+    reviewers.value = reviewers.value.filter((reviewer) =>
+      props.payload.reviews.some((card) => card.reviewer === reviewer && hasCategory(card, next)),
+    );
+  }
   page.value = 1;
 }
 
@@ -118,11 +164,49 @@ function resetFilters(): void {
   page.value = 1;
 }
 
-/** 文章页的标签链接会带 `?tag=` 过来 */
-onMounted(() => {
-  const fromUrl = new URLSearchParams(window.location.search).get("tag");
-  if (fromUrl) tags.value = [fromUrl];
+function categoryId(name: string): string {
+  return props.payload.categories.find((entry) => entry.name === name)?.id ?? "";
+}
+
+/**
+ * 把筛选状态同步到地址栏（用 replaceState，所以不会污染后退历史）。
+ *
+ * 好处：刷新不丢筛选、筛选结果可以直接分享、从评测页按后退能回到原来的筛选状态
+ * （静态站的后退是一次真正的页面加载，读取地址栏即可）。
+ */
+function readUrlState(): void {
+  const state = parseFilterSearch(window.location.search);
+  query.value = state.query;
+  category.value = props.payload.categories.find((entry) => entry.id === state.categoryId)?.name ?? "";
+  reviewers.value = state.reviewers;
+  scores.value = state.scores;
+  tags.value = state.tags;
+  showScoreOnly.value = state.showScoreOnly;
+  showStandardsOnly.value = state.showStandardsOnly;
+  sortBy.value = state.sort;
+  page.value = state.page;
+}
+
+function writeUrlState(): void {
+  const search = buildFilterSearch({
+    query: query.value,
+    categoryId: category.value ? categoryId(category.value) : "",
+    reviewers: reviewers.value,
+    scores: scores.value,
+    tags: tags.value,
+    showScoreOnly: showScoreOnly.value,
+    showStandardsOnly: showStandardsOnly.value,
+    sort: sortBy.value,
+    page: page.value,
+  });
+  window.history.replaceState(null, "", `${window.location.pathname}${search ? `?${search}` : ""}`);
+}
+
+watch([query, category, reviewers, scores, tags, showScoreOnly, showStandardsOnly, sortBy, page], writeUrlState, {
+  deep: true,
 });
+
+onMounted(readUrlState);
 </script>
 
 <template>
@@ -133,15 +217,16 @@ onMounted(() => {
       <div class="filter-section">
         <div class="filter-title">分类</div>
         <div class="filter-options">
-          <div
-            v-for="name in payload.categories"
-            :key="name"
+          <button
+            v-for="entry in payload.categories"
+            :key="entry.id"
+            type="button"
             class="filter-option"
-            :class="{ selected: category === name }"
-            @click="selectCategory(name)"
+            :class="{ selected: category === entry.name }"
+            @click="selectCategory(entry.name)"
           >
-            {{ name }}
-          </div>
+            {{ entry.name }}
+          </button>
         </div>
       </div>
 
@@ -160,15 +245,16 @@ onMounted(() => {
         <div v-for="reviewer in reviewers" :key="reviewer">
           <div class="score-reviewer-label">{{ reviewer }}</div>
           <div class="score-chips">
-            <span
+            <button
               v-for="score in scoreOptions(reviewer)"
               :key="score"
+              type="button"
               class="score-chip"
               :class="{ selected: isScoreSelected(reviewer, score) }"
               @click="toggleScore(reviewer, score)"
             >
               {{ score }}
-            </span>
+            </button>
           </div>
         </div>
       </div>
@@ -177,22 +263,19 @@ onMounted(() => {
         <div class="filter-title">标签</div>
         <div v-for="(row, index) in visibleTagRows" :key="index" class="tag-group">
           <div class="tag-cloud">
-            <span
+            <button
               v-for="tag in row"
               :key="tag"
+              type="button"
               class="tag-chip"
               :class="{ selected: tags.includes(tag) }"
               @click="toggleTag(tag)"
             >
               {{ tag }}
-            </span>
+            </button>
           </div>
         </div>
-        <button
-          v-if="allCategoryTags.length > TAG_LIMIT"
-          class="tag-toggle"
-          @click="showAllTags = !showAllTags"
-        >
+        <button v-if="allCategoryTags.length > TAG_LIMIT" type="button" class="tag-toggle" @click="showAllTags = !showAllTags">
           {{ showAllTags ? "收起" : "显示更多标签" }}
         </button>
       </div>
@@ -201,20 +284,20 @@ onMounted(() => {
         <div class="filter-title">显示选项</div>
         <label class="filter-option">
           <input v-model="showScoreOnly" type="checkbox" @change="page = 1" />
-          显示仅评分评测
+          显示仅评分评测<span v-if="hiddenScoreOnly">（{{ hiddenScoreOnly }}）</span>
         </label>
         <label class="filter-option">
           <input v-model="showStandardsOnly" type="checkbox" @change="page = 1" />
-          显示评分标准
+          只看评分标准
         </label>
       </div>
 
-      <button class="filter-reset" @click="resetFilters">重置筛选</button>
+      <button type="button" class="filter-reset" @click="resetFilters">重置筛选</button>
     </aside>
 
     <div class="main">
       <div class="toolbar">
-        <button class="btn-filter-toggle" @click="sidebarOpen = !sidebarOpen">
+        <button type="button" class="btn-filter-toggle" @click="sidebarOpen = !sidebarOpen">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <line x1="4" y1="6" x2="20" y2="6" />
             <line x1="4" y1="12" x2="16" y2="12" />
@@ -234,8 +317,8 @@ onMounted(() => {
         <span class="toolbar-count">共 {{ list.length }} 条结果</span>
         <select v-model="sortBy" class="sort-select" @change="page = 1">
           <option value="modified">最近更新</option>
-          <option value="score_desc">评分从高到低</option>
-          <option value="score_asc">评分从低到高</option>
+          <option v-if="!showStandardsOnly" value="score_desc">评分从高到低</option>
+          <option v-if="!showStandardsOnly" value="score_asc">评分从低到高</option>
           <option value="title">标题</option>
         </select>
       </div>
@@ -258,7 +341,7 @@ onMounted(() => {
         <template v-else>
           <a v-for="card in paged" :key="card.url" class="card" :href="card.url">
             <div class="card-top">
-              <span class="badge" :class="categoryBadgeClass(card.category)">
+              <span class="badge" :class="categoryBadgeClass(card.categoryIds)">
                 {{ card.category[0] ?? "其他" }}
               </span>
             </div>
@@ -289,14 +372,20 @@ onMounted(() => {
       </div>
 
       <div v-if="totalPages > 1" class="pagination">
-        <button class="page-btn" :disabled="page === 1" @click="page--">‹</button>
+        <button type="button" class="page-btn" :disabled="page === 1" @click="page--">‹</button>
         <template v-for="item in pageRange" :key="String(item)">
-          <button v-if="item === '…'" class="page-btn" disabled>…</button>
-          <button v-else class="page-btn" :class="{ active: item === page }" @click="page = Number(item)">
+          <button v-if="item === '…'" type="button" class="page-btn" disabled>…</button>
+          <button
+            v-else
+            type="button"
+            class="page-btn"
+            :class="{ active: item === page }"
+            @click="page = Number(item)"
+          >
             {{ item }}
           </button>
         </template>
-        <button class="page-btn" :disabled="page === totalPages" @click="page++">›</button>
+        <button type="button" class="page-btn" :disabled="page === totalPages" @click="page++">›</button>
       </div>
     </div>
   </div>

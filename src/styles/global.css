@@ -437,3 +437,14 @@ header {
 .standards-panel summary::-webkit-details-marker { display: none; }
 .standards-panel summary::after { content: " ▾"; color: var(--muted); }
 .standards-panel[open] summary::after { content: " ▴"; }
+
+/* ── 可点元素改成真 <button> 之后需要的最小重置 ─────────────────────── */
+button.filter-option,
+button.tag-chip,
+button.score-chip,
+button.card-tag {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+button.filter-option { background: none; border: none; width: 100%; }

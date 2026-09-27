@@ -7,5 +7,5 @@ const payload = await buildIndexPayload();
 ---
 
 <Layout title="Oneday">
-  <ReviewBrowser client:idle payload={payload} />
+  <ReviewBrowser client:load payload={payload} />
 </Layout>

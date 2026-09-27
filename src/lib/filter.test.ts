@@ -7,7 +7,18 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { type Card, type Filters, emptyFilters, filterCards, pageWindow, sortCards } from "./filter.ts";
+import {
+  type Card,
+  type Filters,
+  buildFilterSearch,
+  categoryBadgeClass,
+  defaultUrlState,
+  emptyFilters,
+  filterCards,
+  pageWindow,
+  parseFilterSearch,
+  sortCards,
+} from "./filter.ts";
 
 function card(overrides: Partial<Card>): Card {
   return {
@@ -16,6 +27,7 @@ function card(overrides: Partial<Card>): Card {
     aka: [],
     reviewer: "A",
     category: ["游戏"],
+    categoryIds: ["Game"],
     tags: [],
     score: "",
     rank: null,
@@ -86,4 +98,67 @@ test("分页窗口两端 + 当前页附近，中间省略", () => {
   assert.deepEqual(pageWindow(3, 2), [1, 2, 3]);
   assert.deepEqual(pageWindow(20, 10), [1, "…", 9, 10, 11, "…", 20]);
   assert.deepEqual(pageWindow(20, 1), [1, 2, "…", 20]);
+});
+
+test("没配 order 时评分按数值比，\"10\" 不该排在 \"9\" 前面", () => {
+  const numeric = [
+    card({ title: "九", score: "9" }),
+    card({ title: "十", score: "10" }),
+    card({ title: "二", score: "2" }),
+  ];
+  assert.deepEqual(titles(sortCards(numeric, "score_desc")), ["十", "九", "二"]);
+  assert.deepEqual(titles(sortCards(numeric, "score_asc")), ["二", "九", "十"]);
+});
+
+test("非数字评分退回字符串比较（星号等）", () => {
+  const stars = [
+    card({ title: "三星", score: "★★★" }),
+    card({ title: "五星", score: "★★★★★" }),
+  ];
+  assert.deepEqual(titles(sortCards(stars, "score_desc")), ["五星", "三星"]);
+});
+
+test("徽章类名由分类 id_name 派生，加分类不用改代码", () => {
+  assert.equal(categoryBadgeClass(["Game"]), "badge-game");
+  assert.equal(categoryBadgeClass(["Anime"]), "badge-anime");
+  assert.equal(categoryBadgeClass(["Book"]), "badge-book");
+  assert.equal(categoryBadgeClass(["Visual Novel"]), "badge-visualnovel");
+  assert.equal(categoryBadgeClass([]), "badge-default");
+});
+
+test("地址栏状态往返：默认值不写进 URL", () => {
+  assert.equal(buildFilterSearch(defaultUrlState()), "");
+});
+
+test("地址栏状态往返：多值参数能来回", () => {
+  const search = buildFilterSearch({
+    ...defaultUrlState(),
+    query: "恐怖",
+    categoryId: "Game",
+    reviewers: ["Aspark", "Blind-Guess-Senior"],
+    scores: { Aspark: ["9", "8"] },
+    tags: ["恐怖", "解谜"],
+    showScoreOnly: true,
+    sort: "score_desc",
+    page: 3,
+  });
+  assert.deepEqual(parseFilterSearch(search), {
+    query: "恐怖",
+    categoryId: "Game",
+    reviewers: ["Aspark", "Blind-Guess-Senior"],
+    scores: { Aspark: ["9", "8"] },
+    tags: ["恐怖", "解谜"],
+    showScoreOnly: true,
+    showStandardsOnly: false,
+    sort: "score_desc",
+    page: 3,
+  });
+});
+
+test("地址栏状态：认不出的值回落默认，脏数据不炸", () => {
+  const state = parseFilterSearch("?sort=nonsense&page=-4&s=缺冒号&s=:空评测者&only=0");
+  assert.equal(state.sort, "modified");
+  assert.equal(state.page, 1);
+  assert.deepEqual(state.scores, {});
+  assert.equal(state.showScoreOnly, false);
 });
