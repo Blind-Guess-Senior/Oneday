@@ -15,7 +15,7 @@ completed: false
 aka:
   - 空洞骑士
 ---
-续：
+续：  
 [[Blind-Guess-Senior/Game/by-name/H/Hollow Knight- Silksong]] 
 
 	首评于 2025.8.6

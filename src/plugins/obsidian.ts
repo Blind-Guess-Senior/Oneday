@@ -41,11 +41,22 @@ export function obsidianPlugin(factory: PluginFactoryContext): MdastPluginDefini
     const target = rawTarget.trim();
     const label = alias ?? destination.split("/").pop()?.split("#")[0]?.trim() ?? target;
 
-    // 纯锚点 `[[#小节]]` 和指不到东西的链接：只留显示文本，不留下 `[[ ]]` 记号
+    // 纯锚点 `[[#小节]]`：旧站只留下显示文本（此时是空串），这里保持一致
     if (!target) return [{ type: "text", value: label }];
 
     const found = resolveWikiTargetSync(target);
-    if (!found) return [{ type: "text", value: label || target }];
+    if (!found) {
+      // 指不到东西：长得像链接，但点不动、标红，跟旧站一样
+      const missing: MdastNode = {
+        type: "span",
+        data: {
+          hName: "span",
+          hProperties: { class: "wiki-link-missing", title: `找不到页面：${target}` },
+        },
+        children: [{ type: "text", value: label || target }],
+      };
+      return [missing];
+    }
 
     const anchor = heading ? `#${slugify(heading)}` : "";
     const link: MdastNode = {

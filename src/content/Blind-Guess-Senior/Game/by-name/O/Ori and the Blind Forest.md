@@ -15,7 +15,7 @@ completed: false
 aka:
   - 奥日与黑暗森林
 ---
-续：
+续：  
 [[Blind-Guess-Senior/Game/by-name/O/Ori and the Will of the Wisps]] 
 
 	首评于 2025.8.6

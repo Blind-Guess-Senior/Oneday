@@ -16,7 +16,7 @@ completed: false
 aka:
   - 终焉之玛格诺利亚：雾中盛放之花
 ---
-前：
+前：  
 [[Blind-Guess-Senior/Game/by-name/E/ENDER LILIES- Quietus of the Knights]] 
 
 

@@ -13,7 +13,7 @@ tags:
   - 类银河城
 completed: false
 ---
-前：
+前：  
 [[Blind-Guess-Senior/Game/by-name/O/Ori and the Blind Forest]] 
 
 

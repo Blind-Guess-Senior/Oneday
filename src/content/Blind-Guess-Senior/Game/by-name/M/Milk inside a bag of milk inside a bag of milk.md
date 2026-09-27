@@ -16,7 +16,7 @@ completed: true
 aka:
   - 牛奶袋内袋装牛奶
 ---
-续：
+续：  
 [[Blind-Guess-Senior/Game/by-name/M/Milk outside a bag of milk outside a bag of milk]] 
 
 	完成 2026.1.13

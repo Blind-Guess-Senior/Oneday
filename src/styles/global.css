@@ -4,7 +4,7 @@ html { font-size: 15px; }
 body {
   font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
   background: #f5f6f8;
-  color: #1e293b;
+  color: var(--ink);
   min-height: 100vh;
 }
 a { color: inherit; text-decoration: none; }
@@ -14,12 +14,15 @@ button { cursor: pointer; font: inherit; }
 :root {
   --accent:   #4f6ef7;
   --accent-h: #3a57e8;
+  --accent-soft: #eff3ff;
   --bg:       #f5f6f8;
   --surface:  #ffffff;
   --border:   #e4e7ec;
   --muted:    #64748b;
+  --ink:      #1e293b;
   --star:     #f59e0b;
   --radius:   10px;
+  --radius-sm: 6px;
   --shadow:   0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
   --sidebar-w: 220px;
 }
@@ -50,7 +53,7 @@ header {
 .search-box input {
   border: none; background: transparent; outline: none;
   font: inherit; font-size: .9rem; width: 100%;
-  color: #1e293b;
+  color: var(--ink);
 }
 .header-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
 .header-right a {
@@ -136,7 +139,7 @@ header {
 .tag-group {
   padding-top: .55rem;
   margin-top: .55rem;
-  border-top: 1px solid rgba(148, 163, 184, .22);
+  border-top: 1px solid var(--border);
 }
 .tag-group:first-child {
   padding-top: 0;
@@ -166,7 +169,7 @@ header {
 .sort-select {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 7px; padding: .3rem .65rem;
-  font: inherit; font-size: .85rem; color: #1e293b;
+  font: inherit; font-size: .85rem; color: var(--ink);
   cursor: pointer; outline: none;
 }
 .sort-select:hover { border-color: var(--accent); }
@@ -202,15 +205,11 @@ header {
 .badge-game    { background: #eff6ff; color: #1d4ed8; }
 .badge-anime   { background: #f5f3ff; color: #6d28d9; }
 .badge-book    { background: #f0fdf4; color: #166534; }
-.badge-tba     { background: #fff7ed; color: #9a3412; }
-.badge-default { background: #f1f5f9; color: #475569; }
-.badge-status-done  { background: #f0fdf4; color: #166534; }
-.badge-status-doing { background: #fffbeb; color: #92400e; }
-.badge-status-todo  { background: #f8fafc; color: #64748b; }
+.badge-default { background: var(--bg); color: var(--muted); }
 
 .card-title {
   font-size: 1rem; font-weight: 600; line-height: 1.4;
-  color: #0f172a;
+  color: var(--ink);
   display: -webkit-box; -webkit-line-clamp: 2;
   -webkit-box-orient: vertical; overflow: hidden;
 }
@@ -227,7 +226,7 @@ header {
 .reviewer-name { font-size: .8rem; color: var(--muted); }
 .score-display { font-size: .9rem; font-weight: 700; }
 .score-tier-1 { color: #16a34a; }
-.score-tier-2 { color: #cccc99; }
+.score-tier-2 { color: #d97706; }
 .score-tier-3 { color: #dc2626; }
 .card-date { font-size: .78rem; color: var(--muted); margin-left: auto; }
 
@@ -293,7 +292,7 @@ header {
   margin-bottom: 1.5rem; font-size: .85rem;
 }
 .article-meta-item { display: flex; align-items: center; gap: .3rem; color: var(--muted); }
-.article-meta-item strong { color: #1e293b; }
+.article-meta-item strong { color: var(--ink); }
 .article-meta-sep { color: var(--border); }
 .score-link-btn {
   display: inline-flex; align-items: center; gap: .35rem;
@@ -305,13 +304,12 @@ header {
 .standards-panel {
   margin: 0 0 1rem;
   padding: .9rem 1rem;
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: var(--bg);
+  border-radius: 8px;
 }
 .standards-panel-title {
   font-size: .88rem; font-weight: 600;
-  margin-bottom: .6rem; color: #0f172a;
+  margin-bottom: .6rem; color: var(--ink);
 }
 .standards-list {
   display: flex; flex-direction: column; gap: .5rem;
@@ -324,7 +322,7 @@ header {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
-  color: #1e293b;
+  color: var(--ink);
   transition: border-color .12s, transform .12s;
 }
 .standard-link:hover {
@@ -344,15 +342,15 @@ header {
   border-bottom: 1px solid var(--border);
 }
 .sub-score-item {
-  background: #f1f5f9; border: 1px solid var(--border);
-  border-radius: 6px; padding: .3rem .65rem;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: .3rem .65rem;
   font-size: .82rem; font-weight: 500;
   white-space: nowrap;
 }
 
 /* ── Markdown renderer ────────────────────────────────────────────── */
 .md-body {
-  line-height: 1.75; color: #1e293b;
+  line-height: 1.75; color: var(--ink);
   border-top: 1px solid var(--border); padding-top: 1.5rem;
 }
 .md-body h1,.md-body h2,.md-body h3,.md-body h4 {
@@ -389,13 +387,18 @@ header {
 .md-body th,.md-body td { border: 1px solid var(--border); padding: .4rem .7rem; text-align: left; }
 .md-body th { background: var(--bg); font-weight: 600; }
 .md-body img { max-width: 100%; height: auto; border-radius: 6px; }
+.md-body .wiki-link-missing {
+  color: #c0605a;
+  text-decoration: underline dotted;
+  cursor: default;
+}
 .md-body mark.hl {
   background: none;
   border-bottom: 2px solid #f59e0b;
   padding-bottom: 1px;
   color: #b45309;
 }
-.filter-option.selected { background: #eff3ff; color: var(--accent); font-weight: 600; }
+.filter-option.selected { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 
 /* ── Empty / loading states ───────────────────────────────────────── */
 .state-center { text-align: center; padding: 4rem 1rem; color: var(--muted); }
@@ -430,9 +433,10 @@ header {
 }
 .tag-toggle:hover { color: var(--accent); }
 
+/* 筛选面板里的按钮和标签都是自定义外观，先把浏览器默认的边框和底色去掉 */
+button.filter-option,
 button.tag-chip,
 button.score-chip {
-  font: inherit;
-  color: inherit;
-  text-align: left;
+  font: inherit; color: inherit; text-align: left;
 }
+button.filter-option { background: none; border: none; width: 100%; }

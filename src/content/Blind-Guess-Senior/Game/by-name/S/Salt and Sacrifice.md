@@ -16,7 +16,7 @@ tags:
   - ARPG
 completed: false
 ---
-前：
+前：  
 [[Blind-Guess-Senior/Game/by-name/S/Salt and Sanctuary]] 
 
 

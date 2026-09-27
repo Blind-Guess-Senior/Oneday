@@ -17,9 +17,9 @@ completed: false
 aka:
   - BLACK SOULS -黑童话与五魔姬-
 ---
-TBA 2026 *提名* **==年度游戏==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
-TBA 2026 *提名* **==年度独立==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
-TBA 2026 *提名* **==最佳叙事==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==年度游戏==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]]  
+TBA 2026 *提名* **==年度独立==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]]  
+TBA 2026 *提名* **==最佳叙事==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]]  
 TBA 2026 *提名* **==最佳演出==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
 
 	完成 2026.1.18

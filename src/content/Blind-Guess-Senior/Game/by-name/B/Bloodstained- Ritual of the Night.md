@@ -15,7 +15,7 @@ completed: false
 aka:
   - 赤痕：夜之仪式
 ---
-续：
+续：  
 [[Blind-Guess-Senior/Game/by-name/B/Bloodstained- The Scarlet Engagement]] 
 
 TBA 2024 *提名* **==年度独立==** [[Blind-Guess-Senior/TBA/The Blind Award 2024#游戏提名]] 

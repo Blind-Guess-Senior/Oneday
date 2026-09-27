@@ -10,7 +10,7 @@ category:
 tags:
 completed: false
 ---
-原版：
+原版：  
 [[Blind-Guess-Senior/Game/by-name/T/The Talos Principle]] 
 
 ```

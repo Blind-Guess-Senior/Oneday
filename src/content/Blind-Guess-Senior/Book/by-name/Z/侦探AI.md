@@ -12,7 +12,7 @@ tags:
   - 推理
 completed: false
 ---
-同：
+同：  
 [[Blind-Guess-Senior/Book/by-name/F/犯人IA]] 
 
 4/10 实在一般
