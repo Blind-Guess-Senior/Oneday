@@ -433,10 +433,13 @@ header {
 }
 .tag-toggle:hover { color: var(--accent); }
 
-/* 筛选面板里的按钮和标签都是自定义外观，先把浏览器默认的边框和底色去掉 */
+/* 筛选面板里的按钮和标签都是自定义外观，先把浏览器默认的边框和底色去掉。
+   这里不能写 font: inherit —— button.tag-chip 的特异性比 .tag-chip 高，
+   会把 .tag-chip 的 font-size 覆盖成继承值，标签就变大了（全站的 button
+   字体已经由上面那条 button { font: inherit } 处理）。 */
 button.filter-option,
 button.tag-chip,
 button.score-chip {
-  font: inherit; color: inherit; text-align: left;
+  color: inherit; text-align: left;
 }
 button.filter-option { background: none; border: none; width: 100%; }
