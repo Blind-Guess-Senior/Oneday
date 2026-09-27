@@ -3,14 +3,22 @@
  *
  * 旧站在浏览器里静默降级：解析不到的 `[[wikilink]]` 渲染成灰掉的 span、
  * 找不到的 `![[图片]]` 变成一个 404 的 <img>，构建者永远不知道。
- * 现在这些都由 remark 插件在构建期记录下来，由 loader 打印到构建日志。
+ * 现在这些都在构建期扫出来。
+ *
+ * **链接和图片一律只认「内容根相对的完整路径」，不做任何兜底**，
+ * 所以「非完整路径」是一类必须为 0 的错误，专门单列。
  */
 
 type Issues = Map<string, Set<string>>;
 
-const unresolvedLinks: Issues = new Map();
+/** 非完整路径的 wiki 目标（`[[裸名]]` / `![[裸名.png]]`）。合进 main 前必须为 0。 */
+const bareTargets: Issues = new Map();
+/** 写的是完整路径，但仓库里没有这个文件。 */
+const missingTargets: Issues = new Map();
+/** 图片路径是完整的，但文件不存在。 */
 const brokenImages: Issues = new Map();
-const ambiguousImages: Issues = new Map();
+/** 目标文件存在，但它没有被 reviewer_config.toml 收录（所以不会成为页面）。 */
+const unpublishedTargets: Issues = new Map();
 const notes: Issues = new Map();
 
 function add(store: Issues, source: string, detail: string): void {
@@ -22,19 +30,24 @@ function add(store: Issues, source: string, detail: string): void {
   set.add(detail);
 }
 
-/** `[[目标]]` 找不到对应评测。 */
-export function noteUnresolvedLink(source: string, target: string): void {
-  add(unresolvedLinks, source, target);
+/** `[[裸名]]` —— 没写完整路径。 */
+export function noteBareTarget(source: string, target: string): void {
+  add(bareTargets, source, target);
 }
 
-/** `![[图片]]` 在仓库里找不到文件。 */
+/** 完整路径但没有对应文件。 */
+export function noteMissingTarget(source: string, target: string): void {
+  add(missingTargets, source, target);
+}
+
+/** 图片的完整路径没有对应文件。 */
 export function noteBrokenImage(source: string, target: string): void {
   add(brokenImages, source, target);
 }
 
-/** `![[图片]]` 命中多个同名文件，已按就近原则选了一个。 */
-export function noteAmbiguousImage(source: string, target: string, chosen: string, others: string[]): void {
-  add(ambiguousImages, source, `${target} → 选中 ${chosen}（另有 ${others.join("、")}）`);
+/** 目标文件存在但没被收录（`status: 未完成` 之类），页面不会生成。 */
+export function noteUnpublishedTarget(source: string, target: string): void {
+  add(unpublishedTargets, source, target);
 }
 
 /** 一般性提示，由调用方决定要不要显示。 */
@@ -72,17 +85,16 @@ function drain(store: Issues): Issues {
 /**
  * 生成报告文本并清空；没有新问题时返回空数组。
  *
- * 默认只打**汇总行**：迁移期结束后剩下的都是已知的内容缺口
- * （TBA 未收录、目标文件不存在等），每次构建刷几十行明细没有意义。
- * 需要明细时用 `ONEDAY_REPORT=full`。
+ * 默认只打**汇总行**：日常构建刷几十行明细没有意义。需要明细时 `ONEDAY_REPORT=full`。
  */
 export function renderReports(): string[] {
   const full = process.env["ONEDAY_REPORT"] === "full";
   const limit = full ? 500 : 0;
   const lines = [
-    ...format("[报告] 解析不到的 [[wikilink]]", drain(unresolvedLinks), limit),
-    ...format("[报告] 找不到文件的 ![[图片]]", drain(brokenImages), limit),
-    ...format("[提示] 图片同名、已按就近原则选择", drain(ambiguousImages), full ? 20 : 0),
+    ...format("[报告] 非完整路径的 wiki 目标（应当为 0）", drain(bareTargets), limit),
+    ...format("[报告] 目标文件不存在的链接", drain(missingTargets), limit),
+    ...format("[报告] 目标文件不存在的图片", drain(brokenImages), limit),
+    ...format("[提示] 目标存在但未被收录", drain(unpublishedTargets), full ? 200 : 0),
     ...format("[提示]", drain(notes), full ? 200 : 0),
   ];
   if (!full && lines.length > 0) {
@@ -93,5 +105,7 @@ export function renderReports(): string[] {
 
 /** 供 loader 判断要不要打印。 */
 export function hasReports(): boolean {
-  return unresolvedLinks.size + brokenImages.size + ambiguousImages.size + notes.size > 0;
+  return (
+    bareTargets.size + missingTargets.size + brokenImages.size + unpublishedTargets.size + notes.size > 0
+  );
 }

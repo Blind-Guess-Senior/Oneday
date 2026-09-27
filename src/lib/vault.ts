@@ -18,7 +18,13 @@ import {
   type CategoryConfig,
   type ReviewerConfig,
 } from "./config";
-import { note, noteBrokenImage, noteUnresolvedLink } from "./report";
+import {
+  note,
+  noteBareTarget,
+  noteBrokenImage,
+  noteMissingTarget,
+  noteUnpublishedTarget,
+} from "./report";
 import { toSlug } from "./site";
 
 // ---------------------------------------------------------------------------
@@ -56,9 +62,8 @@ export interface StandardRecord {
 }
 
 export interface LinkIndex {
+  /** 内容根相对路径（不含 .md）→ 评测。只此一张表，没有按文件名/标题的兜底。 */
   byPath: Map<string, ReviewRecord>;
-  byStem: Map<string, ReviewRecord[]>;
-  byTitle: Map<string, ReviewRecord[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -92,7 +97,7 @@ function isMarkdown(name: string): boolean {
   return name.toLowerCase().endsWith(".md");
 }
 
-const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif", ".bmp"]);
+
 
 // ---------------------------------------------------------------------------
 // frontmatter / 正文解析
@@ -379,18 +384,9 @@ let linkIndexSync: LinkIndex | null = null;
 export function getLinkIndex(): Promise<LinkIndex> {
   linkIndexPromise ??= (async (): Promise<LinkIndex> => {
     const reviews = await getReviews();
-    const index: LinkIndex = { byPath: new Map(), byStem: new Map(), byTitle: new Map() };
+    const index: LinkIndex = { byPath: new Map() };
     for (const review of reviews) {
       index.byPath.set(normalizeWikiPath(review.contentRel), review);
-
-      const stem = normalizeWikiPath(path.basename(review.contentRel));
-      const stemList = index.byStem.get(stem);
-      if (stemList) stemList.push(review);
-      else index.byStem.set(stem, [review]);
-
-      const titleList = index.byTitle.get(review.title);
-      if (titleList) titleList.push(review);
-      else index.byTitle.set(review.title, [review]);
     }
     linkIndexSync = index;
     return index;
@@ -398,11 +394,6 @@ export function getLinkIndex(): Promise<LinkIndex> {
   return linkIndexPromise;
 }
 
-/**
- * 解析 `[[目标]]`。行为对齐旧前端：
- *   - 目标含 `/`  → 按内容根相对路径精确匹配
- *   - 否则        → 先按文件名 stem，再按 title
- */
 export async function resolveWikiTarget(target: string): Promise<ReviewRecord | null> {
   await getLinkIndex();
   return resolveWikiTargetSync(target);
@@ -410,6 +401,12 @@ export async function resolveWikiTarget(target: string): Promise<ReviewRecord | 
 
 /**
  * 同步版本。
+ *
+ * **只认内容根相对的完整路径，不做任何兜底。** 也就是说
+ * `[[Blind-Guess-Senior/Game/by-name/H/Hollow Knight]]` 能解析，
+ * `[[Hollow Knight]]` 不能 —— 裸文件名一律当坏链接报出来。
+ * 理由：按文件名/标题兜底会随内容重名而默默指向另一个页面，
+ * 而链接是内容，应该一眼能看出它指向哪个文件。
  *
  * satteri 的访问器是**并发派发**的：同一个文档里多个 text 节点会同时进入 JS，
  * 异步访问器里的 `ctx.replaceNode()` 因此会互相干扰（实测同一张图片被插入 4 次）。
@@ -421,86 +418,41 @@ export function resolveWikiTargetSync(target: string): ReviewRecord | null {
   if (!index) return null;
   const normalized = normalizeWikiPath(target);
   if (!normalized) return null;
-  if (normalized.includes("/")) return index.byPath.get(normalized) ?? null;
-  return index.byStem.get(normalized)?.[0] ?? index.byTitle.get(normalized)?.[0] ?? null;
+  return index.byPath.get(normalized) ?? null;
 }
 
 // ---------------------------------------------------------------------------
-// 附件（`![[图片]]`）索引
+// 附件（`![[图片]]`）
 // ---------------------------------------------------------------------------
-
-let attachmentIndexPromise: Promise<Map<string, string[]>> | null = null;
-let attachmentIndexSync: Map<string, string[]> | null = null;
-
-/** basename → 内容根相对路径列表。 */
-export function getAttachmentIndex(): Promise<Map<string, string[]>> {
-  attachmentIndexPromise ??= (async () => {
-    const files = await listFiles();
-    const index = new Map<string, string[]>();
-    for (const rel of files) {
-      if (!IMAGE_EXTENSIONS.has(path.extname(rel).toLowerCase())) continue;
-      const base = path.basename(rel);
-      const list = index.get(base);
-      if (list) list.push(rel);
-      else index.set(base, [rel]);
-    }
-    attachmentIndexSync = index;
-    return index;
-  })();
-  return attachmentIndexPromise;
-}
 
 /** 预热所有索引，让访问器可以走同步路径。插件的 `before` 钩子调用它。 */
 export async function ensureIndexes(): Promise<void> {
-  await Promise.all([getReviews(), getLinkIndex(), getAttachmentIndex()]);
+  await Promise.all([getReviews(), getLinkIndex(), listFiles()]);
 }
 
 export interface AttachmentLookup {
   /** 内容根相对路径；找不到就是 null。 */
   rel: string | null;
-  /** 所有同名候选（用于报告歧义）。 */
-  candidates: string[];
 }
 
 /**
- * 找一个附件。Obsidian 的规则是全库按文件名解析，这里照做：
- *   - 目标含 `/`：当作内容根相对路径
- *   - 否则：按 basename 全库查；同名多个时优先与引用文件同目录/最近公共祖先的那个
+ * 找一个附件。**同样只认内容根相对的完整路径，不做按文件名的兜底。**
+ *
+ * 旧站在浏览器里硬编码 `<目录>/attachments/<文件名>`，而仓库里附件目录本来就有
+ * 两种约定（BGS 用 `<目录>/attachments/`，Aspark 用 `<目录>/游戏测评附件/` 等），
+ * 所以只能按真实路径找。
  */
-export function findAttachmentSync(target: string, fromContentRel: string): AttachmentLookup {
+export function findAttachmentSync(target: string): AttachmentLookup {
   const normalized = normalizeWikiPath(target);
-  if (!normalized) return { rel: null, candidates: [] };
-
+  if (!normalized) return { rel: null };
   const files = fileListCache;
-  const index = attachmentIndexSync;
-  if (!files || !index) return { rel: null, candidates: [] };
-
-  if (normalized.includes("/")) {
-    const hit = files.find((rel) => rel === normalized);
-    return hit ? { rel: hit, candidates: [hit] } : { rel: null, candidates: [] };
-  }
-
-  const candidates = index.get(normalized) ?? [];
-  if (candidates.length === 0) return { rel: null, candidates: [] };
-  if (candidates.length === 1) return { rel: candidates[0] ?? null, candidates };
-
-  const fromDir = path.posix.dirname(fromContentRel);
-  const score = (candidate: string): number => {
-    const dir = path.posix.dirname(candidate);
-    if (dir === fromDir) return Number.MAX_SAFE_INTEGER;
-    const a = dir.split("/");
-    const b = fromDir.split("/");
-    let common = 0;
-    while (common < a.length && common < b.length && a[common] === b[common]) common += 1;
-    return common;
-  };
-  const sorted = [...candidates].sort((a, b) => score(b) - score(a) || a.localeCompare(b));
-  return { rel: sorted[0] ?? null, candidates };
+  if (!files) return { rel: null };
+  return { rel: files.includes(normalized) ? normalized : null };
 }
 
-export async function findAttachment(target: string, fromContentRel: string): Promise<AttachmentLookup> {
+export async function findAttachment(target: string): Promise<AttachmentLookup> {
   await ensureIndexes();
-  return findAttachmentSync(target, fromContentRel);
+  return findAttachmentSync(target);
 }
 
 // ---------------------------------------------------------------------------
@@ -510,52 +462,76 @@ export async function findAttachment(target: string, fromContentRel: string): Pr
 const AUDIT_PATTERN = /!?\[\[([^\]\r\n]+)\]\]/g;
 
 export interface AuditResult {
-  /** 正文里出现的 wikilink 总数。 */
+  /** 全 vault md 里的 wikilink 总数。 */
   links: number;
-  /** 其中「只写文件名」而非完整路径的数量（待迁移项）。 */
-  slashless: number;
-  /** 正文里出现的图片嵌入总数。 */
+  /** 图片嵌入总数。 */
   embeds: number;
-  /** 其中「只写文件名」而非完整路径的数量（待迁移项）。 */
-  bareEmbeds: number;
+  /** 其中没写完整路径的数量。**应当恒为 0**，不为 0 就是内容要修。 */
+  bare: number;
 }
 
 /**
- * 扫描**所有**评测正文里的 wikilink 与图片嵌入，解析不到的记进报告。
+ * 扫描 **vault 里所有 md**（不只被收录的评测）的 wikilink 与图片嵌入。
  *
- * 只审计渲染过的文档是不够的：354 篇里只有 73 篇完整评测会渲染，
- * 而 `[[The Blind Award 2025#游戏]]` 这类链接恰好都在仅评分评测的正文里，
- * 旧站从来不渲染它们，所以这个问题此前完全不可见。
+ * 两个原因必须扫全集：
+ * 1. 链接只认完整路径、不做兜底，所以「非完整路径」是硬错误，得一个不漏；
+ * 2. 354 篇评测里只有 73 篇会渲染，而 `[[The Blind Award 2025#游戏]]` 这类链接
+ *    恰好都在仅评分评测里——旧站从来不渲染它们，这个问题此前完全不可见。
  */
 export async function auditContent(): Promise<AuditResult> {
-  const reviews = await getReviews();
-  await ensureIndexes();
+  const files = await listFiles();
+  const fileSet = new Set(files);
+  await Promise.all([getReviews(), getLinkIndex()]);
+  const published = linkIndexSync;
 
   let links = 0;
-  let slashless = 0;
   let embeds = 0;
-  let bareEmbeds = 0;
+  let bare = 0;
 
-  for (const review of reviews) {
-    const source = review.relPath;
+  for (const rel of files) {
+    if (!rel.toLowerCase().endsWith(".md")) continue;
+    const source = path.posix.join("src/content", rel);
+    const raw = await readFile(path.join(CONTENT_ROOT, rel), "utf8");
+    const body = splitFrontmatter(raw).body;
+
     AUDIT_PATTERN.lastIndex = 0;
     let match: RegExpExecArray | null;
-    while ((match = AUDIT_PATTERN.exec(review.body)) !== null) {
+    while ((match = AUDIT_PATTERN.exec(body)) !== null) {
       const inner = match[1] ?? "";
+
       if (match[0].startsWith("!")) {
         embeds += 1;
-        if (!inner.includes("/")) bareEmbeds += 1;
-        if (!findAttachmentSync(inner, review.contentRel).rel) noteBrokenImage(source, inner);
+        const target = normalizeWikiPath(inner);
+        if (!target.includes("/")) {
+          bare += 1;
+          noteBareTarget(source, match[0]);
+        } else if (!fileSet.has(target)) {
+          noteBrokenImage(source, target);
+        }
         continue;
       }
+
       const destination = inner.split("|")[0] ?? "";
-      const target = (destination.split("#")[0] ?? "").trim();
+      const target = normalizeWikiPath((destination.split("#")[0] ?? "").trim());
       if (!target) continue;
       links += 1;
-      if (!target.includes("/")) slashless += 1;
-      if (!resolveWikiTargetSync(target)) noteUnresolvedLink(source, inner);
+
+      if (!target.includes("/")) {
+        bare += 1;
+        noteBareTarget(source, match[0]);
+        continue;
+      }
+
+      const file = target.toLowerCase().endsWith(".md") ? target : `${target}.md`;
+      if (!fileSet.has(file)) {
+        noteMissingTarget(source, target);
+        continue;
+      }
+      if (!published?.byPath.has(normalizeWikiPath(file))) {
+        noteUnpublishedTarget(source, target);
+      }
     }
   }
 
-  return { links, slashless, embeds, bareEmbeds };
+  return { links, embeds, bare };
 }

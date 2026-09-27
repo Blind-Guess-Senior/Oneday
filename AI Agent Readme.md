@@ -217,13 +217,18 @@ month: 3
 
 ### 5.1 `[[wikilink]]` 必须写完整路径
 
-**不要只写文件名。** 解析器虽然保留了「按文件名 / 标题兜底查找」的能力，
-但那是给历史内容兜底的，会在构建日志里被计数（`裸文件名 N 处`）。
+**只写文件名是不行的，解析器不做任何兜底。** 目标必须是**相对内容根的完整路径**，
+精确匹配仓库里的文件；写成裸文件名一律当成坏链接，在构建报告里单列成
+「非完整路径的 wiki 目标（应当为 0）」。
+
+理由：按文件名/标题兜底会随内容重名而**默默指向另一个页面**（仓库里就有
+`约会大作战` 的动画和轻小说两篇），而链接是内容，应该一眼能看出它指向哪个文件。
 
 ```markdown
 [[Blind-Guess-Senior/Book/by-series/冰菓/冰菓]]           ← 对
 [[Blind-Guess-Senior/Book/by-series/冰菓/冰菓|冰菓]]      ← 带显示文本
 [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏]]      ← 带小节锚点
+[[Hollow Knight]]                                        ← 错，裸文件名
 ```
 
 - 路径是**相对内容根**的，不带 `.md`。
@@ -291,29 +296,37 @@ astro build
 - **两个 loader 都是自定义的**，因为「什么算评测」由 TOML 决定，静态 glob 表达不了。
 - 正文渲染走 Astro 7 的 markdown 管线（**satteri**，不是 remark/rehype），
   插件注册在 `astro.config.ts` 的 `markdown.processor`。
-- 渲染完，`auditContent()` 会**扫描所有评测正文**（含不渲染的仅评分评测），
-  把解析不到的链接、找不到的图片、裸文件名用量打成报告。
+- 渲染完，`auditContent()` 会**扫描 vault 里所有 md**（不只被收录的评测，
+  也包括 `Query/`、`TBA/`、`Templates/` 与未收录的评测），打成报告。
+  必须扫全集：链接不做兜底，所以「非完整路径」是硬错误，得一个不漏。
 
 构建日志里你会看到：
 
 ```
 [oneday:reviews] 评测 354 篇（完整 73 篇，仅评分 281 篇）
-[oneday:reviews] 正文里 wikilink 232 处（裸文件名 0）、图片嵌入 15 处（裸文件名 0）
-[oneday:reviews] [报告] 解析不到的 [[wikilink]]（N 处，涉及 M 个文件）
-[oneday:reviews] [报告] 找不到文件的 ![[图片]]（N 处，涉及 M 个文件）
-[oneday:reviews] [提示]（N 处，涉及 M 个文件）
+[oneday:reviews] 全 vault 共 wikilink 622 处、图片嵌入 15 处；其中没写完整路径的 11 处
+[oneday:reviews] [报告] 非完整路径的 wiki 目标（应当为 0）（N 处，涉及 M 个文件）
+[oneday:reviews] [报告] 目标文件不存在的链接（N 处，涉及 M 个文件）
+[oneday:reviews] [报告] 目标文件不存在的图片（N 处，涉及 M 个文件）
+[oneday:reviews] [提示] 目标存在但未被收录（N 处，涉及 M 个文件）
   （明细：ONEDAY_REPORT=full npm run build）
 [oneday:standards] 评分标准 6 份
 ```
 
-**报告默认只打汇总行**：迁移期结束后剩下的都是已知的内容缺口（指向 `TBA/`、
-目标文件不存在等），每次构建刷几十行明细没有意义。要看逐条清单就加
-`ONEDAY_REPORT=full`。
+**报告默认只打汇总行**，要看逐条清单就加 `ONEDAY_REPORT=full`。
 
-> **当前基线**：裸文件名 5 处、解析不到的 wikilink 71 处、找不到的图片 4 处。
-> 这些都是已知的内容问题，不是构建 bug：
-> `TBA/` 决定不收录、`status: 未完成` 的文件决定不补状态、
-> 目标不存在的链接决定不管。**有新问题冒出来时才需要关注这个数字。**
+> **合并进 main 的门槛**：「非完整路径的 wiki 目标」必须是 **0**。
+> 目前还有 11 处（12 个出现位置），它们的**目标在仓库里根本不存在**，
+> 所以没法改写成完整路径，需要内容侧决定（补文件 / 删链接）：
+> - `Aspark/小众变态测评/游戏/未完成/Everlasting Summer★★.md` → `Pasted image 20260908162546.png`
+> - `Aspark/小众变态测评/游戏/未完成/Rance02 -反逆の少女たち-★★.md` → `d11fc70a4d490d77f0ea42fb0e7c4e64.png`
+> - `Aspark/小众变态测评/游戏/未完成/Rance03 -リーザス陥落-★★★★.md` → `ac64c49f…png`、`624131bf…png`
+> - `Blind-Guess-Senior/Book/by-author/阿加莎·克里斯蒂/寓所谜案.md` → `[[七面钟之谜]]`、`[[死亡草]]`、`[[神秘的奎因先生]]`
+> - `Blind-Guess-Senior/Book/by-author/阿加莎·克里斯蒂/蓝色列车之谜.md` → `[[犯罪团伙]]`、`[[悬崖山庄奇案]]`
+> - `Blind-Guess-Senior/TBA/The Blind Award 2025.md` → `[[Terraria★★★★★]]`（两处）、`[[Eternal Senia★★★]]`
+>   （TBA 那份的格式是「作品 | BGS 评测 | Aspark 评测」，★ 那侧指 Aspark 的评测，而 Aspark 没写过）
+>
+> 「目标存在但未被收录」是预期内的（TBA 不收录、`status: 未完成` 不补），看数量有没有突变即可。
 
 ---
 

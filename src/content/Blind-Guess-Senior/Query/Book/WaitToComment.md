@@ -23,7 +23,7 @@
 [[Blind-Guess-Senior/Book/by-name/Q/全职高手]]
 [[Blind-Guess-Senior/Book/by-series/龙族/龙族I 火之晨曦]]
 [[Blind-Guess-Senior/Book/by-name/W/我的青春恋爱物语果然有问题。]]
-[[樱花庄的宠物女孩]]
+[[Blind-Guess-Senior/Book/by-name/Y/樱花庄的宠物女孩]]
 [[Blind-Guess-Senior/Book/by-name/Z/知晓天空之蓝的人啊]]
 [[Blind-Guess-Senior/Book/by-name/X/相遇之时，盛开之花]]
 [[Blind-Guess-Senior/Book/by-name/L/恋爱寄生虫]]

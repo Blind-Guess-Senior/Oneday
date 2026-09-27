@@ -21,7 +21,6 @@ import { fileURLToPath } from "node:url";
 import { slug as slugify } from "github-slugger";
 import type { MdastNode, MdastPluginDefinition, MdastVisitorContext, PluginFactoryContext } from "satteri";
 import { CONTENT_ROOT } from "../lib/config";
-import { noteAmbiguousImage, noteBrokenImage, noteUnresolvedLink } from "../lib/report";
 import { entryUrl } from "../lib/site";
 import { ensureIndexes, findAttachmentSync, resolveWikiTargetSync } from "../lib/vault";
 
@@ -43,23 +42,11 @@ function relativeUrl(fromDir: string, targetRel: string): string {
 export function obsidianPlugin(factory: PluginFactoryContext): MdastPluginDefinition {
   const filePath = factory.fileURL ? fileURLToPath(factory.fileURL) : "";
   const contentRel = filePath ? path.relative(CONTENT_ROOT, filePath).split(path.sep).join("/") : "";
-  const source = contentRel || filePath || "<unknown>";
   const fileDir = contentRel ? path.posix.dirname(contentRel) : "";
 
   function makeImage(target: string): MdastNode[] | null {
-    const lookup = findAttachmentSync(target, contentRel);
-    if (!lookup.rel) {
-      noteBrokenImage(source, target);
-      return null;
-    }
-    if (lookup.candidates.length > 1) {
-      noteAmbiguousImage(
-        source,
-        target,
-        lookup.rel,
-        lookup.candidates.filter((candidate) => candidate !== lookup.rel),
-      );
-    }
+    const lookup = findAttachmentSync(target);
+    if (!lookup.rel) return null;
     const image: MdastNode = { type: "image", url: relativeUrl(fileDir, lookup.rel), alt: "" };
     return [image];
   }
@@ -73,10 +60,7 @@ export function obsidianPlugin(factory: PluginFactoryContext): MdastPluginDefini
     if (!target) return null;
 
     const found = resolveWikiTargetSync(target);
-    if (!found) {
-      noteUnresolvedLink(source, inner);
-      return null;
-    }
+    if (!found) return null;
 
     const label = alias ?? destination.split("/").pop()?.split("#")[0]?.trim() ?? target;
     const anchor = heading ? `#${slugify(heading)}` : "";
