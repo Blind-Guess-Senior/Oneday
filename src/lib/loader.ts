@@ -11,6 +11,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import type { Loader } from "astro/loaders";
 import { note, renderReports } from "./report";
+import { buildIndexPayload } from "./index-data";
 import { auditContent, splitFrontmatter, getReviews, getStandards } from "./vault";
 
 interface Reporter {
@@ -71,6 +72,9 @@ export function reviewsLoader(): Loader {
       }
 
       logger.info(`评测 ${reviews.length} 篇（完整 ${reviews.filter((r) => r.data["score_only"] === false).length} 篇，仅评分 ${reviews.filter((r) => r.data["score_only"] === true).length} 篇）`);
+
+      // 首页岛屿的数据在这里先算一次：tag 分排的提示要在打印报告之前记进 report
+      await buildIndexPayload();
 
       // 只审计渲染过的正文不够：大部分评测是「仅评分」，正文从不渲染
       const audit = await auditContent();

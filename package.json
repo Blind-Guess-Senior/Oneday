@@ -10,14 +10,17 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "test": "node --test src/lib/filter.test.ts"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.2",
+    "@astrojs/vue": "^7.0.3",
     "astro": "^7.3.5",
     "github-slugger": "^2.0.0",
     "satteri": "^0.10.5",
     "smol-toml": "^1.9.0",
+    "vue": "^3.5.43",
     "yaml": "^2.9.1"
   },
   "devDependencies": {

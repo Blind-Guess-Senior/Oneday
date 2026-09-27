@@ -18,17 +18,30 @@ const { Content } = await render(entry);
 ---
 
 <Layout title={title}>
-  <article class="article-wrap">
-    <a class="back" href={`${BASE}/`}>← 返回列表</a>
+  <div class="layout">
+    <div class="main">
+      <div class="article-wrap">
+        <a class="article-back" href={`${BASE}/`}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          返回列表
+        </a>
 
-    <h1 class="article-title">{title}</h1>
+        <h1 class="article-title">{title}</h1>
 
-    <div class="meta-bar">
-      <span>评测者 <strong>{reviewer}</strong></span>
-      <span>|</span>
-      <span>分类 <strong>{category}</strong></span>
+        <div class="article-meta-bar">
+          <span class="article-meta-item">
+            <span>评测者</span>&nbsp;<strong>{reviewer}</strong>
+          </span>
+          <span class="article-meta-sep">|</span>
+          <span class="article-meta-item">
+            <span>分类</span>&nbsp;<strong>{category}</strong>
+          </span>
+        </div>
+
+        <div class="md-body"><Content /></div>
+      </div>
     </div>
-
-    <div class="md-body"><Content /></div>
-  </article>
+  </div>
 </Layout>

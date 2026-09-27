@@ -18,13 +18,33 @@ import { parse as parseToml } from "smol-toml";
 import { note } from "./report";
 import { toSlug } from "./site";
 
-/** 仓库根（Oneday/）。 */
-export const PROJECT_ROOT = fileURLToPath(new URL("../../", import.meta.url));
+/**
+ * 仓库根（Oneday/）。
+ *
+ * 不能只用 `import.meta.url`：页面渲染阶段这些模块会被打进 `dist/.prerender/`，
+ * 那时 `import.meta.url` 指向产物目录，路径就全错了。`process.cwd()` 在
+ * dev / build / loader / 页面渲染里都是工程根，所以以它为准，
+ * 只在 cwd 找不到配置时回退到 `import.meta.url`（源码内直接跑的情况）。
+ */
+function findProjectRoot(): string {
+  const candidates = [process.cwd()];
+  try {
+    candidates.push(fileURLToPath(new URL("../../", import.meta.url)));
+  } catch {
+    // import.meta.url 不可用时忽略
+  }
+  for (const candidate of candidates) {
+    if (existsSync(path.join(candidate, "src", "config", "site.toml"))) return candidate;
+  }
+  return process.cwd();
+}
+
+export const PROJECT_ROOT = findProjectRoot();
 
 /** 内容根（Oneday/src/content/），同时也是 Obsidian vault 根。 */
-export const CONTENT_ROOT = fileURLToPath(new URL("../content/", import.meta.url));
+export const CONTENT_ROOT = path.join(PROJECT_ROOT, "src", "content");
 
-const SITE_CONFIG_PATH = fileURLToPath(new URL("../config/site.toml", import.meta.url));
+const SITE_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "site.toml");
 
 // ---------------------------------------------------------------------------
 // 类型

@@ -1,7 +1,9 @@
 ---
 import { getCollection, render } from "astro:content";
 import Layout from "../layouts/Layout.astro";
-import { BASE } from "../lib/site";
+import { extraMeta } from "../lib/extra-meta";
+import { entryUrl, BASE } from "../lib/site";
+import { getStandards } from "../lib/vault";
 
 export async function getStaticPaths() {
   const reviews = await getCollection("reviews");
@@ -11,66 +13,133 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const data = entry.data as Record<string, unknown>;
 const list = (key: string): string[] =>
-  Array.isArray(data[key]) ? (data[key] as string[]).map(String) : [];
+  Array.isArray(data[key]) ? (data[key] as unknown[]).map(String) : [];
 
 const title = String(data["title"] ?? entry.id);
 const reviewer = String(data["reviewer"] ?? "");
 const category = list("category");
 const scoreRaw = String(data["score_raw"] ?? "");
+const tier = typeof data["score_tier"] === "number" ? (data["score_tier"] as number) : null;
 const aka = list("aka");
 const tags = list("tags");
 const subScores = list("sub_scores");
 const scoreOnly = data["score_only"] === true;
+
+const meta = await extraMeta(reviewer, category, data);
+
+const standards = (await getStandards()).filter(
+  (standard) => standard.reviewer === reviewer && category.includes(standard.category),
+);
 
 // 仅评分评测没有渲染正文，旧站也只显示元信息
 const Content = scoreOnly ? null : (await render(entry)).Content;
 ---
 
 <Layout title={title}>
-  <article class="article-wrap">
-    <a class="back" href={`${BASE}/`}>← 返回列表</a>
+  <div class="layout">
+    <div class="main">
+      <div class="article-wrap">
+        <a class="article-back" href={`${BASE}/`}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          返回列表
+        </a>
 
-    <h1 class="article-title">{title}</h1>
-    {aka.length > 0 && <div class="article-aka">{aka.join(" / ")}</div>}
-
-    <div class="meta-bar">
-      <span>评测者 <strong>{reviewer}</strong></span>
-      <span>|</span>
-      <span>分类 <strong>{category.join(" / ") || "—"}</strong></span>
-      {
-        scoreRaw && (
-          <>
-            <span>|</span>
-            <span>
-              评分 <strong class="score">{scoreRaw}</strong>
-            </span>
-          </>
-        )
-      }
-      {
-        tags.length > 0 && (
-          <>
-            <span>|</span>
-            <span class="card-tags">
-              {tags.map((tag) => (
-                <span class="card-tag">{tag}</span>
+        <h1 class="article-title">{title}</h1>
+        {
+          aka.length > 0 && (
+            <div class="article-aka">
+              {aka.map((name) => (
+                <span class="article-aka-item">{name}</span>
               ))}
-            </span>
-          </>
-        )
-      }
-    </div>
+            </div>
+          )
+        }
 
-    {
-      subScores.length > 0 && (
-        <div class="sub-scores">
-          {subScores.map((line) => (
-            <span>{line}</span>
-          ))}
+        <div class="article-meta-bar">
+          <span class="article-meta-item">
+            <span>评测者</span>&nbsp;<strong>{reviewer}</strong>
+          </span>
+          <span class="article-meta-sep">|</span>
+          <span class="article-meta-item">
+            <span>分类</span>&nbsp;<strong>{category.join(" / ") || "—"}</strong>
+          </span>
+          {
+            scoreRaw && (
+              <>
+                <span class="article-meta-sep">|</span>
+                <span class="article-meta-item">
+                  <span>评分</span>&nbsp;
+                  <strong
+                    class:list={["score-display", tier ? `score-tier-${tier}` : ""]}
+                    data-reviewer={reviewer}
+                  >
+                    {scoreRaw}
+                  </strong>
+                </span>
+              </>
+            )
+          }
+          {
+            tags.length > 0 && (
+              <>
+                <span class="article-meta-sep">|</span>
+                <span class="article-meta-item article-meta-tags">
+                  {tags.map((tag) => (
+                    <a class="card-tag" href={`${BASE}/?tag=${encodeURIComponent(tag)}`}>
+                      {tag}
+                    </a>
+                  ))}
+                </span>
+              </>
+            )
+          }
         </div>
-      )
-    }
 
-    {Content ? <div class="md-body"><Content /></div> : <p class="count">这篇评测只提供评分。</p>}
-  </article>
+        {
+          meta.length > 0 && (
+            <div class="article-meta-bar">
+              {meta.map((item, index) => (
+                <>
+                  <span class="article-meta-item">
+                    <span>{item.label}</span>&nbsp;<strong>{item.value}</strong>
+                  </span>
+                  {index < meta.length - 1 && <span class="article-meta-sep">|</span>}
+                </>
+              ))}
+            </div>
+          )
+        }
+
+        {
+          standards.length > 0 && (
+            <details class="standards-panel">
+              <summary class="standards-panel-title">评分标准</summary>
+              <div class="standards-list">
+                {standards.map((standard) => (
+                  <a class="standard-link" href={entryUrl(`standard/${standard.id}`)}>
+                    <span>{standard.title}</span>
+                  </a>
+                ))}
+              </div>
+            </details>
+          )
+        }
+
+        <div class="md-body">
+          {
+            subScores.length > 0 && (
+              <div class="sub-scores">
+                {subScores.map((line) => (
+                  <span class="sub-score-item">{line}</span>
+                ))}
+              </div>
+            )
+          }
+          {Content && <Content />}
+        </div>
+      </div>
+    </div>
+  </div>
 </Layout>
