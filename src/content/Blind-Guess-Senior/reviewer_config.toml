@@ -6,16 +6,19 @@
 
 [[categories]]
 name = "动漫"
+id_name = "Anime"
 include = ["Anime/**/*.md"]
 standard = ["Standard/动漫/**/*.md"]
 
 [[categories]]
 name = "书籍"
+id_name = "Book"
 include = ["Book/**/*.md"]
 standard = ["Standard/书籍/**/*.md"]
 
 [[categories]]
 name = "游戏"
+id_name = "Game"
 include = ["Game/**/*.md"]
 standard = ["Standard/游戏/**/*.md"]
 

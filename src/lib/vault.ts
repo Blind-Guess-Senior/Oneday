@@ -15,9 +15,11 @@ import {
   loadGitDates,
   loadTagConfig,
   readReviewerConfigs,
+  type CategoryConfig,
   type ReviewerConfig,
 } from "./config";
 import { note, noteBrokenImage, noteUnresolvedLink } from "./report";
+import { toSlug } from "./site";
 
 // ---------------------------------------------------------------------------
 // 类型
@@ -142,26 +144,6 @@ function titleFor(authorRel: string, reviewer: string, meta: Record<string, unkn
   return reviewer.toLowerCase() === "aspark" ? stem.replace(/★+$/, "").trim() : stem;
 }
 
-/**
- * 生成 URL 用的 slug。
- *
- * 不用 github-slugger：它是为「标题锚点」设计的，会把 `∬`、`？` 这类**有意义的字符**
- * 一并剥掉，导致 `五等分的花嫁∬` 与 `五等分的花嫁`、`…告白？～…` 与 `…告白～…`
- * 撞成同一个 slug。这里只剔除 URL / 文件系统里真正危险的字符，
- * 其余（CJK、全角标点、Unicode 符号）原样保留。
- */
-const SLUG_DENY = /[/\\?#%&=+<>|*:"'`]/g;
-
-export function toSlug(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(SLUG_DENY, "")
-    .replace(/-{2,}/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 function slugFor(title: string, authorRel: string, contentRel: string): string {
   const fromTitle = toSlug(title);
   if (fromTitle) return fromTitle;
@@ -180,14 +162,10 @@ function slugFor(title: string, authorRel: string, contentRel: string): string {
  * 一个文件属于哪些分类。命中任意一个 include glob 就算。
  * **没有任何 include 命中 = 这个文件不存在**，这是「正面清单」的全部含义。
  */
-function categoriesFor(config: ReviewerConfig, authorRel: string): string[] {
-  const matched: string[] = [];
-  for (const category of config.categories) {
-    if (category.include.some((pattern) => path.matchesGlob(authorRel, pattern))) {
-      matched.push(category.name);
-    }
-  }
-  return matched;
+function categoriesFor(config: ReviewerConfig, authorRel: string): CategoryConfig[] {
+  return config.categories.filter((category) =>
+    category.include.some((pattern) => path.matchesGlob(authorRel, pattern)),
+  );
 }
 
 function matchesScoreOnly(meta: Record<string, unknown>, rules: Array<[string, string]> | null): boolean {
@@ -215,8 +193,9 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       if (!contentRel.startsWith(prefix) || !isMarkdown(contentRel)) continue;
       const authorRel = contentRel.slice(prefix.length);
 
-      const category = categoriesFor(config, authorRel);
-      if (category.length === 0) continue;
+      const matched = categoriesFor(config, authorRel);
+      if (matched.length === 0) continue;
+      const category = matched.map((entry) => entry.name);
 
       const filePath = path.join(CONTENT_ROOT, contentRel);
       const raw = await readFile(filePath, "utf8");
@@ -227,10 +206,10 @@ async function buildReviews(): Promise<ReviewRecord[]> {
 
       const title = titleFor(authorRel, config.reviewer, meta);
       const slug = slugFor(title, authorRel, contentRel);
-      // URL = /<author>/<category>/<slug>/。分类进路径之后，
-      // 「轻小说 + 它的动画」这类同作者同名作品就不再撞车。
-      const primaryCategory = category[0] ?? "";
-      const id = `${config.reviewer}/${primaryCategory}/${slug}`;
+      // URL = /<author>/<category id_name>/<slug>/。分类段用 ASCII 的 id_name，
+      // 分类进路径之后「轻小说 + 它的动画」这类同作者同名作品也不再撞车。
+      const primaryCategory = matched[0];
+      const id = `${config.reviewer}/${primaryCategory?.idName ?? ""}/${slug}`;
 
       const scoreValue = meta["score"];
       const scoreRaw = scoreValue === undefined || scoreValue === null ? "" : String(scoreValue).trim();
@@ -358,7 +337,7 @@ async function buildStandards(): Promise<StandardRecord[]> {
       const slug = toSlug(stem) || toSlug(authorRel.replace(/\.md$/i, "").replace(/\//g, "-"));
 
       records.push({
-        id: `${config.reviewer}/${category.name}/${slug}`,
+        id: `${config.reviewer}/${category.idName}/${slug}`,
         reviewer: config.reviewer,
         slug,
         title: stem,

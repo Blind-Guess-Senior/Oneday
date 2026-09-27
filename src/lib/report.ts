@@ -42,10 +42,12 @@ export function note(source: string, detail: string): void {
   add(notes, source, detail);
 }
 
-function format(title: string, store: Issues, limit = 200): string[] {
+function format(title: string, store: Issues, limit: number): string[] {
   if (store.size === 0) return [];
   const total = [...store.values()].reduce((n, set) => n + set.size, 0);
-  const lines = [`${title}（${total} 处，涉及 ${store.size} 个文件）`];
+  const header = `${title}（${total} 处，涉及 ${store.size} 个文件）`;
+  if (limit <= 0) return [header];
+  const lines = [header];
   let shown = 0;
   for (const [source, details] of [...store.entries()].sort()) {
     for (const detail of [...details].sort()) {
@@ -67,14 +69,26 @@ function drain(store: Issues): Issues {
   return snapshot;
 }
 
-/** 生成报告文本并清空；没有新问题时返回空数组。 */
+/**
+ * 生成报告文本并清空；没有新问题时返回空数组。
+ *
+ * 默认只打**汇总行**：迁移期结束后剩下的都是已知的内容缺口
+ * （TBA 未收录、目标文件不存在等），每次构建刷几十行明细没有意义。
+ * 需要明细时用 `ONEDAY_REPORT=full`。
+ */
 export function renderReports(): string[] {
-  return [
-    ...format("[报告] 解析不到的 [[wikilink]]", drain(unresolvedLinks)),
-    ...format("[报告] 找不到文件的 ![[图片]]", drain(brokenImages)),
-    ...format("[提示] 图片同名、已按就近原则选择", drain(ambiguousImages), 10),
-    ...format("[提示]", drain(notes), 40),
+  const full = process.env["ONEDAY_REPORT"] === "full";
+  const limit = full ? 500 : 0;
+  const lines = [
+    ...format("[报告] 解析不到的 [[wikilink]]", drain(unresolvedLinks), limit),
+    ...format("[报告] 找不到文件的 ![[图片]]", drain(brokenImages), limit),
+    ...format("[提示] 图片同名、已按就近原则选择", drain(ambiguousImages), full ? 20 : 0),
+    ...format("[提示]", drain(notes), full ? 200 : 0),
   ];
+  if (!full && lines.length > 0) {
+    lines.push("  （明细：ONEDAY_REPORT=full npm run build）");
+  }
+  return lines;
 }
 
 /** 供 loader 判断要不要打印。 */

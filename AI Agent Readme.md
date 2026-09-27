@@ -75,16 +75,21 @@ src/content/<作者>/
 
 ```toml
 [[categories]]
-name = "游戏"                                  # 显示名，也是 URL 里的一段
+name = "游戏"                                  # 显示名，用在筛选区和卡片徽章上
+id_name = "Game"                               # URL 里用的分类段，保持 ASCII
 include = ["Game/**/*.md"]                     # 评测候选。** 匹配零层或多层目录
 standard = ["Standard/游戏/**/*.md"]           # 可选。评分标准
 
 [[categories]]
 name = "动漫"
+id_name = "Anime"
 include = ["Anime/**/*.md"]
 standard = ["Standard/动漫/**/*.md"]
 ```
 
+- **`name` 和 `id_name` 是分开的**：显示用 `name`（中文），URL 用 `id_name`（ASCII，
+  例如 动漫↔Anime、游戏↔Game）。`id_name` 省略时会回落到 slug 化的 `name`，
+  并在构建日志的 `[提示]` 里提醒你补上。
 - **没有任何 include 命中的文件一律不存在**——不需要、也不提供全局文件名黑名单。
 - `[[categories]]` 的书写顺序 = 首页侧栏的分类顺序。
 - 一个文件可以同时命中多个分类（`category` 是数组，URL 用第一个）。
@@ -274,12 +279,19 @@ astro build
 [oneday:reviews] 正文里 wikilink 232 处（裸文件名 0）、图片嵌入 15 处（裸文件名 0）
 [oneday:reviews] [报告] 解析不到的 [[wikilink]]（N 处，涉及 M 个文件）
 [oneday:reviews] [报告] 找不到文件的 ![[图片]]（N 处，涉及 M 个文件）
-[oneday:reviews] [提示] …
+[oneday:reviews] [提示]（N 处，涉及 M 个文件）
+  （明细：ONEDAY_REPORT=full npm run build）
 [oneday:standards] 评分标准 6 份
 ```
 
-> **迁移期基线**：裸文件名 5 处、解析不到的 wikilink 71 处、找不到的图片 4 处。
-> 这些都是已知的内容问题，不是构建 bug，详见 git 历史里的 commit message。
+**报告默认只打汇总行**：迁移期结束后剩下的都是已知的内容缺口（指向 `TBA/`、
+目标文件不存在等），每次构建刷几十行明细没有意义。要看逐条清单就加
+`ONEDAY_REPORT=full`。
+
+> **当前基线**：裸文件名 5 处、解析不到的 wikilink 71 处、找不到的图片 4 处。
+> 这些都是已知的内容问题，不是构建 bug：
+> `TBA/` 决定不收录、`status: 未完成` 的文件决定不补状态、
+> 目标不存在的链接决定不管。**有新问题冒出来时才需要关注这个数字。**
 
 ---
 
@@ -291,8 +303,10 @@ astro build
 ```
 
 - `<作者>` = 作者目录名原样。
-- `<分类>` = `category[0]`，即 `[[categories]]` 里第一个命中的分类名。
-  分类进路径让「轻小说 + 它的动画」这类同作者同名作品不再撞车。
+- `<分类>` = 第一个命中的分类的 **`id_name`**（ASCII，例如 `Game` / `Anime` / `Book`）。
+  分类进路径让「轻小说 + 它的动画」这类同作者同名作品不再撞车，
+  例如 `/Oneday/Blind-Guess-Senior/Anime/约会大作战/` 与
+  `/Oneday/Blind-Guess-Senior/Book/约会大作战/`。
 - `<slug>` 由标题生成：只剔除 URL / 文件系统危险字符（`/ \ ? # % & = + < > | * : " ' \``），
   空白转 `-`，折叠连续 `-`，ASCII 转小写；**CJK、全角标点、`∬`、`？` 等一律保留**。
   > 不要换回 `github-slugger`：它是为「标题锚点」设计的，会剥掉 `∬` `？` 这类有意义的字符，
@@ -344,6 +358,9 @@ npm run preview    # 预览 dist/
    Astro 是按 `entry.filePath` 的目录解析的。
 5. `store.set()` 必须显式传 `assetImports: rendered.metadata.imagePaths`，
    否则 `<img>` 会永远停在 `__ASTRO_IMAGE_` 中间态。
+6. **改了 entry id（slug 规则、路由结构、分类 `id_name`）之后必须删 `node_modules/.astro`。**
+   内容存储只按 key 更新，不会清理旧 key——旧 id 的条目会**残留在集合里**，
+   于是同一篇评测会同时生成新旧两个页面。表现为 `dist/` 下同时出现两套目录，很迷惑。
 
 ### 调试开关
 
@@ -351,6 +368,7 @@ npm run preview    # 预览 dist/
 |---|---|
 | `ONEDAY_DATA_DUMP=<路径>` | 把全部评测的 data 导出成 JSON（做行为对齐比对用） |
 | `ONEDAY_ALLOW_SLUG_COLLISION=1` | slug 撞车时不报错，后者加 `-2` 后缀 |
+| `ONEDAY_REPORT=full` | 构建报告打印逐条明细，而不只是汇总行 |
 
 ---
 
@@ -360,7 +378,8 @@ npm run preview    # 预览 dist/
 |---|---|
 | 加一个评测 | 在作者目录里被 `include` 命中的位置新建 md，写好 frontmatter |
 | 加一个作者 | 新建 `src/content/<作者>/` 并放一个 `reviewer_config.toml` |
-| 加一个分类 | 在作者的 `reviewer_config.toml` 里加一个 `[[categories]]` |
+| 加一个分类 | 在作者的 `reviewer_config.toml` 里加一个 `[[categories]]`（`name` + `id_name`） |
+| 改分类的 URL 段 | 改该分类的 `id_name`（改完记得删 `node_modules/.astro`，见第 10 节第 6 条） |
 | 收一个以前不收的目录 | 在对应的 `[[categories]]` 的 `include` 里加一条 glob |
 | 加一个 tag | 直接在评测 frontmatter 里写；想控制排序就加进 `src/config/site.toml` |
 | 改评分档位配色 | 改作者的 `reviewer_style.css` |

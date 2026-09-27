@@ -6,6 +6,7 @@
 
 [[categories]]
 name = "游戏"
+id_name = "Game"
 include = [
   "小众变态测评/游戏/已完成/**/*.md",
   "小众变态测评/游戏/未完成/**/*.md",
