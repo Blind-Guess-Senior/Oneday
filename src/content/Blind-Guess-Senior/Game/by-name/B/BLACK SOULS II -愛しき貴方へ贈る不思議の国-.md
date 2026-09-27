@@ -14,6 +14,7 @@ tags:
   - JRPG
   - 像素
 completed: false
+updated: 2026-06-29
 ---
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

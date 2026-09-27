@@ -7,6 +7,7 @@ category:
 tags:
   - SLG
 completed:
+updated: 2026-07-04
 ---
 ```
 玩法★★★★★

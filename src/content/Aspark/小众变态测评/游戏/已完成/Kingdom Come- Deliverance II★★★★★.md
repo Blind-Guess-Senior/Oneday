@@ -9,6 +9,7 @@ tags:
   - 剧情
   - RPG
 completed: true
+updated: 2026-09-17
 ---
 ```
 玩法★★★★★

@@ -16,6 +16,7 @@ tags:
 completed: false
 aka:
   - 盐与避难所
+updated: 2026-07-01
 ---
 续：  
 [[Blind-Guess-Senior/Game/by-name/S/Salt and Sacrifice]] 

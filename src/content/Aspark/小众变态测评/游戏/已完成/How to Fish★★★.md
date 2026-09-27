@@ -9,6 +9,7 @@ tags:
   - 派对
   - SLG
 completed: true
+updated: 2026-08-28
 ---
 ```
 玩法★★★★

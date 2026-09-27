@@ -116,6 +116,16 @@ function extractSubScores(body: string): { lines: string[]; body: string } {
   return { lines, body: stripped };
 }
 
+/**
+ * frontmatter 里显式写的更新日期（`updated: 2026-03-08`），没写或写坏了返回空串。
+ * 理由：重构批量改写过内容文件，提交时间不再能反映更新日期。发布日期不受影响。
+ */
+function explicitUpdated(value: unknown): string {
+  const text = value instanceof Date ? value.toISOString().slice(0, 10) : String(value ?? "").trim();
+  const parsed = /^\d{4}-\d{2}-\d{2}$/.test(text) ? new Date(`${text}T00:00:00Z`) : new Date(NaN);
+  return Number.isNaN(parsed.valueOf()) ? "" : parsed.toISOString();
+}
+
 function toStringList(value: unknown): string[] {
   if (value === undefined || value === null) return [];
   if (Array.isArray(value)) return value.filter((v) => v !== null && String(v).trim() !== "").map(String);
@@ -222,7 +232,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         sub_scores: subScores.lines,
         score_only: !completed,
         published: dates.published,
-        modified: dates.updated,
+        modified: explicitUpdated(meta["updated"]) || dates.updated,
       };
 
       records.push({

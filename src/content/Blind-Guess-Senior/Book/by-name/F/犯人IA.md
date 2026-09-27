@@ -11,6 +11,7 @@ tags:
   - 文学
   - 推理
 completed: false
+updated: 2026-06-29
 ---
 同：  
 [[Blind-Guess-Senior/Book/by-name/Z/侦探AI]] 

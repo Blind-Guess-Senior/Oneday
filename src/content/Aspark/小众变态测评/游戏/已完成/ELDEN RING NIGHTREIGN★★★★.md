@@ -12,6 +12,7 @@ tags:
   - Rougelike
   - ACT
 completed: true
+updated: 2026-09-09
 ---
 ```
 玩法★★★★

@@ -14,6 +14,7 @@ tags:
 completed:
 aka:
   - 空洞骑士：丝之歌
+updated: 2026-06-29
 ---
 前：  
 [[Blind-Guess-Senior/Game/by-name/H/Hollow Knight]] 

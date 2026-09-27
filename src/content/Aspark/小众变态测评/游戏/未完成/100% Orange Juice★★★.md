@@ -8,6 +8,7 @@ tags:
   - 联机
   - 派对
 completed:
+updated: 2026-09-09
 ---
 ```
 玩法★★★★

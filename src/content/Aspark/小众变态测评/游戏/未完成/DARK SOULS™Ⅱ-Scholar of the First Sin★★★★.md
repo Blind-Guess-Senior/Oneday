@@ -8,6 +8,7 @@ tags:
   - ARPG
   - 箱庭
 completed:
+updated: 2026-07-04
 ---
 ```
 玩法★★★★

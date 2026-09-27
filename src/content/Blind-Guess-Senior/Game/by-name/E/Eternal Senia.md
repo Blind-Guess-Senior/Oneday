@@ -13,6 +13,7 @@ tags:
   - JRPG
   - 像素
 completed: false
+updated: 2026-06-29
 ---
 TBA 2025 *提名* **==最佳叙事==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]] 
 

@@ -12,5 +12,6 @@ tags:
   - 青春
   - 超能力
 completed: false
+updated: 2026-06-29
 ---
 6/10 差强人意

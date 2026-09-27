@@ -8,6 +8,7 @@ tags:
   - 联机
   - 恐怖
 completed: true
+updated: 2026-08-13
 ---
 ```
 玩法★★★★

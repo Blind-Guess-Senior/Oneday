@@ -16,6 +16,7 @@ tags:
 completed: true
 aka:
   - 茧
+updated: 2026-07-02
 ---
 TBA 2026 *提名* **==年度独立==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]]  
 TBA 2026 *提名* **==最佳创意==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]]  

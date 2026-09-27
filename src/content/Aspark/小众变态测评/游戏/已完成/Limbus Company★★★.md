@@ -9,6 +9,7 @@ tags:
   - 回合制
   - 二游
 completed: true
+updated: 2026-07-03
 ---
 ```
 玩法★★★★

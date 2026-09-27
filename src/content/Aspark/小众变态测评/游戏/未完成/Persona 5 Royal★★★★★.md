@@ -9,6 +9,7 @@ tags:
   - JRPG
   - 回合制
 completed:
+updated: 2026-07-04
 ---
 ```
 玩法★★★★★

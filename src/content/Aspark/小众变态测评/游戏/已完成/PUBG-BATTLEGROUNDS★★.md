@@ -9,6 +9,7 @@ tags:
   - STG
   - 联机
 completed: true
+updated: 2026-08-11
 ---
 ```
 玩法★★★★

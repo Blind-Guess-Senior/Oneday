@@ -8,6 +8,7 @@ tags:
   - 开放世界
   - ARPG
 completed:
+updated: 2026-07-04
 ---
 ```
 玩法★★★★★

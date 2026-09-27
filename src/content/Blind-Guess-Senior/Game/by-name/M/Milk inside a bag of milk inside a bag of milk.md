@@ -15,6 +15,7 @@ tags:
 completed: true
 aka:
   - 牛奶袋内袋装牛奶
+updated: 2026-07-01
 ---
 续：  
 [[Blind-Guess-Senior/Game/by-name/M/Milk outside a bag of milk outside a bag of milk]] 

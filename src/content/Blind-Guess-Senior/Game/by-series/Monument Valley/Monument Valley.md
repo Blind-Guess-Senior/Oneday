@@ -15,6 +15,7 @@ tags:
 completed: true
 aka:
   - 纪念碑谷
+updated: 2026-07-01
 ---
 TBA 2025 *提名* **==最佳创意==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]]  
 TBA 2025 *提名* **==最佳美术==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]]  
