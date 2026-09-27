@@ -16,10 +16,10 @@ completed: false
 aka:
   - 死亡细胞
 ---
-TBA 2026 *提名* **==年度游戏==** [[The Blind Award 2026#游戏提名]] 
-TBA 2026 *提名* **==年度独立==** [[The Blind Award 2026#游戏提名]] 
-TBA 2026 *提名* **==最佳美术==** [[The Blind Award 2026#游戏提名]] 
-TBA 2026 *提名* **==最佳音乐==** [[The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==年度游戏==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==年度独立==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==最佳美术==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==最佳音乐==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
 
 ```
 美术 /4

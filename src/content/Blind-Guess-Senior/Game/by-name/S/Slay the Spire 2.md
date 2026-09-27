@@ -15,10 +15,10 @@ tags:
   - Rougelike
 completed: false
 ---
-TBA 2025 *提名* **==最受期待==** [[The Blind Award 2025#游戏提名]] 
-TBA 2026 *提名* **==年度游戏==** [[The Blind Award 2026#游戏提名]] 
-TBA 2026 *提名* **==年度独立==** [[The Blind Award 2026#游戏提名]] 
-TBA 2026 *提名* **==最佳创意==** [[The Blind Award 2026#游戏提名]] 
+TBA 2025 *提名* **==最受期待==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]] 
+TBA 2026 *提名* **==年度游戏==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==年度独立==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==最佳创意==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
 
 ```
 美术 /4

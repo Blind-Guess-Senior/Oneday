@@ -13,6 +13,6 @@ tags:
 completed: false
 ---
 同：
-[[侦探AI]] 
+[[Blind-Guess-Senior/Book/by-name/Z/侦探AI]] 
 
 4/10 实在一般

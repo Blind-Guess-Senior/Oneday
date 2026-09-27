@@ -16,10 +16,10 @@ completed: false
 aka:
   - 神之亵渎
 ---
-TBA 2025 **==最佳音乐==** [[The Blind Award 2025#游戏]] 
-TBA 2025 *提名* **==年度独立==** [[The Blind Award 2025#游戏提名]] 
-TBA 2025 *提名* **==最佳美术==** [[The Blind Award 2025#游戏提名]] 
-TBA 2025 *提名* **==最佳演出==** [[The Blind Award 2025#游戏提名]] 
+TBA 2025 **==最佳音乐==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏]] 
+TBA 2025 *提名* **==年度独立==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]] 
+TBA 2025 *提名* **==最佳美术==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]] 
+TBA 2025 *提名* **==最佳演出==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]] 
 
 	首评于 2025.8.10
 	小项评分更新 2025.9.8

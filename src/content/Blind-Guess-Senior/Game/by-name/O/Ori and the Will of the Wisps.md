@@ -14,7 +14,7 @@ tags:
 completed: false
 ---
 前：
-[[Ori and the Blind Forest]] 
+[[Blind-Guess-Senior/Game/by-name/O/Ori and the Blind Forest]] 
 
 
 ```

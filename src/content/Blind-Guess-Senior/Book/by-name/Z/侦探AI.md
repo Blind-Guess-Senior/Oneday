@@ -13,6 +13,6 @@ tags:
 completed: false
 ---
 同：
-[[犯人IA]] 
+[[Blind-Guess-Senior/Book/by-name/F/犯人IA]] 
 
 4/10 实在一般

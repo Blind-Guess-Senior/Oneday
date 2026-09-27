@@ -16,9 +16,9 @@ aka:
   - 赤痕：夜之仪式
 ---
 续：
-[[Bloodstained- The Scarlet Engagement]] 
+[[Blind-Guess-Senior/Game/by-name/B/Bloodstained- The Scarlet Engagement]] 
 
-TBA 2024 *提名* **==年度独立==** [[The Blind Award 2024#游戏提名]] 
+TBA 2024 *提名* **==年度独立==** [[Blind-Guess-Senior/TBA/The Blind Award 2024#游戏提名]] 
 
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

@@ -13,6 +13,6 @@ tags:
 completed: false
 ---
 续：
-[[Sixteen 十六岁]] 
+[[Blind-Guess-Senior/Book/by-name/S/Sixteen 十六岁]] 
 
 9/10 此生难忘

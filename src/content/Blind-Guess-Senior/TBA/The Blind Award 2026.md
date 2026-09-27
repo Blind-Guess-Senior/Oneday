@@ -29,40 +29,40 @@
 ## 游戏提名
  
 ### ==年度游戏== 
- Dead Cells | [[Dead Cells]] 
- BLACK SOULS -黒の童話と五魔姫- | [[BLACK SOULS -黒の童話と五魔姫-]] | [[BLACK SOULS]] 
- Slay the Spire 2 (Early Access) | [[Slay the Spire 2]] 
+ Dead Cells | [[Blind-Guess-Senior/Game/by-name/D/Dead Cells]] 
+ BLACK SOULS -黒の童話と五魔姫- | [[Blind-Guess-Senior/Game/by-name/B/BLACK SOULS -黒の童話と五魔姫-]] | [[Aspark/小众变态测评/游戏/未完成/BLACK SOULS★★★|BLACK SOULS]] 
+ Slay the Spire 2 (Early Access) | [[Blind-Guess-Senior/Game/by-name/S/Slay the Spire 2]] 
  
 ### ==年度独立==
- Dead Cells | [[Dead Cells]] 
- BLACK SOULS -黒の童話と五魔姫- | [[BLACK SOULS -黒の童話と五魔姫-]] | [[BLACK SOULS]] 
- Slay the Spire 2 (Early Access) | [[Slay the Spire 2]] 
- COCOON | [[COCOON]] 
+ Dead Cells | [[Blind-Guess-Senior/Game/by-name/D/Dead Cells]] 
+ BLACK SOULS -黒の童話と五魔姫- | [[Blind-Guess-Senior/Game/by-name/B/BLACK SOULS -黒の童話と五魔姫-]] | [[Aspark/小众变态测评/游戏/未完成/BLACK SOULS★★★|BLACK SOULS]] 
+ Slay the Spire 2 (Early Access) | [[Blind-Guess-Senior/Game/by-name/S/Slay the Spire 2]] 
+ COCOON | [[Blind-Guess-Senior/Game/by-name/C/COCOON]] 
  
 ### ==最佳创意==
- Slay the Spire 2 (Early Access) | [[Slay the Spire 2]] 
- COCOON | [[COCOON]] 
- Leap Year | [[Leap Year]] 
+ Slay the Spire 2 (Early Access) | [[Blind-Guess-Senior/Game/by-name/S/Slay the Spire 2]] 
+ COCOON | [[Blind-Guess-Senior/Game/by-name/C/COCOON]] 
+ Leap Year | [[Blind-Guess-Senior/Game/by-name/L/Leap Year]] 
  
 ### ==最佳美术==
- Dead Cells | [[Dead Cells]] 
- COCOON | [[COCOON]] 
- Monument Valley 2 | [[Monument Valley 2]] 
+ Dead Cells | [[Blind-Guess-Senior/Game/by-name/D/Dead Cells]] 
+ COCOON | [[Blind-Guess-Senior/Game/by-name/C/COCOON]] 
+ Monument Valley 2 | [[Blind-Guess-Senior/Game/by-series/Monument Valley/Monument Valley 2]] 
  
 ### ==最佳音乐==
- Dead Cells | [[Dead Cells]] 
+ Dead Cells | [[Blind-Guess-Senior/Game/by-name/D/Dead Cells]] 
  
 ### ==最佳叙事==
- BLACK SOULS -黒の童話と五魔姫- | [[BLACK SOULS -黒の童話と五魔姫-]] | [[BLACK SOULS]] 
+ BLACK SOULS -黒の童話と五魔姫- | [[Blind-Guess-Senior/Game/by-name/B/BLACK SOULS -黒の童話と五魔姫-]] | [[Aspark/小众变态测评/游戏/未完成/BLACK SOULS★★★|BLACK SOULS]] 
  鸣潮
  
 ### ==最佳演出==
- BLACK SOULS -黒の童話と五魔姫- | [[BLACK SOULS -黒の童話と五魔姫-]] | [[BLACK SOULS]] 
+ BLACK SOULS -黒の童話と五魔姫- | [[Blind-Guess-Senior/Game/by-name/B/BLACK SOULS -黒の童話と五魔姫-]] | [[Aspark/小众变态测评/游戏/未完成/BLACK SOULS★★★|BLACK SOULS]] 
  鸣潮
- COCOON | [[COCOON]] 
+ COCOON | [[Blind-Guess-Senior/Game/by-name/C/COCOON]] 
  
 ### ==最受期待==
- The Expanse: Osiris Reborn | [[The Expanse- Osiris Reborn]] 
+ The Expanse: Osiris Reborn | [[Blind-Guess-Senior/Game/by-name/E/The Expanse- Osiris Reborn]] 
 
 
 # 书籍
@@ -126,7 +126,7 @@
 ### ==最佳推理&悬疑==
  无
 ### ==最佳科幻&奇幻==
- 《末日邮差》 | [[末日邮差]] 
+ 《末日邮差》 | [[Blind-Guess-Senior/Book/by-name/M/末日邮差]] 
  
 ### ==最佳短篇==
  无

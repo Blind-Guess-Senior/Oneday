@@ -17,7 +17,7 @@ aka:
   - 终焉之莉莉：骑士寂夜
 ---
 续：
-[[ENDER MAGNOLIA- Bloom in the Mist]] 
+[[Blind-Guess-Senior/Game/by-name/E/ENDER MAGNOLIA- Bloom in the Mist]] 
 
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

@@ -9,5 +9,5 @@ tags:
 completed: false
 ---
 前：
-[[Mirror's Edge]] 
+[[Blind-Guess-Senior/Game/by-name/M/Mirror's Edge]] 
 

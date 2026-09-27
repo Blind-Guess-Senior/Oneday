@@ -15,6 +15,6 @@ tags:
   - 竞技
 completed: false
 ---
-TBA 2025 *提名* **==最佳创意==** [[The Blind Award 2025#游戏提名]] 
+TBA 2025 *提名* **==最佳创意==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]] 
 
 8/10 强烈推荐

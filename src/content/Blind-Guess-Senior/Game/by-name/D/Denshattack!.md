@@ -14,7 +14,7 @@ tags:
   - 跑酷
 completed: false
 ---
-TBA 2025 **==最受期待==** [[The Blind Award 2025#游戏]] 
+TBA 2025 **==最受期待==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏]] 
 
 
 ```

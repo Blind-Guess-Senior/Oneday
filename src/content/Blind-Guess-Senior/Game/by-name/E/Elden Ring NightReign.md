@@ -18,7 +18,7 @@ aka:
   - 艾尔登法环：黑夜君临
 ---
 系列原作：
-[[Elden Ring]] 
+[[Blind-Guess-Senior/Game/by-name/E/Elden Ring]] 
 
 	编辑于 2025.6.17
 	小项评分更新 2025.9.8

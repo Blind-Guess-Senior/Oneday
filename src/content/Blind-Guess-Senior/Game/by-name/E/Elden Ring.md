@@ -18,7 +18,7 @@ aka:
   - 艾尔登法环
 ---
 衍生作：
-[[Elden Ring NightReign]] 
+[[Blind-Guess-Senior/Game/by-name/E/Elden Ring NightReign]] 
 
 
 

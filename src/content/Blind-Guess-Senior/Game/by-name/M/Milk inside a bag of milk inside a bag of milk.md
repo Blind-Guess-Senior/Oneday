@@ -17,7 +17,7 @@ aka:
   - 牛奶袋内袋装牛奶
 ---
 续：
-[[Milk outside a bag of milk outside a bag of milk]] 
+[[Blind-Guess-Senior/Game/by-name/M/Milk outside a bag of milk outside a bag of milk]] 
 
 	完成 2026.1.13
 	编辑 2026.1.13

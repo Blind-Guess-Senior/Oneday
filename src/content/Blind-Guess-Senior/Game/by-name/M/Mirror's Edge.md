@@ -9,5 +9,5 @@ tags:
 completed: false
 ---
 续：
-[[Mirror's Edge Catalyst]] 
+[[Blind-Guess-Senior/Game/by-name/M/Mirror's Edge Catalyst]] 
 

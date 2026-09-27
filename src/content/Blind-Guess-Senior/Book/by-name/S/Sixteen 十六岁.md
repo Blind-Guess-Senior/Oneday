@@ -13,6 +13,6 @@ tags:
 completed: false
 ---
 前：
-[[Fourteen 十四岁]] 
+[[Blind-Guess-Senior/Book/by-name/F/Fourteen 十四岁]] 
 
 9/10 此生难忘

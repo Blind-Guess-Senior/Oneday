@@ -14,7 +14,7 @@ tags:
   - 像素
 completed: false
 ---
-TBA 2025 *提名* **==最佳叙事==** [[The Blind Award 2025#游戏提名]] 
+TBA 2025 *提名* **==最佳叙事==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]] 
 
 	完成 2025.11.7
 	首评 2025.11.7

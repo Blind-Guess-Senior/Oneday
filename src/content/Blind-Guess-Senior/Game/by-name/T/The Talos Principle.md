@@ -14,7 +14,7 @@ tags:
 completed: false
 ---
 重制版：
-[[The Talos Principle- Reawakened]] 
+[[Blind-Guess-Senior/Game/by-name/T/The Talos Principle- Reawakened]] 
 
 
 

@@ -16,7 +16,7 @@ completed: true
 aka:
   - 纪念碑谷2
 ---
-TBA 2026 *提名* **==最佳美术==** [[The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==最佳美术==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
 
 	完成 2026.5.3
 

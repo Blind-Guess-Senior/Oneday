@@ -13,7 +13,7 @@ tags:
   - 平台跳跃
 completed: true
 ---
-TBA 2024 **==最佳艺术==** [[The Blind Award 2024#游戏]] 
+TBA 2024 **==最佳艺术==** [[Blind-Guess-Senior/TBA/The Blind Award 2024#游戏]] 
 
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

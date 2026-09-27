@@ -13,7 +13,7 @@ tags:
 completed: false
 ---
 前：
-[[Milk inside a bag of milk inside a bag of milk]] 
+[[Blind-Guess-Senior/Game/by-name/M/Milk inside a bag of milk inside a bag of milk]] 
 
 
 ```
