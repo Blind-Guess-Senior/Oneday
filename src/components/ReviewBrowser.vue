@@ -11,6 +11,7 @@ import {
   type SortKey,
 } from "../lib/filter";
 import type { IndexPayload } from "../lib/index-data";
+import { formatDate } from "../lib/site";
 
 const props = defineProps<{ payload: IndexPayload }>();
 
@@ -350,6 +351,9 @@ onMounted(readUrlState);
                 :data-reviewer="card.reviewer"
               >
                 {{ card.score || "未评分" }}
+              </span>
+              <span v-if="card.published" class="card-date">
+                <time :datetime="card.published">{{ formatDate(card.published) }}</time>
               </span>
             </div>
             <div v-if="card.tags.length" class="card-tags">

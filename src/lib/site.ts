@@ -30,3 +30,17 @@ export function toSlug(value: string): string {
     .replace(/-{2,}/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+/**
+ * ISO 时间 → 页面上显示的 `YYYY-MM-DD`；解析不出来就返回空串。
+ *
+ * 用 UTC 取值：提交时间本身是 UTC，按本地时区取会让同一次提交在不同机器上
+ * （CI 是 UTC，本地是 +8）显示成不同的日期。
+ */
+export function formatDate(iso: string): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.valueOf())) return "";
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+}

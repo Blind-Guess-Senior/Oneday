@@ -110,6 +110,7 @@ export function buildIndexPayload(): Promise<IndexPayload> {
         rank: typeof review.data["score_rank"] === "number" ? review.data["score_rank"] : null,
         tier: typeof review.data["score_tier"] === "number" ? review.data["score_tier"] : null,
         scoreOnly: review.data["score_only"] === true,
+        published: String(review.data["published"] ?? ""),
         modified: String(review.data["modified"] ?? ""),
       };
     });

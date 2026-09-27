@@ -294,6 +294,13 @@ header {
 .article-meta-item { display: flex; align-items: center; gap: .3rem; color: var(--muted); }
 .article-meta-item strong { color: var(--ink); }
 .article-meta-sep { color: var(--border); }
+/* 正文之后的发布/更新日期，来自 git（见 config.ts 的 gitDatesFor） */
+.article-dates {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .5rem;
+  margin-top: 1.75rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: .8rem; color: var(--muted);
+}
 .score-link-btn {
   display: inline-flex; align-items: center; gap: .35rem;
   border: none; background: none; padding: 0;

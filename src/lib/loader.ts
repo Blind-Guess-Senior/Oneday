@@ -76,13 +76,15 @@ export function standardsLoader(): Loader {
           reviewer: standard.reviewer,
           category: standard.category,
           title: standard.title,
+          published: standard.published,
+          modified: standard.modified,
         };
         store.set({
           id: standard.id,
           data,
           body: raw,
           filePath: standard.relPath,
-          digest: generateDigest(raw),
+          digest: generateDigest(raw + JSON.stringify(data)),
           rendered,
           assetImports: rendered?.metadata?.imagePaths,
         });

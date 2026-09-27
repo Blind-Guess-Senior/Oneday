@@ -17,6 +17,9 @@ export interface Card {
   /** 评分档位，用于样式（score-tier-N）；没配置 tiers 时为 null */
   tier: number | null;
   scoreOnly: boolean;
+  /** 最早一次提交的 ISO 时间，页面上当作发布日期显示 */
+  published: string;
+  /** 最近一次提交的 ISO 时间 */
   modified: string;
 }
 

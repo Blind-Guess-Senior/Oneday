@@ -1,7 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
-import { BASE } from "../../lib/site";
+import { formatDate, BASE } from "../../lib/site";
 
 export async function getStaticPaths() {
   const standards = await getCollection("standards");
@@ -13,6 +13,8 @@ const data = entry.data as Record<string, unknown>;
 const title = String(data["title"] ?? entry.id);
 const reviewer = String(data["reviewer"] ?? "");
 const category = String(data["category"] ?? "");
+const published = String(data["published"] ?? "");
+const modified = String(data["modified"] ?? "");
 
 const { Content } = await render(entry);
 ---
@@ -41,6 +43,16 @@ const { Content } = await render(entry);
         </div>
 
         <div class="md-body"><Content /></div>
+
+        <div class="article-dates">
+          {
+            published && (
+              <time datetime={published}>发布于 {formatDate(published)}</time>
+            )
+          }
+          {published && modified && <span class="meta-dot">·</span>}
+          {modified && <time datetime={modified}>更新于 {formatDate(modified)}</time>}
+        </div>
       </div>
     </div>
   </div>

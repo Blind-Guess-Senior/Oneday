@@ -1,7 +1,7 @@
 
 
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -208,34 +208,108 @@ export function loadTagConfig(): TagConfig {
   return tagConfigCache;
 }
 
-let gitDatesCache: Map<string, string> | null = null;
+export interface GitDates {
+  /** 这篇内容最早一次提交 = 发布。 */
+  published: string;
+  /** 最近一次提交 = 更新。 */
+  updated: string;
+}
 
-export function loadGitDates(): Map<string, string> {
-  if (gitDatesCache) return gitDatesCache;
+const EMPTY_DATES: GitDates = { published: "", updated: "" };
+const memoryDates = new Map<string, GitDates>();
 
-  const dates = new Map<string, string>();
+/**
+ * 逐文件的日期按 HEAD 缓存到磁盘。
+ *
+ * 为什么要缓存：vault.ts / index-data.ts / 插件 / 各个页面会被 Astro 打成好几个
+ * 模块实例，模块内的 memo 不跨实例，实测一次构建里同一个文件会被问 4 遍
+ * （1434 次 git 调用，构建从 3 秒变 31 秒）。缓存的键是 HEAD —— 日期只取决于
+ * 提交历史，工作区改没改不影响，所以 HEAD 没变就可以直接复用。
+ */
+const DATES_CACHE = path.join(PROJECT_ROOT, "node_modules", ".cache", "oneday-git-dates.json");
+
+process.once("exit", () => {
+  if (pendingSaves > 0) saveDiskDates();
+});
+
+let diskDates: Record<string, GitDates> | null = null;
+let diskHead = "";
+
+function loadDiskDates(): Record<string, GitDates> {
+  if (diskDates) return diskDates;
+  diskDates = {};
   try {
-    const output = execFileSync(
-      "git",
-      ["-c", "core.quotepath=false", "log", "--pretty=format:%ct", "--name-only"],
-      { cwd: PROJECT_ROOT, encoding: "utf8", maxBuffer: 512 * 1024 * 1024 },
-    );
-    let timestamp = "";
-    for (const line of output.split("\n")) {
-      const value = line.trim();
-      if (!value) continue;
-      if (/^\d{9,11}$/.test(value)) {
-        timestamp = value;
-        continue;
-      }
-      if (timestamp && !dates.has(value)) {
-        dates.set(value, new Date(Number(timestamp) * 1000).toISOString());
-      }
-    }
+    diskHead = execFileSync("git", ["rev-parse", "HEAD"], { cwd: PROJECT_ROOT, encoding: "utf8" }).trim();
+    const parsed = JSON.parse(readFileSync(DATES_CACHE, "utf8")) as {
+      head?: string;
+      dates?: Record<string, GitDates>;
+    };
+    if (parsed.head === diskHead && parsed.dates) diskDates = parsed.dates;
   } catch {
-    // 没有 git 或没有历史：modified 全部留空，页面照样能构建
+    // 没有缓存（或没有 git）：照常逐文件算
+  }
+  return diskDates;
+}
+
+let pendingSaves = 0;
+
+/** 攒够一批再落盘：每算一条就写一次 JSON 会让冷构建多花十几秒。 */
+function saveDiskDates(): void {
+  pendingSaves = 0;
+  try {
+    mkdirSync(path.dirname(DATES_CACHE), { recursive: true });
+    writeFileSync(DATES_CACHE, JSON.stringify({ head: diskHead, dates: diskDates }));
+  } catch {
+    // 写不进去不影响构建，下次重算而已
+  }
+}
+
+function scheduleSave(): void {
+  pendingSaves += 1;
+  if (pendingSaves >= 32) saveDiskDates();
+}
+
+/**
+ * 某个文件的发布/更新日期。
+ *
+ * 命令跟参考站 blind-guess-senior.github.io 一致：`git log --follow`。
+ * 必须带 `--follow` —— vault 备份提交会把文件在目录之间反复搬（历史上有近两千条
+ * 重命名/复制），不带的话只能看到搬过来之后的提交，发布日期会变成搬动那天。
+ * `git log` 是新到旧，所以第一行是更新、最后一行是发布。
+ */
+function computeGitDates(relPath: string): GitDates {
+  try {
+    const output = execFileSync("git", ["log", "--follow", "--pretty=format:%ct", "--", relPath], {
+      cwd: PROJECT_ROOT,
+      encoding: "utf8",
+      maxBuffer: 8 * 1024 * 1024,
+    });
+    const stamps = output.split("\n").map((line) => line.trim()).filter(Boolean);
+    const newest = stamps[0];
+    const oldest = stamps[stamps.length - 1];
+    if (!newest || !oldest) return EMPTY_DATES;
+    const iso = (stamp: string) => new Date(Number(stamp) * 1000).toISOString();
+    return { published: iso(oldest), updated: iso(newest) };
+  } catch {
+    // 没有 git 或没有历史：两个日期都留空，页面照样能构建
+    return EMPTY_DATES;
+  }
+}
+
+export function gitDatesFor(relPath: string): GitDates {
+  const remembered = memoryDates.get(relPath);
+  if (remembered) return remembered;
+
+  const disk = loadDiskDates();
+  const cached = disk[relPath];
+  if (cached) {
+    memoryDates.set(relPath, cached);
+    return cached;
   }
 
-  gitDatesCache = dates;
+  const dates = computeGitDates(relPath);
+  memoryDates.set(relPath, dates);
+  disk[relPath] = dates;
+  scheduleSave();
   return dates;
 }

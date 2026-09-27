@@ -2,7 +2,7 @@
 import { getCollection, render } from "astro:content";
 import Layout from "../layouts/Layout.astro";
 import { extraMeta } from "../lib/extra-meta";
-import { entryUrl, BASE } from "../lib/site";
+import { entryUrl, formatDate, BASE } from "../lib/site";
 import { getStandards } from "../lib/vault";
 
 export async function getStaticPaths() {
@@ -24,6 +24,8 @@ const aka = list("aka");
 const tags = list("tags");
 const subScores = list("sub_scores");
 const scoreOnly = data["score_only"] === true;
+const published = String(data["published"] ?? "");
+const modified = String(data["modified"] ?? "");
 
 const meta = await extraMeta(reviewer, category, data);
 
@@ -150,6 +152,16 @@ const Content = scoreOnly ? null : (await render(entry)).Content;
             )
           }
           {Content && <Content />}
+        </div>
+
+        <div class="article-dates">
+          {
+            published && (
+              <time datetime={published}>发布于 {formatDate(published)}</time>
+            )
+          }
+          {published && modified && <span class="meta-dot">·</span>}
+          {modified && <time datetime={modified}>更新于 {formatDate(modified)}</time>}
         </div>
       </div>
     </div>

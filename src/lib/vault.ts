@@ -12,7 +12,7 @@ import path from "node:path";
 import { parse as parseYaml } from "yaml";
 import {
   CONTENT_ROOT,
-  loadGitDates,
+  gitDatesFor,
   loadTagConfig,
   readReviewerConfigs,
   type CategoryConfig,
@@ -49,6 +49,8 @@ export interface StandardRecord {
   filePath: string;
   relPath: string;
   contentRel: string;
+  published: string;
+  modified: string;
 }
 
 export interface LinkIndex {
@@ -160,7 +162,6 @@ function matchesScoreOnly(meta: Record<string, unknown>, rules: Array<[string, s
 
 async function buildReviews(): Promise<ReviewRecord[]> {
   const [configs, files] = await Promise.all([readReviewerConfigs(), listFiles()]);
-  const gitDates = loadGitDates();
   const tagConfig = loadTagConfig();
   const records: ReviewRecord[] = [];
 
@@ -201,6 +202,9 @@ async function buildReviews(): Promise<ReviewRecord[]> {
 
       const subScores = extractSubScores(body);
 
+      const relPath = path.posix.join("src/content", contentRel);
+      const dates = gitDatesFor(relPath);
+
       const rankIndex = config.scoreOrder.indexOf(scoreRaw);
       const tierIndex = config.scoreTiers.findIndex((tier) => tier.includes(scoreRaw));
 
@@ -217,7 +221,8 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         aka: toStringList(meta["aka"]),
         sub_scores: subScores.lines,
         score_only: !completed,
-        modified: gitDates.get(contentRel) ?? "",
+        published: dates.published,
+        modified: dates.updated,
       };
 
       records.push({
@@ -226,7 +231,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         slug,
         title,
         filePath,
-        relPath: path.posix.join("src/content", contentRel),
+        relPath,
         contentRel,
         category,
         data,
@@ -298,6 +303,8 @@ async function buildStandards(): Promise<StandardRecord[]> {
 
       const stem = path.basename(authorRel).replace(/\.md$/i, "").trim();
       const slug = toSlug(stem) || toSlug(authorRel.replace(/\.md$/i, "").replace(/\//g, "-"));
+      const relPath = path.posix.join("src/content", contentRel);
+      const dates = gitDatesFor(relPath);
 
       records.push({
         id: `${config.reviewer}/${category.idName}/${slug}`,
@@ -306,8 +313,10 @@ async function buildStandards(): Promise<StandardRecord[]> {
         title: stem,
         category: category.name,
         filePath: path.join(CONTENT_ROOT, contentRel),
-        relPath: path.posix.join("src/content", contentRel),
+        relPath,
         contentRel,
+        published: dates.published,
+        modified: dates.updated,
       });
     }
   }
