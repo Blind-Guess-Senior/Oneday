@@ -23,6 +23,10 @@ jobs:
         with:
           # loader 用 `git log` 取每篇评测的最近提交时间，必须要有完整历史
           fetch-depth: 0
+          # attachments/ 下的图片走 git-lfs(.gitattributes 里 *.png/*.jpg/... 都标了)。
+          # 不拉 LFS 的话这些文件在 runner 上是指针文本，Astro 读图片元数据会直接报
+          # NoImageMetadata 然后构建失败。
+          lfs: true
 
       - name: Install, build, and upload
         uses: withastro/action@v5
