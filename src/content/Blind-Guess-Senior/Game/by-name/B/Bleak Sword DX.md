@@ -57,6 +57,6 @@ aka:
 简洁的战斗系统，炫酷得不行的视觉效果，和不耗精的翻滚、imba无比的弹反带来的爽快战斗体验，足以让这5小时的游玩不虚此行。
 
 另：这游戏几个带无法弹反攻击手段的怪复读起来是真的恶心，能被气笑的那种。
-![[Bleak Sword DX - 图1.png]]
+![[Blind-Guess-Senior/Game/by-name/B/attachments/Bleak Sword DX - 图1.png]]
 
 
