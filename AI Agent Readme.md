@@ -25,28 +25,50 @@
 ## 2. 仓库结构
 
 ```
-├─ astro.config.ts            站点配置（base = /Oneday，markdown 插件注册）
+├─ astro.config.ts            站点配置（base = /Oneday，markdown 插件、vue 集成）
 ├─ src/
 │  ├─ content/                ← 内容根，同时也是 Obsidian vault 根
 │  │  └─ <作者>/              ← 作者目录，见下
 │  ├─ config/site.toml        全站配置（tag 分排与别名）
 │  ├─ content.config.ts       两个集合：reviews / standards
+│  ├─ styles/global.css       全站样式（沿用了旧站的 class 命名）
 │  ├─ lib/
 │  │  ├─ config.ts            读 TOML、读 git 提交时间
 │  │  ├─ vault.ts             扫描内容、收录判定、链接/附件索引、全量审计
 │  │  ├─ loader.ts            两个自定义 Content Layer loader
+│  │  ├─ index-data.ts        首页岛屿要的数据，构建期算好
+│  │  ├─ filter.ts            筛选 / 排序 / 分页，纯函数（有 .test.ts）
+│  │  ├─ reviewer-styles.ts   作者评分档位配色 → 带作用域的 CSS
+│  │  ├─ extra-meta.ts        metadata_maps → 额外元信息
 │  │  ├─ report.ts            构建期报告收集与打印
-│  │  └─ site.ts              SITE / BASE / URL 拼接
+│  │  └─ site.ts              SITE / BASE / URL 拼接 / slug 生成
 │  ├─ plugins/
 │  │  ├─ obsidian.ts          ![[图片]] 与 [[链接#小节|别名]]
 │  │  └─ highlight.ts         ==高亮== → <mark class="hl">
+│  ├─ components/ReviewBrowser.vue   首页那个筛选岛屿
 │  ├─ layouts/Layout.astro
 │  └─ pages/
-│     ├─ index.astro          首页（静态卡片列表）
-│     ├─ [...slug].astro      评测页
-│     └─ standard/[...slug].astro  评分标准页
+│     ├─ index.astro          首页（一个 Vue 岛屿，见第 7.1 节）
+│     ├─ [...slug].astro      评测页（零 JS）
+│     └─ standard/[...slug].astro  评分标准页（零 JS）
 └─ Utils/                     与站点无关的辅助脚本（Bangumi/Steam 转 md 等）
 ```
+
+### 2.1 前端只有一处 JS
+
+整站只有**首页**有客户端 JavaScript，就是 `src/components/ReviewBrowser.vue` 这一个岛屿：
+
+- 用 `client:idle` 挂载：构建时先被渲染成真 HTML（默认视图 30 张卡片），
+  浏览器空闲后才加载 Vue 接管，所以没 JS 也能看、也能被搜索引擎抓。
+- 岛屿要的数据由 `src/lib/index-data.ts` 在构建期算好，通过 props 内联进页面，
+  浏览器端**不需要额外请求**。
+- 筛选/排序/分页的语义全在 `src/lib/filter.ts` 的纯函数里，不依赖框架；
+  边界由 `src/lib/filter.test.ts` 固定（`npm test`）。
+  **改筛选逻辑请同时改测试。**
+- 文章页和标准页是零 JS 的：评分标准面板用原生 `<details>`，
+  文章页的标签是普通链接（指向 `/?tag=xxx`，岛屿启动后读取并预选）。
+- 样式在 `src/styles/global.css`，**class 命名沿用旧站**（`.card`、`.sidebar`、
+  `.article-meta-bar`、`.md-body`…），改样式时对着它改就行。
 
 `src/content/` 以外的目录（`Utils/`、`node_modules/`、`dist/` 等）都不参与内容扫描。
 
