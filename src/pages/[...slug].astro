@@ -1,0 +1,76 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import { BASE } from "../lib/site";
+
+export async function getStaticPaths() {
+  const reviews = await getCollection("reviews");
+  return reviews.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const data = entry.data as Record<string, unknown>;
+const list = (key: string): string[] =>
+  Array.isArray(data[key]) ? (data[key] as string[]).map(String) : [];
+
+const title = String(data["title"] ?? entry.id);
+const reviewer = String(data["reviewer"] ?? "");
+const category = list("category");
+const scoreRaw = String(data["score_raw"] ?? "");
+const aka = list("aka");
+const tags = list("tags");
+const subScores = list("sub_scores");
+const scoreOnly = data["score_only"] === true;
+
+// 仅评分评测没有渲染正文，旧站也只显示元信息
+const Content = scoreOnly ? null : (await render(entry)).Content;
+---
+
+<Layout title={title}>
+  <article class="article-wrap">
+    <a class="back" href={`${BASE}/`}>← 返回列表</a>
+
+    <h1 class="article-title">{title}</h1>
+    {aka.length > 0 && <div class="article-aka">{aka.join(" / ")}</div>}
+
+    <div class="meta-bar">
+      <span>评测者 <strong>{reviewer}</strong></span>
+      <span>|</span>
+      <span>分类 <strong>{category.join(" / ") || "—"}</strong></span>
+      {
+        scoreRaw && (
+          <>
+            <span>|</span>
+            <span>
+              评分 <strong class="score">{scoreRaw}</strong>
+            </span>
+          </>
+        )
+      }
+      {
+        tags.length > 0 && (
+          <>
+            <span>|</span>
+            <span class="card-tags">
+              {tags.map((tag) => (
+                <span class="card-tag">{tag}</span>
+              ))}
+            </span>
+          </>
+        )
+      }
+    </div>
+
+    {
+      subScores.length > 0 && (
+        <div class="sub-scores">
+          {subScores.map((line) => (
+            <span>{line}</span>
+          ))}
+        </div>
+      )
+    }
+
+    {Content ? <div class="md-body"><Content /></div> : <p class="count">这篇评测只提供评分。</p>}
+  </article>
+</Layout>

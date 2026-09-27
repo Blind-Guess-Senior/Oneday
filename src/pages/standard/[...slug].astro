@@ -1,0 +1,34 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import { BASE } from "../../lib/site";
+
+export async function getStaticPaths() {
+  const standards = await getCollection("standards");
+  return standards.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const data = entry.data as Record<string, unknown>;
+const title = String(data["title"] ?? entry.id);
+const reviewer = String(data["reviewer"] ?? "");
+const category = String(data["category"] ?? "");
+
+const { Content } = await render(entry);
+---
+
+<Layout title={title}>
+  <article class="article-wrap">
+    <a class="back" href={`${BASE}/`}>← 返回列表</a>
+
+    <h1 class="article-title">{title}</h1>
+
+    <div class="meta-bar">
+      <span>评测者 <strong>{reviewer}</strong></span>
+      <span>|</span>
+      <span>分类 <strong>{category}</strong></span>
+    </div>
+
+    <div class="md-body"><Content /></div>
+  </article>
+</Layout>
