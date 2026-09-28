@@ -44,7 +44,7 @@
 ├─ src/
 │  ├─ content/                ← 内容根，同时也是 Obsidian vault 根
 │  │  └─ <作者>/              ← 作者目录
-│  ├─ config/                 全站配置（site.toml、tags.toml、title_names.toml、aka.toml）
+│  ├─ config/                 全站配置（site.toml、by_category_id/<分类 id>/*.toml）
 │  ├─ content.config.ts       两个集合：reviews / standards
 │  ├─ styles/global.css       全站样式
 │  ├─ lib/
@@ -118,7 +118,8 @@ include = ["Anime/**/*.md"]
 standard = ["Standard/动漫/**/*.md"]
 ```
 
-- `name` 显示用（中文），`id` URL 用（ASCII）。`id` 省略时回落到 slug 化的 `name`，
+- `name` 显示用（中文），`id` 认身份用（ASCII）：URL 段、`by_category_id/<id>/` 目录、
+  `[metadata_maps]` 的键都用它。`id` 省略时回落到 slug 化的 `name`，
   并在构建日志的 `[提示]` 里提醒。
 - 没有被任何 include 命中的文件一律不存在。
 - `[[categories]]` 的书写顺序 = 首页侧栏的分类顺序。
@@ -169,11 +170,11 @@ tiers = [
 
 ### 4.6 自定义元信息（`metadata_maps`）
 
-分类作用域：一个分类一套规则，命中多个文件夹也用同一套。
+分类 id 作用域：一个分类一套规则，命中多个文件夹也用同一套。
 
 ```toml
 [metadata_maps]
-"游戏" = [
+"Game" = [
   { keys = ["developer"], label = "开发商" },
   { keys = ["year", "month"], separator = ".", label = "游玩时间" },
 ]
@@ -208,8 +209,8 @@ month: 3
 正文……
 ```
 
-- 标题来自文件名，再经 `title_names.toml` 的 `[title_names]` 映射（除非 frontmatter 写了 `title`）。
-  `Aspark` 作者目录下末尾的 `★` 会被剥掉。
+- entry 的 id = 该分类 `title_names.toml` 里对应的左侧；没写进去就是文件名本身
+  （`Aspark` 作者目录下末尾的 `★` 先剥掉）。标题、URL 都取这个 id。
 - 正文开头的第一个 fenced code block 按约定是 `sub_scores`，抽出来渲染在元信息下方。
 - `updated: 2026-03-08` 可选：写了就用它当「更新于」，不写取该文件 `git log --follow`
   的最近一次提交。只认 `YYYY-MM-DD`，写坏了当没写。
@@ -249,40 +250,36 @@ month: 3
 
 ## 6. `src/config/` 规格
 
-`site.toml` 是空的；配置按用途各占一个文件。
+`site.toml` 是空的；其余配置按分类放：`by_category_id/<分类 id>/{tags,title_names,aka}.toml`。
+目录名就是分类 id，所以文件里不再写分类；文件缺了当空。
 
 ```toml
-# tags.toml
-[tag_rows.1]
-"游戏" = ["ARPG", "类银河城+类银恶", "平台跳跃"]
-"动漫" = ["漫改", "小说改+轻改"]
-"书籍" = ["文集+短篇集+随笔集", "科幻"]
-
-[tag_rows.2]
-"游戏" = ["模拟经营", "像素"]
+# by_category_id/Game/tags.toml
+[tag_rows]
+0 = ["剧透"]                          # 第 0 排：只声明，不进筛选和搜索
+1 = ["ARPG", "类银河城+类银恶"]
+2 = ["模拟经营", "像素"]
 ```
 
 ```toml
-# title_names.toml：显示标题 = [文件里可能出现的名字, …]
+# by_category_id/Game/title_names.toml：entry id = [文件名里可能出现的写法, …]
 [title_names]
-"NieR:Automata™" = ["NieR-Automata™", "NieR Automata"]
+"NieR: Automata" = ["NieR-Automata™", "NieR Automata"]
 ```
 
 ```toml
-# aka.toml：分类 → 显示标题 → 别名
-[aka."游戏"]
-"NieR:Automata™" = ["尼尔：机械纪元", "NieR Automata"]
+# by_category_id/Game/aka.toml：entry id → 别名
+[aka]
+"NieR: Automata" = ["尼尔：机械纪元"]
 ```
 
-- `[title_names]` 是多对一的：左边是页面上显示的标题，右边是文件名里可能出现的写法。
-  标题、卡片、RSS、搜索都取映射后的标题；URL 的 slug 仍由文件里的名字生成。
-- `[aka.<分类>]`：显示标题 → 别名，标题是过完 `title_names` 之后的那个。
-  卡片显示第一个，文章页显示全部，搜索也匹配别名。
-- `[tag_rows.N]` 是第 N 排，只影响首页 tag 筛选区的排布。
-- `[tag_rows.0]` 不是一排：里面声明的 tag 不进筛选区、不参与搜索（卡片上照常显示），
-  也不记「没声明」的提示。
-- 分类名必须和 `reviewer_config.toml` 里的分类名一致：分排按分类生效，
-  同一个 tag 在不同分类下可以落在不同排。
+- 目录名必须和 `reviewer_config.toml` 里的某个分类 `id` 一致；对不上的目录是死配置，
+  构建日志里会提醒。
+- `[title_names]` 是多对一的：左边是 entry id，右边是文件名里可能出现的写法。
+  标题、卡片、RSS、搜索都取这个 id，URL 的 slug 也由它生成；没写进来的条目，id 就是文件名。
+- `[aka]`：entry id → 别名。卡片显示第一个，文章页显示全部，搜索也匹配别名。
+- `[tag_rows]` 的数字键：`0` 不是一排，里面声明的 tag 不进筛选区、不参与搜索
+  （卡片上照常显示），也不记「没声明」的提示；`1..N` 是筛选区里的第 N 排。
 - 数组顺序 = 该分类下 tag 的显示顺序。
 - `"主名+别名"` 表示别名并入主名（`"类银河城+类银恶"` → 写 `类银恶` 的评测会被当成 `类银河城`）。
 - 数据里出现、但这里没声明的 tag 仍然会显示，追加在最后一排末尾，并在构建日志里用
@@ -326,7 +323,7 @@ astro build
 - `<作者>` = 作者目录名原样。
 - `<分类>` = 第一个命中的分类的 `id`（`Game` / `Anime` / `Book`），
   进路径是为了让同作者同名作品不撞车。
-- `<slug>` 由标题生成：只剔除 URL / 文件系统危险字符（`/ \ ? # % & = + < > | * : " ' \``），
+- `<slug>` 由 entry id 生成：只剔除 URL / 文件系统危险字符（`/ \ ? # % & = + < > | * : " ' \``），
   空白转 `-`，折叠连续 `-`，ASCII 转小写；CJK、全角标点、`∬`、`？` 一律保留。
   不要换成 `github-slugger`（会剥掉 `∬` `？`，曾导致 `五等分的花嫁∬` 与 `五等分的花嫁` 撞 URL）。
 - 同一 `<作者>/<分类>` 下 slug 撞车 = 构建硬失败并点名两个文件。

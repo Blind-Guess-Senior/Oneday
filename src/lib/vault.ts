@@ -13,9 +13,8 @@ import { parse as parseYaml } from "yaml";
 import {
   CONTENT_ROOT,
   gitDatesFor,
-  loadAka,
-  loadTagConfig,
-  loadTitleNames,
+  loadCategoryFiles,
+  loadTagAliases,
   readReviewerConfigs,
   type CategoryConfig,
   type ReviewerConfig,
@@ -48,6 +47,8 @@ export interface StandardRecord {
   slug: string;
   title: string;
   category: string;
+  /** 分类 id；`category` 只是显示名。 */
+  categoryId: string;
   filePath: string;
   relPath: string;
   contentRel: string;
@@ -135,17 +136,18 @@ function toStringList(value: unknown): string[] {
   return single ? [single] : [];
 }
 
-function titleFor(authorRel: string, reviewer: string, meta: Record<string, unknown>): string {
+/** 文件名侧的名字：frontmatter 的 title 优先，否则文件名 stem（Aspark 去掉末尾的 ★）。 */
+function nameFor(authorRel: string, reviewer: string, meta: Record<string, unknown>): string {
   const explicit = typeof meta["title"] === "string" ? meta["title"].trim() : "";
   if (explicit) return explicit;
   const stem = path.basename(authorRel).replace(/\.md$/i, "").trim();
-  // Aspark 的评分（★）会出现在文件名末尾，不进标题。其余作者原样使用文件名。
   return reviewer.toLowerCase() === "aspark" ? stem.replace(/★+$/, "").trim() : stem;
 }
 
-function slugFor(title: string, authorRel: string, contentRel: string): string {
-  const fromTitle = toSlug(title);
-  if (fromTitle) return fromTitle;
+/** slug 由 entry id 生成：没写进 title_names 的条目，id 就是文件名，URL 不变。 */
+function slugFor(entryId: string, authorRel: string, contentRel: string): string {
+  const fromId = toSlug(entryId);
+  if (fromId) return fromId;
   const fromFile = toSlug(path.basename(authorRel).replace(/\.md$/i, ""));
   if (fromFile) return fromFile;
   const hash = createHash("sha1").update(contentRel).digest("hex").slice(0, 8);
@@ -174,9 +176,7 @@ function matchesScoreOnly(meta: Record<string, unknown>, rules: Array<[string, s
 
 async function buildReviews(): Promise<ReviewRecord[]> {
   const [configs, files] = await Promise.all([readReviewerConfigs(), listFiles()]);
-  const tagConfig = loadTagConfig();
-  const titleNames = loadTitleNames();
-  const akaConfig = loadAka();
+  const tagAliases = loadTagAliases();
   const records: ReviewRecord[] = [];
 
   for (const config of configs) {
@@ -188,6 +188,8 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       const matched = categoriesFor(config, authorRel);
       if (matched.length === 0) continue;
       const category = matched.map((entry) => entry.name);
+      const categoryIds = matched.map((entry) => entry.id);
+      const categoryFiles = matched.map((entry) => loadCategoryFiles(entry.id));
 
       const filePath = path.join(CONTENT_ROOT, contentRel);
       const raw = await readFile(filePath, "utf8");
@@ -196,9 +198,17 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       const completed = meta["completed"] === true;
       if (!completed && !matchesScoreOnly(meta, config.scoreOnly)) continue;
 
-      const name = titleFor(authorRel, config.reviewer, meta);
-      const title = titleNames.get(name) ?? name;
-      const slug = slugFor(name, authorRel, contentRel);
+      // entry id = 该分类 title_names 的左侧；没写就是文件名本身
+      const name = nameFor(authorRel, config.reviewer, meta);
+      let title = name;
+      for (const file of categoryFiles) {
+        const mapped = file.titleNames.get(name);
+        if (mapped) {
+          title = mapped;
+          break;
+        }
+      }
+      const slug = slugFor(title, authorRel, contentRel);
       const primaryCategory = matched[0];
       const id = `${config.reviewer}/${primaryCategory?.id ?? ""}/${slug}`;
 
@@ -209,16 +219,16 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       const seenTags = new Set<string>();
       const tags: string[] = [];
       for (const tag of rawTags) {
-        const canonical = tagConfig.aliases.get(tag) ?? tag;
+        const canonical = tagAliases.get(tag) ?? tag;
         if (seenTags.has(canonical)) continue;
         seenTags.add(canonical);
         tags.push(canonical);
       }
 
-      // 别名来自 aka.toml，按「分类 + 显示标题」查；同名作品命中多个分类时取并集
+      // 别名来自各分类的 aka.toml，按 entry id 查；同名作品命中多个分类时取并集
       const aka: string[] = [];
-      for (const categoryName of category) {
-        for (const alias of akaConfig.get(categoryName)?.get(title) ?? []) {
+      for (const file of categoryFiles) {
+        for (const alias of file.aka.get(title) ?? []) {
           if (!aka.includes(alias)) aka.push(alias);
         }
       }
@@ -236,6 +246,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         path: contentRel,
         reviewer: config.reviewer,
         category,
+        category_ids: categoryIds,
         title,
         score_raw: scoreRaw,
         score_rank: rankIndex === -1 ? null : rankIndex + 1,
@@ -311,7 +322,6 @@ export function getReviews(): Promise<ReviewRecord[]> {
 
 async function buildStandards(): Promise<StandardRecord[]> {
   const [configs, files] = await Promise.all([readReviewerConfigs(), listFiles()]);
-  const titleNames = loadTitleNames();
   const records: StandardRecord[] = [];
 
   for (const config of configs) {
@@ -325,8 +335,10 @@ async function buildStandards(): Promise<StandardRecord[]> {
       );
       if (!category) continue;
 
+      const titleNames = loadCategoryFiles(category.id).titleNames;
       const stem = path.basename(authorRel).replace(/\.md$/i, "").trim();
-      const slug = toSlug(stem) || toSlug(authorRel.replace(/\.md$/i, "").replace(/\//g, "-"));
+      const title = titleNames.get(stem) ?? stem;
+      const slug = toSlug(title) || toSlug(authorRel.replace(/\.md$/i, "").replace(/\//g, "-"));
       const relPath = path.posix.join("src/content", contentRel);
       const dates = gitDatesFor(relPath);
 
@@ -334,8 +346,9 @@ async function buildStandards(): Promise<StandardRecord[]> {
         id: `${config.reviewer}/${category.id}/${slug}`,
         reviewer: config.reviewer,
         slug,
-        title: titleNames.get(stem) ?? stem,
+        title,
         category: category.name,
+        categoryId: category.id,
         filePath: path.join(CONTENT_ROOT, contentRel),
         relPath,
         contentRel,

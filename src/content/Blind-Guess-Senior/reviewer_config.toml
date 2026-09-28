@@ -28,15 +28,15 @@ tiers = [
 ]
 
 [metadata_maps]
-"游戏" = [
+"Game" = [
   { keys = ["developer"], label = "开发商" },
   { keys = ["publisher"], label = "发行商" },
   { keys = ["year", "month"], separator = ".", label = "游玩时间" },
 ]
-"动漫" = [
+"Anime" = [
   { keys = ["year", "month"], separator = ".", label = "观看时间" },
 ]
-"书籍" = [
+"Book" = [
   { keys = ["country"], label = "国家" },
   { keys = ["author"], label = "作者" },
   { keys = ["year", "month"], separator = ".", label = "阅读时间" },

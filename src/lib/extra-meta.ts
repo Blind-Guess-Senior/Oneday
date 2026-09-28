@@ -1,7 +1,7 @@
 /**
  * 评测页额外元信息（`metadata_maps`）。
  *
- * 规则来自作者配置：分类作用域，单 key 直接取值，多 key 按 separator 拼接。
+ * 规则来自作者配置：分类 id 作用域，单 key 直接取值，多 key 按 separator 拼接。
  * 没被这里声明、也不是预定义字段的 metadata 不显示。
  */
 
@@ -21,15 +21,15 @@ function flatten(value: unknown): string {
 
 export async function extraMeta(
   reviewer: string,
-  category: string[],
+  categoryIds: string[],
   data: Record<string, unknown>,
 ): Promise<MetaItem[]> {
   const config = (await readReviewerConfigs()).find((entry) => entry.reviewer === reviewer);
   if (!config) return [];
 
   let entries: MetadataMapEntry[] | undefined;
-  for (const name of category) {
-    entries = config.metadataMaps[name];
+  for (const id of categoryIds) {
+    entries = config.metadataMaps[id];
     if (entries) break;
   }
   if (!entries) return [];

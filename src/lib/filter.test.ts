@@ -41,7 +41,7 @@ function filters(overrides: Partial<Filters>): Filters {
 const cards: Card[] = [
   card({ title: "甲", reviewer: "A", score: "9", rank: 9, tier: 1, tags: ["恐怖", "解谜"], modified: "2026-01-01", aka: ["alpha"] }),
   card({ title: "乙", reviewer: "A", score: "3", rank: 3, tier: 3, tags: ["恐怖"], modified: "2026-02-01" }),
-  card({ title: "丙", reviewer: "B", category: ["书籍"], score: "5", rank: 5, tier: 2, tags: ["恐怖"], modified: "2025-01-01" }),
+  card({ title: "丙", reviewer: "B", category: ["书籍"], categoryIds: ["Book"], score: "5", rank: 5, tier: 2, tags: ["恐怖"], modified: "2025-01-01" }),
   card({ title: "丁", reviewer: "B", scoreOnly: true, modified: "2026-03-01" }),
 ];
 
@@ -55,8 +55,9 @@ test("打开开关后包含仅评分评测", () => {
   assert.deepEqual(titles(filterCards(cards, filters({ showScoreOnly: true }))), ["甲", "乙", "丙", "丁"]);
 });
 
-test("分类是单选", () => {
-  assert.deepEqual(titles(filterCards(cards, filters({ category: "书籍" }))), ["丙"]);
+test("分类是单选，按 id 比", () => {
+  assert.deepEqual(titles(filterCards(cards, filters({ categoryId: "Book" }))), ["丙"]);
+  assert.deepEqual(titles(filterCards(cards, filters({ categoryId: "书籍" }))), []);
 });
 
 test("评测者多选取并集", () => {

@@ -75,6 +75,7 @@ export function standardsLoader(): Loader {
           path: standard.contentRel,
           reviewer: standard.reviewer,
           category: standard.category,
+          category_id: standard.categoryId,
           title: standard.title,
           published: standard.published,
           modified: standard.modified,

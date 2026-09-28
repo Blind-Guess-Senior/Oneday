@@ -32,15 +32,16 @@ const page = ref(1);
 
 const filters = computed<Filters>(() => ({
   query: query.value,
-  category: category.value,
+  categoryId: category.value,
   reviewers: reviewers.value,
   scores: scores.value,
   tags: tags.value,
   showScoreOnly: showScoreOnly.value,
 }));
 
-function hasCategory(card: { category: string[] }, name: string): boolean {
-  return card.category.includes(name);
+/** 分类一律按 id 认，显示名只用来渲染。 */
+function hasCategory(card: { categoryIds: string[] }, id: string): boolean {
+  return card.categoryIds.includes(id);
 }
 
 /** 选了分类之后，只列该分类下有评测的评测者 */
@@ -66,7 +67,7 @@ const list = computed(() => {
   if (showStandardsOnly.value) {
     const needle = query.value.trim().toLowerCase();
     const matched = props.payload.standards.filter((standard) => {
-      if (category.value && standard.category !== category.value) return false;
+      if (category.value && standard.categoryId !== category.value) return false;
       if (reviewers.value.length > 0 && !reviewers.value.includes(standard.reviewer)) return false;
       if (!needle) return true;
       return (
@@ -126,8 +127,8 @@ function toggleScore(reviewer: string, score: string): void {
  * 现在只做必要的清理：tag 池是按分类算的所以清掉；
  * 新分类下没有任何内容的评测者才取消勾选，其余的连同分数选择一起保留。
  */
-function selectCategory(name: string): void {
-  const next = category.value === name ? "" : name;
+function selectCategory(id: string): void {
+  const next = category.value === id ? "" : id;
   category.value = next;
   tags.value = [];
   showAllTags.value = false;
@@ -157,10 +158,6 @@ function resetFilters(): void {
   page.value = 1;
 }
 
-function categoryId(name: string): string {
-  return props.payload.categories.find((entry) => entry.name === name)?.id ?? "";
-}
-
 /**
  * 把筛选状态同步到地址栏（用 replaceState，所以不会污染后退历史）。
  *
@@ -170,7 +167,9 @@ function categoryId(name: string): string {
 function readUrlState(): void {
   const state = parseFilterSearch(window.location.search);
   query.value = state.query;
-  category.value = props.payload.categories.find((entry) => entry.id === state.categoryId)?.name ?? "";
+  category.value = props.payload.categories.some((entry) => entry.id === state.categoryId)
+    ? state.categoryId
+    : "";
   reviewers.value = state.reviewers;
   scores.value = state.scores;
   tags.value = state.tags;
@@ -183,7 +182,7 @@ function readUrlState(): void {
 function writeUrlState(): void {
   const search = buildFilterSearch({
     query: query.value,
-    categoryId: category.value ? categoryId(category.value) : "",
+    categoryId: category.value,
     reviewers: reviewers.value,
     scores: scores.value,
     tags: tags.value,
@@ -216,8 +215,8 @@ onMounted(readUrlState);
               :key="entry.id"
               type="button"
               class="filter-option"
-              :class="{ selected: category === entry.name }"
-              @click="selectCategory(entry.name)"
+              :class="{ selected: category === entry.id }"
+              @click="selectCategory(entry.id)"
             >
               {{ entry.name }}
             </button>

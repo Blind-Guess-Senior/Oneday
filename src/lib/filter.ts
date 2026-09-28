@@ -7,8 +7,9 @@ export interface Card {
   title: string;
   aka: string[];
   reviewer: string;
+  /** 分类显示名，只用于展示。判断分类一律用 categoryIds。 */
   category: string[];
-  /** 分类的 id，用于徽章配色（与显示名解耦，加分类不用改代码） */
+  /** 分类的 id，用于徽章配色、筛选（与显示名解耦，加分类不用改代码） */
   categoryIds: string[];
   tags: string[];
   score: string;
@@ -25,8 +26,8 @@ export interface Card {
 
 export interface Filters {
   query: string;
-  /** 单选，空字符串表示不限 */
-  category: string;
+  /** 分类 id，空字符串表示不限 */
+  categoryId: string;
   /** 多选，需全部满足 */
   reviewers: string[];
   /** 每个评测者各自的分数选择：reviewer → 选中的分数 */
@@ -37,7 +38,7 @@ export interface Filters {
 }
 
 export function emptyFilters(): Filters {
-  return { query: "", category: "", reviewers: [], scores: {}, tags: [], showScoreOnly: false };
+  return { query: "", categoryId: "", reviewers: [], scores: {}, tags: [], showScoreOnly: false };
 }
 
 function matchesReviewer(card: Card, filters: Filters): boolean {
@@ -69,7 +70,7 @@ function matchesQuery(card: Card, query: string, hiddenTags: readonly string[]):
 export function filterCards(cards: Card[], filters: Filters, hiddenTags: readonly string[] = []): Card[] {
   return cards.filter((card) => {
     if (!filters.showScoreOnly && card.scoreOnly) return false;
-    if (filters.category && !card.category.includes(filters.category)) return false;
+    if (filters.categoryId && !card.categoryIds.includes(filters.categoryId)) return false;
     if (!matchesReviewer(card, filters)) return false;
     if (!matchesScore(card, filters)) return false;
     if (filters.tags.length > 0 && !filters.tags.every((tag) => card.tags.includes(tag))) return false;

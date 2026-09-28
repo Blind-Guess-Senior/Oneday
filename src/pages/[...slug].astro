@@ -18,6 +18,7 @@ const list = (key: string): string[] =>
 const title = String(data["title"] ?? entry.id);
 const reviewer = String(data["reviewer"] ?? "");
 const category = list("category");
+const categoryIds = list("category_ids");
 const scoreRaw = String(data["score_raw"] ?? "");
 const tier = typeof data["score_tier"] === "number" ? (data["score_tier"] as number) : null;
 const aka = list("aka");
@@ -27,10 +28,10 @@ const scoreOnly = data["score_only"] === true;
 const published = String(data["published"] ?? "");
 const modified = String(data["modified"] ?? "");
 
-const meta = await extraMeta(reviewer, category, data);
+const meta = await extraMeta(reviewer, categoryIds, data);
 
 const standards = (await getStandards()).filter(
-  (standard) => standard.reviewer === reviewer && category.includes(standard.category),
+  (standard) => standard.reviewer === reviewer && categoryIds.includes(standard.categoryId),
 );
 
 // 仅评分评测没有渲染正文，旧站也只显示元信息

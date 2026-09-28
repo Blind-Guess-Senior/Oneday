@@ -1,7 +1,7 @@
 
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,9 +27,8 @@ export const PROJECT_ROOT = findProjectRoot();
 /** 内容根（Oneday/src/content/），同时也是 Obsidian vault 根。 */
 export const CONTENT_ROOT = path.join(PROJECT_ROOT, "src", "content");
 
-const TAGS_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "tags.toml");
-const TITLE_NAMES_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "title_names.toml");
-const AKA_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "aka.toml");
+/** 分类配置根：`src/config/by_category_id/<分类 id>/{tags,title_names,aka}.toml`。 */
+const CATEGORY_CONFIG_ROOT = path.join(PROJECT_ROOT, "src", "config", "by_category_id");
 
 export interface CategoryConfig {
   /** 显示用的分类名，例如「游戏」。 */
@@ -63,16 +62,22 @@ export interface ReviewerConfig {
   scoreOnly: Array<[string, string]> | null;
   scoreOrder: string[];
   scoreTiers: string[][];
+  /** 分类 id → 额外元信息。 */
   metadataMaps: Record<string, MetadataMapEntry[]>;
 }
 
-export interface TagConfig {
+/** `src/config/by_category_id/<分类 id>/` 下三个文件的内容。 */
+export interface CategoryFiles {
   /** 别名 → 主名。 */
   aliases: Map<string, string>;
-  /** rows[0] 就是第 1 排；每个元素是「分类名 → 有序 tag 列表」。 */
-  rows: Array<Record<string, string[]>>;
-  /** `[tag_rows.0]`：只声明、不进筛选区和搜索的 tag；每个元素是「分类名 → tag 列表」。 */
-  row0: Record<string, string[]>;
+  /** rows[0] 就是第 1 排。 */
+  rows: string[][];
+  /** `[tag_rows] 0`：只声明、不进筛选区和搜索的 tag。 */
+  row0: string[];
+  /** 文件名里可能出现的写法 → entry id。 */
+  titleNames: Map<string, string>;
+  /** entry id → 别名。 */
+  aka: Map<string, string[]>;
 }
 
 function asStringArray(value: unknown): string[] {
@@ -175,87 +180,95 @@ export async function readReviewerConfigs(): Promise<ReviewerConfig[]> {
     if (!raw) continue;
     configs.push(normalizeReviewerConfig(entry.name, dir, raw));
   }
+
+  // 分类配置目录按分类 id 命名，对不上任何 id 的目录是死配置
+  const knownIds = new Set(configs.flatMap((config) => config.categories.map((category) => category.id)));
+  for (const id of listCategoryConfigIds()) {
+    if (!knownIds.has(id)) note(`src/config/by_category_id/${id}`, "没有作者声明这个分类 id，目录里的配置不会生效");
+  }
+
   return configs.sort((a, b) => a.reviewer.localeCompare(b.reviewer));
 }
 
-let tagConfigCache: TagConfig | null = null;
+/** `src/config/by_category_id/` 下的目录名 = 已经配过的分类 id。 */
+export function listCategoryConfigIds(): string[] {
+  if (!existsSync(CATEGORY_CONFIG_ROOT)) return [];
+  return readdirSync(CATEGORY_CONFIG_ROOT, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
+    .map((entry) => entry.name)
+    .sort();
+}
 
-export function loadTagConfig(): TagConfig {
-  if (tagConfigCache) return tagConfigCache;
+function readCategoryFile(categoryId: string, name: string): Record<string, unknown> {
+  const file = path.join(CATEGORY_CONFIG_ROOT, categoryId, name);
+  if (!existsSync(file)) return {};
+  return asRecord(parseToml(readFileSync(file, "utf8"))) ?? {};
+}
+
+const categoryFilesCache = new Map<string, CategoryFiles>();
+
+/**
+ * 一个分类的全站配置。三个文件都可以缺，缺了当空。
+ *
+ * `tags.toml` 的 `[tag_rows]` 用数字键：`0` 是「只声明、不进筛选和搜索」的第 0 排，
+ * `1..N` 是筛选区里的排；`"主名+别名"` 把别名并进主名。
+ * `title_names.toml` 左边是 entry id，右边是文件名里可能出现的写法，一多对。
+ */
+export function loadCategoryFiles(categoryId: string): CategoryFiles {
+  const cached = categoryFilesCache.get(categoryId);
+  if (cached) return cached;
 
   const aliases = new Map<string, string>();
-  const rows: Array<Record<string, string[]>> = [];
-  const row0: Record<string, string[]> = {};
+  const rows: string[][] = [];
+  let row0: string[] = [];
 
-  const raw = asRecord(parseToml(readFileSync(TAGS_CONFIG_PATH, "utf8"))) ?? {};
-  const rawRows = asRecord(raw["tag_rows"]) ?? {};
-
+  const rawRows = asRecord(readCategoryFile(categoryId, "tags.toml")["tag_rows"]) ?? {};
   const rowKeys = Object.keys(rawRows).sort((a, b) => Number(a) - Number(b));
   for (const rowKey of rowKeys) {
-    const rowRecord = asRecord(rawRows[rowKey]);
-    if (!rowRecord) continue;
-    // 第 0 排不是一排：这里的 tag 只声明（含「主名+别名」里的别名），不当筛选项
-    const row: Record<string, string[]> = rowKey === "0" ? row0 : {};
-    for (const [category, expressions] of Object.entries(rowRecord)) {
-      const tags: string[] = [];
-      for (const expression of asStringArray(expressions)) {
-        const parts = expression.split("+").map((p) => p.trim()).filter(Boolean);
-        const canonical = parts[0];
-        if (!canonical) continue;
-        for (const alias of parts.slice(1)) aliases.set(alias, canonical);
-        tags.push(canonical);
-      }
-      row[category] = tags;
+    const tags: string[] = [];
+    for (const expression of asStringArray(rawRows[rowKey])) {
+      const parts = expression.split("+").map((p) => p.trim()).filter(Boolean);
+      const canonical = parts[0];
+      if (!canonical) continue;
+      for (const alias of parts.slice(1)) aliases.set(alias, canonical);
+      tags.push(canonical);
     }
-    if (rowKey !== "0") rows.push(row);
+    if (rowKey === "0") row0 = tags;
+    else rows.push(tags);
   }
 
-  tagConfigCache = { aliases, rows, row0 };
-  return tagConfigCache;
+  const titleNames = new Map<string, string>();
+  const rawTitles = asRecord(readCategoryFile(categoryId, "title_names.toml")["title_names"]) ?? {};
+  for (const [id, variants] of Object.entries(rawTitles)) {
+    const entryId = asString(id);
+    if (!entryId) continue;
+    for (const variant of asStringArray(variants)) titleNames.set(variant, entryId);
+  }
+
+  const aka = new Map<string, string[]>();
+  const rawAka = asRecord(readCategoryFile(categoryId, "aka.toml")["aka"]) ?? {};
+  for (const [id, names] of Object.entries(rawAka)) {
+    const entryId = asString(id);
+    const list = asStringArray(names);
+    if (entryId && list.length) aka.set(entryId, list);
+  }
+
+  const files: CategoryFiles = { aliases, rows, row0, titleNames, aka };
+  categoryFilesCache.set(categoryId, files);
+  return files;
 }
 
-let titleNamesCache: Map<string, string> | null = null;
+let tagAliasesCache: Map<string, string> | null = null;
 
-/**
- * title_names.toml 的 `[title_names]`：显示标题 → 文件里可能出现的名字（多对一）。
- * 返回反过来的索引：文件里的名字 → 显示标题。
- *
- * 文件名不能带 `/ \ : * ? " < > |`，只能用替代字符写，所以需要这一层映射。
- */
-export function loadTitleNames(): Map<string, string> {
-  if (titleNamesCache) return titleNamesCache;
-  const raw = asRecord(parseToml(readFileSync(TITLE_NAMES_CONFIG_PATH, "utf8"))) ?? {};
-  const table = asRecord(raw["title_names"]) ?? {};
-  const names = new Map<string, string>();
-  for (const [title, aliases] of Object.entries(table)) {
-    const display = asString(title);
-    if (!display) continue;
-    for (const name of asStringArray(aliases)) names.set(name, display);
+/** 所有分类的别名并集：卡片上的 tag 归一化不分分类。 */
+export function loadTagAliases(): Map<string, string> {
+  if (tagAliasesCache) return tagAliasesCache;
+  const merged = new Map<string, string>();
+  for (const categoryId of listCategoryConfigIds()) {
+    for (const [alias, canonical] of loadCategoryFiles(categoryId).aliases) merged.set(alias, canonical);
   }
-  titleNamesCache = names;
-  return titleNamesCache;
-}
-
-let akaCache: Map<string, Map<string, string[]>> | null = null;
-
-/**
- * aka.toml 的 `[aka.<分类>]`：显示标题 → 别名列表。
- * 标题是过完 title_names 的显示标题，分类用 reviewer_config.toml 里的分类名。
- */
-export function loadAka(): Map<string, Map<string, string[]>> {
-  if (akaCache) return akaCache;
-  const raw = asRecord(parseToml(readFileSync(AKA_CONFIG_PATH, "utf8"))) ?? {};
-  const byCategory = new Map<string, Map<string, string[]>>();
-  for (const [category, titles] of Object.entries(asRecord(raw["aka"]) ?? {})) {
-    const entries = new Map<string, string[]>();
-    for (const [title, aliases] of Object.entries(asRecord(titles) ?? {})) {
-      const list = asStringArray(aliases);
-      if (title && list.length) entries.set(title, list);
-    }
-    if (entries.size) byCategory.set(category, entries);
-  }
-  akaCache = byCategory;
-  return akaCache;
+  tagAliasesCache = merged;
+  return merged;
 }
 
 export interface GitDates {

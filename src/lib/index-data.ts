@@ -5,7 +5,7 @@
  * 浏览器端不再需要额外请求。
  */
 
-import { loadTagConfig, readReviewerConfigs } from "./config";
+import { loadCategoryFiles, readReviewerConfigs } from "./config";
 import type { Card } from "./filter";
 import { note } from "./report";
 import { entryUrl } from "./site";
@@ -15,7 +15,10 @@ export interface StandardCard {
   url: string;
   title: string;
   reviewer: string;
+  /** 显示名。 */
   category: string;
+  /** 分类 id，筛选用。 */
+  categoryId: string;
 }
 
 export interface IndexPayload {
@@ -26,7 +29,7 @@ export interface IndexPayload {
   reviewers: string[];
   /** 评测者 → 有序的分数选项（来自该作者的 [score].order，未列出的按字典序补在后面） */
   scoreOptions: Record<string, string[]>;
-  /** 分类 → 分排的 tag（顺序来自 src/config/site.toml，未声明的追加到最后一排） */
+  /** 分类 id → 分排的 tag（顺序来自 by_category_id/<id>/tags.toml，未声明的追加到最后一排） */
   tagRows: Record<string, string[][]>;
   /** `[tag_rows.0]` 里声明过的 tag：卡片上照常显示，但不参与搜索 */
   hiddenTags: string[];
@@ -37,25 +40,28 @@ function asList(value: unknown): string[] {
 }
 
 /**
- * 按 `[tag_rows.N][分类]` 排出该分类的 tag 行。
+ * 按 `[tag_rows]` 排出该分类的 tag 行。
  *
- * 只保留该分类下真实出现过的 tag；数据里出现但 site.toml 没声明的，
+ * 只保留该分类下真实出现过的 tag；数据里出现但 tags.toml 没声明的，
  * 追加到最后一排末尾并记进构建日志（既不静默消失，又能暴露拼写错误）。
  */
-function buildTagRows(cards: Card[], categories: string[]): Record<string, string[][]> {
-  const config = loadTagConfig();
+function buildTagRows(
+  cards: Card[],
+  categories: Array<{ name: string; id: string }>,
+): Record<string, string[][]> {
   const result: Record<string, string[][]> = {};
 
-  for (const category of categories) {
+  for (const { name, id } of categories) {
+    const config = loadCategoryFiles(id);
     const used = new Set<string>();
     for (const card of cards) {
-      if (card.category.includes(category)) card.tags.forEach((tag) => used.add(tag));
+      if (card.categoryIds.includes(id)) card.tags.forEach((tag) => used.add(tag));
     }
 
     // row0 的 tag 只声明、不显示：先算作已声明，免得被追加到最后一排并记提示
-    const declared = new Set<string>(config.row0[category] ?? []);
+    const declared = new Set<string>(config.row0);
     const rows: string[][] = config.rows.map((row) =>
-      (row[category] ?? []).filter((tag) => {
+      row.filter((tag) => {
         if (!used.has(tag) || declared.has(tag)) return false;
         declared.add(tag);
         return true;
@@ -67,12 +73,12 @@ function buildTagRows(cards: Card[], categories: string[]): Record<string, strin
       if (rows.length === 0) rows.push([]);
       rows[rows.length - 1]?.push(...undeclared);
       note(
-        "src/config/site.toml",
-        `分类「${category}」有 ${undeclared.length} 个 tag 没声明，已排在最后一排：${undeclared.join("、")}`,
+        `src/config/by_category_id/${id}/tags.toml`,
+        `分类「${name}」（${id}）有 ${undeclared.length} 个 tag 没声明，已排在最后一排：${undeclared.join("、")}`,
       );
     }
 
-    result[category] = rows;
+    result[id] = rows;
   }
 
   return result;
@@ -141,12 +147,13 @@ export function buildIndexPayload(): Promise<IndexPayload> {
         title: standard.title,
         reviewer: standard.reviewer,
         category: standard.category,
+        categoryId: standard.categoryId,
       })),
       categories,
       reviewers,
       scoreOptions,
-      tagRows: buildTagRows(cards, categories.map((category) => category.name)),
-      hiddenTags: [...new Set(Object.values(loadTagConfig().row0).flat())],
+      tagRows: buildTagRows(cards, categories),
+      hiddenTags: [...new Set(categories.flatMap((category) => loadCategoryFiles(category.id).row0))],
     };
   })();
 
