@@ -120,8 +120,14 @@ header {
   border-radius: 4px; font-size: .78rem; cursor: pointer;
   transition: all .12s; user-select: none; white-space: nowrap;
 }
-.score-chip:hover, .score-chip.selected {
+.score-chip.selected {
   background: var(--accent); color: #fff; border-color: var(--accent);
+}
+/* 手机上 :hover 会粘在刚点过的按钮上，看起来跟选中一样：只给真有指针的设备 */
+@media (hover: hover) {
+  .score-chip:hover {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
 }
 .score-reviewer-label {
   font-size: .72rem; color: var(--muted); margin: .2rem 0 .15rem;
@@ -153,12 +159,18 @@ header {
   border-radius: 20px; font-size: .78rem; cursor: pointer;
   transition: all .12s; user-select: none;
 }
-.tag-chip:hover, .tag-chip.selected {
+.tag-chip.selected {
   background: var(--accent); color: #fff; border-color: var(--accent);
+}
+/* 同 .score-chip：hover 样式只给真有指针的设备 */
+@media (hover: hover) {
+  .tag-chip:hover {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
 }
 
 /* ── Main content area ────────────────────────────────────────────── */
-.main { flex: 1; min-width: 0; }
+.main { grid-area: main; min-width: 0; }
 
 /* Sort / stats bar */
 .toolbar {
