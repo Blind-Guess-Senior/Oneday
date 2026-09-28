@@ -2,8 +2,16 @@
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type { Text } from "mdast";
 import { slug as slugify } from "github-slugger";
-import type { MdastNode, MdastPluginDefinition, MdastVisitorContext, PluginFactoryContext } from "satteri";
+import type {
+  Custom,
+  MdastContent,
+  MdastNode,
+  MdastPluginDefinition,
+  MdastVisitorContext,
+  PluginFactoryContext,
+} from "satteri";
 import { CONTENT_ROOT } from "../lib/config";
 import { entryUrl } from "../lib/site";
 import { ensureIndexes, findAttachmentSync, resolveWikiTargetSync } from "../lib/vault";
@@ -28,14 +36,14 @@ export function obsidianPlugin(factory: PluginFactoryContext): MdastPluginDefini
   const contentRel = filePath ? path.relative(CONTENT_ROOT, filePath).split(path.sep).join("/") : "";
   const fileDir = contentRel ? path.posix.dirname(contentRel) : "";
 
-  function makeImage(target: string): MdastNode[] | null {
+  function makeImage(target: string): MdastContent[] | null {
     const lookup = findAttachmentSync(target);
     if (!lookup.rel) return null;
     const image: MdastNode = { type: "image", url: relativeUrl(fileDir, lookup.rel), alt: "" };
     return [image];
   }
 
-  function makeLink(inner: string): MdastNode[] | null {
+  function makeLink(inner: string): MdastContent[] | null {
     const [destination, alias] = splitOnce(inner, "|");
     const [rawTarget, heading] = splitOnce(destination, "#");
     const target = rawTarget.trim();
@@ -47,7 +55,7 @@ export function obsidianPlugin(factory: PluginFactoryContext): MdastPluginDefini
     const found = resolveWikiTargetSync(target);
     if (!found) {
       // 指不到东西：长得像链接，但点不动、标红，跟旧站一样
-      const missing: MdastNode = {
+      const missing: Custom = {
         type: "span",
         data: {
           hName: "span",
@@ -74,15 +82,15 @@ export function obsidianPlugin(factory: PluginFactoryContext): MdastPluginDefini
       await ensureIndexes();
     },
 
-    text(node: Readonly<{ value: string }>, ctx: MdastVisitorContext) {
+    text(node: Readonly<Text>, ctx: MdastVisitorContext) {
       const value = node.value;
       if (!value.includes("[[")) return;
 
       // 不在链接内部再造链接
-      const parent = ctx.parent(node as never);
+      const parent = ctx.parent(node);
       if (parent && (parent.type === "link" || parent.type === "linkReference")) return;
 
-      const parts: MdastNode[] = [];
+      const parts: MdastContent[] = [];
       let last = 0;
       let changed = false;
 
@@ -103,7 +111,7 @@ export function obsidianPlugin(factory: PluginFactoryContext): MdastPluginDefini
 
       if (!changed) return;
       if (last < value.length) parts.push({ type: "text", value: value.slice(last) });
-      ctx.replaceNode(node as never, parts);
+      ctx.replaceNode(node, parts);
     },
   };
 }

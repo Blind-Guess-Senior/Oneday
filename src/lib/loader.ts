@@ -45,7 +45,7 @@ export function reviewsLoader(): Loader {
           filePath: review.relPath,
           digest: generateDigest(review.body + JSON.stringify(review.data) + (rendered?.html ?? "")),
           ...(rendered ? { rendered } : {}),
-          assetImports: rendered?.metadata?.imagePaths,
+          assetImports: rendered?.metadata?.imagePaths ?? [],
         });
       }
 
@@ -87,7 +87,7 @@ export function standardsLoader(): Loader {
           filePath: standard.relPath,
           digest: generateDigest(raw + JSON.stringify(data)),
           rendered,
-          assetImports: rendered?.metadata?.imagePaths,
+          assetImports: rendered?.metadata?.imagePaths ?? [],
         });
       }
 

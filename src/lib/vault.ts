@@ -93,9 +93,10 @@ const FRONTMATTER = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
 export function splitFrontmatter(source: string): { meta: Record<string, unknown>; body: string } {
   const match = FRONTMATTER.exec(source.replace(/^\uFEFF/, ""));
   if (!match) return { meta: {}, body: source };
+  const frontmatter = match[1] ?? "";
   let meta: Record<string, unknown> = {};
   try {
-    const parsed: unknown = parseYaml(match[1]);
+    const parsed: unknown = parseYaml(frontmatter);
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       meta = parsed as Record<string, unknown>;
     }
@@ -111,7 +112,7 @@ const FIRST_CODE_BLOCK = /^```[^\n]*\r?\n([\s\S]*?)\r?\n```[ \t]*(\r?\n)?/m;
 function extractSubScores(body: string): { lines: string[]; body: string } {
   const match = FIRST_CODE_BLOCK.exec(body);
   if (!match) return { lines: [], body };
-  const lines = match[1]
+  const lines = (match[1] ?? "")
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
@@ -295,7 +296,7 @@ function detectIdCollisions(records: ReviewRecord[]): void {
     .join("\n");
 
   if (process.env["ONEDAY_ALLOW_SLUG_COLLISION"] === "1") {
-    for (const [id, list] of collisions) {
+    for (const [, list] of collisions) {
       list.forEach((record, index) => {
         if (index === 0) return;
         const suffix = `-${index + 1}`;

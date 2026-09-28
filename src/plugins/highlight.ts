@@ -1,17 +1,18 @@
 
 
-import type { MdastNode, MdastPluginDefinition, MdastVisitorContext } from "satteri";
+import type { Text } from "mdast";
+import type { Custom, MdastContent, MdastPluginDefinition, MdastVisitorContext } from "satteri";
 
 const HIGHLIGHT_PATTERN = /==([^=\r\n]+)==/g;
 
 export function highlightPlugin(): MdastPluginDefinition {
   return {
     name: "oneday-highlight",
-    text(node: Readonly<{ value: string }>, ctx: MdastVisitorContext) {
+    text(node: Readonly<Text>, ctx: MdastVisitorContext) {
       const value = node.value;
       if (!value.includes("==")) return;
 
-      const parts: MdastNode[] = [];
+      const parts: MdastContent[] = [];
       let last = 0;
       let changed = false;
 
@@ -19,7 +20,7 @@ export function highlightPlugin(): MdastPluginDefinition {
       let match: RegExpExecArray | null;
       while ((match = HIGHLIGHT_PATTERN.exec(value)) !== null) {
         if (match.index > last) parts.push({ type: "text", value: value.slice(last, match.index) });
-        const mark: MdastNode = {
+        const mark: Custom = {
           type: "mark",
           data: { hName: "mark", hProperties: { class: "hl" } },
           children: [{ type: "text", value: match[1] ?? "" }],
@@ -31,7 +32,7 @@ export function highlightPlugin(): MdastPluginDefinition {
 
       if (!changed) return;
       if (last < value.length) parts.push({ type: "text", value: value.slice(last) });
-      ctx.replaceNode(node as never, parts);
+      ctx.replaceNode(node, parts);
     },
   };
 }
