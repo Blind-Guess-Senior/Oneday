@@ -340,7 +340,7 @@ astro build
 
 ```bash
 npm install
-npm run dev        # 本地开发（注意下面 NODE_ENV 那条）
+npm run dev        # 本地开发
 npm run build      # 产出 dist/
 npm run preview    # 预览 dist/
 ```
@@ -350,12 +350,15 @@ npm run preview    # 预览 dist/
 
 ### 环境注意
 
+正常机器上不需要任何环境变量，`npm install && npm run dev` / `npm run build` 直接可用。
+下面这几条只在受限环境（agent 沙箱：`$HOME` 只读、外部注入了 `NODE_ENV=production`）里才需要：
+
 - Node ≥ 24（用了内置的 `path.matchesGlob`）。
-- Astro 遥测会往 `~/.config/astro` 写文件；受限环境里加 `ASTRO_TELEMETRY_DISABLED=1`。
-- 受限环境里 npm 缓存要指到可写目录：`npm install --cache <可写目录>`。
-- **`NODE_ENV` 不能是 `production`**：Astro 的 dev server 会以生产模式启动，`/_image`
-  端点直接 500（`The dev image endpoint can only be used in dev mode.`），热更新也失效。
-  本仓库开发环境预置了 `NODE_ENV=production`，本地起服务要用 `NODE_ENV=development npx astro dev`。
+- `NODE_ENV=production` 会让 dev server 以生产模式启动（`/_image` 直接 500、HMR 失效），
+  也会让 `npm install` 跳过 devDependencies。绕过：`npm install --include=dev`、
+  `NODE_ENV=development npx astro dev`。
+- `$HOME` 不可写时，Astro 遥测会在 `~/.config/astro` 上 `mkdirSync` 失败、CLI 直接崩，
+  要加 `ASTRO_TELEMETRY_DISABLED=1`；npm 缓存同理要 `--cache <可写目录>`。
 - 在 AI agent 里跑 `astro dev` 时它会自动后台化并写 `.astro/dev.json` 锁文件。
   想让它跑在前台，加 `--ignore-lock`（代价是 `astro dev stop/status/logs` 不管它）。
 
