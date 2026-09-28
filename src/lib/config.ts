@@ -71,6 +71,8 @@ export interface TagConfig {
   aliases: Map<string, string>;
   /** rows[0] 就是第 1 排；每个元素是「分类名 → 有序 tag 列表」。 */
   rows: Array<Record<string, string[]>>;
+  /** `[tag_rows.0]`：只声明、不进筛选区和搜索的 tag；每个元素是「分类名 → tag 列表」。 */
+  row0: Record<string, string[]>;
 }
 
 function asStringArray(value: unknown): string[] {
@@ -183,6 +185,7 @@ export function loadTagConfig(): TagConfig {
 
   const aliases = new Map<string, string>();
   const rows: Array<Record<string, string[]>> = [];
+  const row0: Record<string, string[]> = {};
 
   const raw = asRecord(parseToml(readFileSync(TAGS_CONFIG_PATH, "utf8"))) ?? {};
   const rawRows = asRecord(raw["tag_rows"]) ?? {};
@@ -191,7 +194,8 @@ export function loadTagConfig(): TagConfig {
   for (const rowKey of rowKeys) {
     const rowRecord = asRecord(rawRows[rowKey]);
     if (!rowRecord) continue;
-    const row: Record<string, string[]> = {};
+    // 第 0 排不是一排：这里的 tag 只声明（含「主名+别名」里的别名），不当筛选项
+    const row: Record<string, string[]> = rowKey === "0" ? row0 : {};
     for (const [category, expressions] of Object.entries(rowRecord)) {
       const tags: string[] = [];
       for (const expression of asStringArray(expressions)) {
@@ -203,10 +207,10 @@ export function loadTagConfig(): TagConfig {
       }
       row[category] = tags;
     }
-    rows.push(row);
+    if (rowKey !== "0") rows.push(row);
   }
 
-  tagConfigCache = { aliases, rows };
+  tagConfigCache = { aliases, rows, row0 };
   return tagConfigCache;
 }
 
