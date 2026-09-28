@@ -75,13 +75,6 @@ test("搜索覆盖标题、别名、标签、评测者", () => {
   assert.deepEqual(titles(filterCards(cards, filters({ query: "b" }))), ["丙"]);
 });
 
-test("row0 的 tag 不参与搜索", () => {
-  const tagged = [card({ title: "甲", tags: ["A类", "解谜"] })];
-  assert.deepEqual(titles(filterCards(tagged, filters({ query: "A类" }))), ["甲"]);
-  assert.deepEqual(titles(filterCards(tagged, filters({ query: "A类" }), ["A类"])), []);
-  assert.deepEqual(titles(filterCards(tagged, filters({ query: "解谜" }), ["A类"])), ["甲"]);
-});
-
 test("分数筛选只对被选中的评测者生效，没选分数的评测者照常显示全部", () => {
   assert.deepEqual(
     titles(filterCards(cards, filters({ reviewers: ["A", "B"], scores: { A: ["9"] } }))),

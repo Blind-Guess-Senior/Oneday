@@ -31,8 +31,6 @@ export interface IndexPayload {
   scoreOptions: Record<string, string[]>;
   /** 分类 id → 分排的 tag（顺序来自 by_category_id/<id>/tags.toml，未声明的追加到最后一排） */
   tagRows: Record<string, string[][]>;
-  /** `[tag_rows.0]` 里声明过的 tag：卡片上照常显示，但不参与搜索 */
-  hiddenTags: string[];
 }
 
 function asList(value: unknown): string[] {
@@ -58,8 +56,7 @@ function buildTagRows(
       if (card.categoryIds.includes(id)) card.tags.forEach((tag) => used.add(tag));
     }
 
-    // row0 的 tag 只声明、不显示：先算作已声明，免得被追加到最后一排并记提示
-    const declared = new Set<string>(config.row0);
+    const declared = new Set<string>();
     const rows: string[][] = config.rows.map((row) =>
       row.filter((tag) => {
         if (!used.has(tag) || declared.has(tag)) return false;
@@ -153,7 +150,6 @@ export function buildIndexPayload(): Promise<IndexPayload> {
       reviewers,
       scoreOptions,
       tagRows: buildTagRows(cards, categories),
-      hiddenTags: [...new Set(categories.flatMap((category) => loadCategoryFiles(category.id).row0))],
     };
   })();
 

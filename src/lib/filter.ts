@@ -52,29 +52,25 @@ function matchesScore(card: Card, filters: Filters): boolean {
   return selected.includes(card.score);
 }
 
-function matchesQuery(card: Card, query: string, hiddenTags: readonly string[]): boolean {
+function matchesQuery(card: Card, query: string): boolean {
   if (!query) return true;
   const q = query.toLowerCase();
   return (
     card.title.toLowerCase().includes(q) ||
     card.aka.some((name) => name.toLowerCase().includes(q)) ||
-    card.tags.some((tag) => !hiddenTags.includes(tag) && tag.toLowerCase().includes(q)) ||
+    card.tags.some((tag) => tag.toLowerCase().includes(q)) ||
     card.reviewer.toLowerCase().includes(q)
   );
 }
 
-/**
- * `hiddenTags` 是 tags.toml 里 row0 声明过的 tag：卡片上照常显示，但不参与搜索。
- * 筛选那边不用管——它们本来就不会出现在筛选区。
- */
-export function filterCards(cards: Card[], filters: Filters, hiddenTags: readonly string[] = []): Card[] {
+export function filterCards(cards: Card[], filters: Filters): Card[] {
   return cards.filter((card) => {
     if (!filters.showScoreOnly && card.scoreOnly) return false;
     if (filters.categoryId && !card.categoryIds.includes(filters.categoryId)) return false;
     if (!matchesReviewer(card, filters)) return false;
     if (!matchesScore(card, filters)) return false;
     if (filters.tags.length > 0 && !filters.tags.every((tag) => card.tags.includes(tag))) return false;
-    return matchesQuery(card, filters.query, hiddenTags);
+    return matchesQuery(card, filters.query);
   });
 }
 

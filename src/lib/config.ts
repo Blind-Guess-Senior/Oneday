@@ -210,8 +210,8 @@ const categoryFilesCache = new Map<string, CategoryFiles>();
 /**
  * 一个分类的全站配置。三个文件都可以缺，缺了当空。
  *
- * `tags.toml` 的 `[tag_rows]` 用数字键：`0` 是「只声明、不进筛选和搜索」的第 0 排，
- * `1..N` 是筛选区里的排；`"主名+别名"` 把别名并进主名。
+ * `tags.toml` 的 `[tag_rows]` 用数字键：`0` 是彻底不进站点的第 0 排，`1..N` 是筛选区里的排；
+ * `[tag_aliases]` 是「别名 = 主名」，卡片上写别名也归到主名。
  * `title_names.toml` 左边是 entry id，右边是文件名里可能出现的写法，一多对。
  */
 export function loadCategoryFiles(categoryId: string): CategoryFiles {
@@ -222,17 +222,16 @@ export function loadCategoryFiles(categoryId: string): CategoryFiles {
   const rows: string[][] = [];
   let row0: string[] = [];
 
-  const rawRows = asRecord(readCategoryFile(categoryId, "tags.toml")["tag_rows"]) ?? {};
+  const rawTags = readCategoryFile(categoryId, "tags.toml");
+  for (const [alias, canonical] of Object.entries(asRecord(rawTags["tag_aliases"]) ?? {})) {
+    const name = asString(canonical);
+    if (alias && name) aliases.set(alias, name);
+  }
+
+  const rawRows = asRecord(rawTags["tag_rows"]) ?? {};
   const rowKeys = Object.keys(rawRows).sort((a, b) => Number(a) - Number(b));
   for (const rowKey of rowKeys) {
-    const tags: string[] = [];
-    for (const expression of asStringArray(rawRows[rowKey])) {
-      const parts = expression.split("+").map((p) => p.trim()).filter(Boolean);
-      const canonical = parts[0];
-      if (!canonical) continue;
-      for (const alias of parts.slice(1)) aliases.set(alias, canonical);
-      tags.push(canonical);
-    }
+    const tags = asStringArray(rawRows[rowKey]);
     if (rowKey === "0") row0 = tags;
     else rows.push(tags);
   }

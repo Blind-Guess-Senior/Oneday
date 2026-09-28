@@ -76,7 +76,7 @@ const list = computed(() => {
     });
     return [...matched].sort((a, b) => a.title.localeCompare(b.title, "zh"));
   }
-  return sortCards(filterCards(props.payload.reviews, filters.value, props.payload.hiddenTags), sortBy.value);
+  return sortCards(filterCards(props.payload.reviews, filters.value), sortBy.value);
 });
 
 const totalPages = computed(() => Math.max(1, Math.ceil(list.value.length / PAGE_SIZE)));

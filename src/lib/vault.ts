@@ -191,6 +191,8 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       const category = matched.map((entry) => entry.name);
       const categoryIds = matched.map((entry) => entry.id);
       const categoryFiles = matched.map((entry) => loadCategoryFiles(entry.id));
+      const dropped = new Set<string>();
+      for (const file of categoryFiles) file.row0.forEach((tag) => dropped.add(tag));
 
       const filePath = path.join(CONTENT_ROOT, contentRel);
       const raw = await readFile(filePath, "utf8");
@@ -220,7 +222,9 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       const seenTags = new Set<string>();
       const tags: string[] = [];
       for (const tag of rawTags) {
+        // row0 的 tag 彻底不进站点：不上卡片、不进筛选、不参与搜索
         const canonical = tagAliases.get(tag) ?? tag;
+        if (dropped.has(canonical)) continue;
         if (seenTags.has(canonical)) continue;
         seenTags.add(canonical);
         tags.push(canonical);
