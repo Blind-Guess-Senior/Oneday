@@ -71,18 +71,21 @@ header {
 
 /* ── Layout ───────────────────────────────────────────────────────── */
 .layout {
-  display: flex;
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--sidebar-w);
+  grid-template-areas: "left main right";
+  align-items: start;
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem 1.5rem 3rem;
   gap: 1.5rem;
-  align-items: flex-start;
 }
 
-/* ── Sidebar (filter panel) ───────────────────────────────────────── */
-.sidebar {
-  width: var(--sidebar-w);
-  flex-shrink: 0;
+/* ── Filter panels ────────────────────────────────────────────────── */
+/* 桌面是左右两块。.sidebar 只是手机抽屉的壳子：display: contents 让它不参与布局，
+   两个 .filter-panel 直接进上面的网格。 */
+.sidebar { display: contents; }
+.filter-panel {
   position: sticky;
   top: 72px;
   max-height: calc(100vh - 80px);
@@ -93,8 +96,11 @@ header {
   padding: 1rem;
   box-shadow: var(--shadow);
 }
-.sidebar::-webkit-scrollbar { width: 4px; }
-.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.filter-panel::-webkit-scrollbar { width: 4px; }
+.filter-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.filter-left { grid-area: left; }
+.filter-right { grid-area: right; }
+.sidebar-overlay { display: none; }
 
 .filter-section { margin-bottom: 1.2rem; }
 .filter-section:last-child { margin-bottom: 0; }
@@ -427,20 +433,30 @@ header {
 /* ── Mobile ───────────────────────────────────────────────────────── */
 @media (max-width: 820px) {
   .btn-filter-toggle { display: inline-flex; }
+  /* 手机上两个筛选面板装回同一个抽屉，上下堆叠 */
   .sidebar {
+    display: block;
     position: fixed; top: 56px; left: 0; bottom: 0;
     z-index: 200; width: 260px;
+    overflow-y: auto;
+    background: var(--surface);
+    padding: 1rem;
     transform: translateX(-110%);
     transition: transform .22s ease;
-    border-radius: 0; max-height: 100%;
   }
   .sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,.15); }
+  .filter-panel {
+    position: static; max-height: none; overflow: visible;
+    background: none; border: none; border-radius: 0;
+    padding: 0; box-shadow: none;
+  }
+  .filter-right { margin-top: 1.2rem; }
   .sidebar-overlay {
-    display: none; position: fixed; inset: 0;
+    position: fixed; inset: 0;
     background: rgba(0,0,0,.35); z-index: 190;
   }
   .sidebar-overlay.open { display: block; }
-  .layout { padding: 1rem; }
+  .layout { display: block; padding: 1rem; }
   .article-wrap { padding: 1.2rem 1rem; }
 }
 

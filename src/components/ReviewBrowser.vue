@@ -207,87 +207,91 @@ onMounted(readUrlState);
     <div class="sidebar-overlay" :class="{ open: sidebarOpen }" @click="sidebarOpen = false" />
 
     <aside class="sidebar" :class="{ open: sidebarOpen }">
-      <div class="filter-section">
-        <div class="filter-title">分类</div>
-        <div class="filter-options">
-          <button
-            v-for="entry in payload.categories"
-            :key="entry.id"
-            type="button"
-            class="filter-option"
-            :class="{ selected: category === entry.name }"
-            @click="selectCategory(entry.name)"
-          >
-            {{ entry.name }}
-          </button>
-        </div>
-      </div>
-
-      <div v-if="reviewersInCategory.length" class="filter-section">
-        <div class="filter-title">评测者</div>
-        <div class="filter-options">
-          <label v-for="reviewer in reviewersInCategory" :key="reviewer" class="filter-option">
-            <input v-model="reviewers" type="checkbox" :value="reviewer" @change="page = 1" />
-            {{ reviewer }}
-          </label>
-        </div>
-      </div>
-
-      <div v-if="!showStandardsOnly" class="filter-section">
-        <div class="filter-title">分数筛选</div>
-        <template v-if="reviewers.length">
-          <div v-for="reviewer in reviewers" :key="reviewer">
-            <div class="score-reviewer-label">{{ reviewer }}</div>
-            <div class="score-chips">
-              <button
-                v-for="score in scoreOptions(reviewer)"
-                :key="score"
-                type="button"
-                class="score-chip"
-                :class="{ selected: isScoreSelected(reviewer, score) }"
-                @click="toggleScore(reviewer, score)"
-              >
-                {{ score }}
-              </button>
-            </div>
-          </div>
-        </template>
-      </div>
-
-      <div v-if="!showStandardsOnly && category && visibleTags.length" class="filter-section">
-        <div class="filter-title">标签</div>
-        <div v-for="(row, index) in visibleTagRows" :key="index" class="tag-group">
-          <div class="tag-cloud">
+      <div class="filter-panel filter-left">
+        <div class="filter-section">
+          <div class="filter-title">分类</div>
+          <div class="filter-options">
             <button
-              v-for="tag in row"
-              :key="tag"
+              v-for="entry in payload.categories"
+              :key="entry.id"
               type="button"
-              class="tag-chip"
-              :class="{ selected: tags.includes(tag) }"
-              @click="toggleTag(tag)"
+              class="filter-option"
+              :class="{ selected: category === entry.name }"
+              @click="selectCategory(entry.name)"
             >
-              {{ tag }}
+              {{ entry.name }}
             </button>
           </div>
         </div>
-        <button v-if="allCategoryTags.length > TAG_LIMIT" type="button" class="tag-toggle" @click="showAllTags = !showAllTags">
-          {{ showAllTags ? "收起" : "显示更多标签" }}
-        </button>
+
+        <div v-if="reviewersInCategory.length" class="filter-section">
+          <div class="filter-title">评测者</div>
+          <div class="filter-options">
+            <label v-for="reviewer in reviewersInCategory" :key="reviewer" class="filter-option">
+              <input v-model="reviewers" type="checkbox" :value="reviewer" @change="page = 1" />
+              {{ reviewer }}
+            </label>
+          </div>
+        </div>
+
+        <div v-if="!showStandardsOnly" class="filter-section">
+          <div class="filter-title">分数筛选</div>
+          <template v-if="reviewers.length">
+            <div v-for="reviewer in reviewers" :key="reviewer">
+              <div class="score-reviewer-label">{{ reviewer }}</div>
+              <div class="score-chips">
+                <button
+                  v-for="score in scoreOptions(reviewer)"
+                  :key="score"
+                  type="button"
+                  class="score-chip"
+                  :class="{ selected: isScoreSelected(reviewer, score) }"
+                  @click="toggleScore(reviewer, score)"
+                >
+                  {{ score }}
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
       </div>
 
-      <div class="filter-section">
-        <div class="filter-title">显示选项</div>
-        <label class="filter-option">
-          <input v-model="showScoreOnly" type="checkbox" @change="page = 1" />
-          显示仅评分评测
-        </label>
-        <label class="filter-option">
-          <input v-model="showStandardsOnly" type="checkbox" @change="page = 1" />
-          显示评分标准
-        </label>
-      </div>
+      <div class="filter-panel filter-right">
+        <div v-if="!showStandardsOnly && category && visibleTags.length" class="filter-section">
+          <div class="filter-title">标签</div>
+          <div v-for="(row, index) in visibleTagRows" :key="index" class="tag-group">
+            <div class="tag-cloud">
+              <button
+                v-for="tag in row"
+                :key="tag"
+                type="button"
+                class="tag-chip"
+                :class="{ selected: tags.includes(tag) }"
+                @click="toggleTag(tag)"
+              >
+                {{ tag }}
+              </button>
+            </div>
+          </div>
+          <button v-if="allCategoryTags.length > TAG_LIMIT" type="button" class="tag-toggle" @click="showAllTags = !showAllTags">
+            {{ showAllTags ? "收起" : "显示更多标签" }}
+          </button>
+        </div>
 
-      <button type="button" class="filter-reset" @click="resetFilters">重置筛选</button>
+        <div class="filter-section">
+          <div class="filter-title">显示选项</div>
+          <label class="filter-option">
+            <input v-model="showScoreOnly" type="checkbox" @change="page = 1" />
+            显示仅评分评测
+          </label>
+          <label class="filter-option">
+            <input v-model="showStandardsOnly" type="checkbox" @change="page = 1" />
+            显示评分标准
+          </label>
+        </div>
+
+        <button type="button" class="filter-reset" @click="resetFilters">重置筛选</button>
+      </div>
     </aside>
 
     <div class="main">
