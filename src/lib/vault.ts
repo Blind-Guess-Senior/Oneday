@@ -200,7 +200,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       const title = titleNames.get(name) ?? name;
       const slug = slugFor(name, authorRel, contentRel);
       const primaryCategory = matched[0];
-      const id = `${config.reviewer}/${primaryCategory?.idName ?? ""}/${slug}`;
+      const id = `${config.reviewer}/${primaryCategory?.id ?? ""}/${slug}`;
 
       const scoreValue = meta["score"];
       const scoreRaw = scoreValue === undefined || scoreValue === null ? "" : String(scoreValue).trim();
@@ -331,7 +331,7 @@ async function buildStandards(): Promise<StandardRecord[]> {
       const dates = gitDatesFor(relPath);
 
       records.push({
-        id: `${config.reviewer}/${category.idName}/${slug}`,
+        id: `${config.reviewer}/${category.id}/${slug}`,
         reviewer: config.reviewer,
         slug,
         title: titleNames.get(stem) ?? stem,

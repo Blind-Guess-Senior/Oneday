@@ -85,14 +85,14 @@ export function buildIndexPayload(): Promise<IndexPayload> {
       readReviewerConfigs(),
     ]);
 
-    // 分类顺序 = 作者配置里的书写顺序，去重；同时记下 name → id_name
+    // 分类顺序 = 作者配置里的书写顺序，去重；同时记下 name → id
     const categories: Array<{ name: string; id: string }> = [];
     const categoryIds = new Map<string, string>();
     for (const config of configs) {
       for (const category of config.categories) {
         if (categoryIds.has(category.name)) continue;
-        categoryIds.set(category.name, category.idName);
-        categories.push({ name: category.name, id: category.idName });
+        categoryIds.set(category.name, category.id);
+        categories.push({ name: category.name, id: category.id });
       }
     }
 

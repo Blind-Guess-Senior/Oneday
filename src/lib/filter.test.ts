@@ -114,7 +114,7 @@ test("非数字评分退回字符串比较（星号等）", () => {
   assert.deepEqual(titles(sortCards(stars, "score_desc")), ["五星", "三星"]);
 });
 
-test("徽章类名由分类 id_name 派生，加分类不用改代码", () => {
+test("徽章类名由分类 id 派生，加分类不用改代码", () => {
   assert.equal(categoryBadgeClass(["Game"]), "badge-game");
   assert.equal(categoryBadgeClass(["Anime"]), "badge-anime");
   assert.equal(categoryBadgeClass(["Book"]), "badge-book");

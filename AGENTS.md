@@ -107,18 +107,18 @@ src/content/<作者>/
 ```toml
 [[categories]]
 name = "游戏"                                  # 显示名，用在筛选区和卡片徽章上
-id_name = "Game"                               # URL 里用的分类段，保持 ASCII
+id = "Game"                                   # URL 里用的分类段，保持 ASCII
 include = ["Game/**/*.md"]                     # 评测候选。** 匹配零层或多层目录
 standard = ["Standard/游戏/**/*.md"]           # 可选。评分标准
 
 [[categories]]
 name = "动漫"
-id_name = "Anime"
+id = "Anime"
 include = ["Anime/**/*.md"]
 standard = ["Standard/动漫/**/*.md"]
 ```
 
-- `name` 显示用（中文），`id_name` URL 用（ASCII）。`id_name` 省略时回落到 slug 化的 `name`，
+- `name` 显示用（中文），`id` URL 用（ASCII）。`id` 省略时回落到 slug 化的 `name`，
   并在构建日志的 `[提示]` 里提醒。
 - 没有被任何 include 命中的文件一律不存在。
 - `[[categories]]` 的书写顺序 = 首页侧栏的分类顺序。
@@ -300,7 +300,7 @@ astro build
 
 - 正文渲染走 Astro 7 的 markdown 管线（**satteri**，不是 remark/rehype），
   插件注册在 `astro.config.ts` 的 `markdown.processor`。
-- 构建期的提示（`note()`）只用于「配置和数据对不上」：分类没写 `id_name`、
+- 构建期的提示（`note()`）只用于「配置和数据对不上」：分类没写 `id`、
   数据里出现了 `tags.toml` 没声明的 tag。它不检查内容怎么写。
 
 构建日志里你会看到：
@@ -322,7 +322,7 @@ astro build
 ```
 
 - `<作者>` = 作者目录名原样。
-- `<分类>` = 第一个命中的分类的 `id_name`（`Game` / `Anime` / `Book`），
+- `<分类>` = 第一个命中的分类的 `id`（`Game` / `Anime` / `Book`），
   进路径是为了让同作者同名作品不撞车。
 - `<slug>` 由标题生成：只剔除 URL / 文件系统危险字符（`/ \ ? # % & = + < > | * : " ' \``），
   空白转 `-`，折叠连续 `-`，ASCII 转小写；CJK、全角标点、`∬`、`？` 一律保留。
@@ -379,7 +379,7 @@ npm run preview    # 预览 dist/
    Astro 按 `entry.filePath` 的目录解析。
 5. `store.set()` 必须显式传 `assetImports: rendered.metadata.imagePaths`，
    否则 `<img>` 会永远停在 `__ASTRO_IMAGE_` 中间态。
-6. **改了 entry id（slug 规则、路由结构、分类 `id_name`）之后必须删 `node_modules/.astro`**：
+6. **改了 entry id（slug 规则、路由结构、分类 `id`）之后必须删 `node_modules/.astro`**：
    内容存储只按 key 更新，旧 id 的条目会残留在集合里，
    表现为 `dist/` 下同时出现新旧两套目录。
 

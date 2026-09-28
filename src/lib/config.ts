@@ -35,7 +35,7 @@ export interface CategoryConfig {
   /** 显示用的分类名，例如「游戏」。 */
   name: string;
   /** URL 里用的分类段，例如「Game」。和显示名分开，URL 才能保持 ASCII。 */
-  idName: string;
+  id: string;
   /** 评测的 glob，相对作者目录。`**` 匹配零层或多层目录。 */
   include: string[];
   /** 评分标准的 glob，相对作者目录。没有标准就留空。 */
@@ -99,16 +99,16 @@ function normalizeReviewerConfig(reviewer: string, dir: string, raw: Record<stri
     const name = asString(record["name"]);
     const include = asStringArray(record["include"]);
     if (!name || include.length === 0) continue;
-    const declaredIdName = asString(record["id_name"]);
-    if (!declaredIdName) {
+    const declaredId = asString(record["id"]);
+    if (!declaredId) {
       note(
         `src/content/${reviewer}/reviewer_config.toml`,
-        `分类「${name}」没写 id_name，URL 段回落到「${toSlug(name)}」（建议显式写一个 ASCII 名）`,
+        `分类「${name}」没写 id，URL 段回落到「${toSlug(name)}」（建议显式写一个 ASCII 名）`,
       );
     }
     categories.push({
       name,
-      idName: declaredIdName || toSlug(name),
+      id: declaredId || toSlug(name),
       include,
       standard: asStringArray(record["standard"]),
     });

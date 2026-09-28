@@ -8,7 +8,7 @@ export interface Card {
   aka: string[];
   reviewer: string;
   category: string[];
-  /** 分类的 id_name，用于徽章配色（与显示名解耦，加分类不用改代码） */
+  /** 分类的 id，用于徽章配色（与显示名解耦，加分类不用改代码） */
   categoryIds: string[];
   tags: string[];
   score: string;
@@ -121,7 +121,7 @@ export function categoryBadgeClass(categoryIds: string[]): string {
 
 export interface UrlState {
   query: string;
-  /** 分类的 id_name；空串表示不限 */
+  /** 分类的 id；空串表示不限 */
   categoryId: string;
   reviewers: string[];
   scores: Record<string, string[]>;
