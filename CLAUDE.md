@@ -268,16 +268,16 @@ Ignored = ["剧透"]
 
 ```toml
 # by_category_id/Game/entry_ids.toml：id 同时就是显示名和 URL 的 slug
-[[entry_ids]]
-id = "NieR: Automata"
-files = ["NieR-Automata™"]
+entry_ids = [
+  { id = "NieR: Automata", files = ["NieR-Automata™"] },
+]
 ```
 
 ```toml
 # by_category_id/Game/aka.toml
-[[aka]]
-id = "NieR: Automata"
-names = ["尼尔：机械纪元"]
+aka = [
+  { id = "NieR: Automata", names = ["尼尔：机械纪元"] },
+]
 ```
 
 作者可以在自己目录里放一份同结构的配置：
@@ -291,9 +291,9 @@ names = ["尼尔：机械纪元"]
 
 - 目录名必须和 `reviewer_config.toml` 里的某个分类 `id` 一致；对不上的目录是死配置，
   构建日志里会提醒。
-- `[[entry_ids]]`：`id` 是 entry 的身份，同时也直接当显示名；没写进去的条目，id 就是文件名。
+- `entry_ids`：`id` 是 entry 的身份，同时也直接当显示名；没写进去的条目，id 就是文件名。
   `files` 列文件名里可能出现的写法（文件名不能带 `/ \ : * ? " < > |`）。
-- `[[aka]]`：`id` → 别名。卡片显示第一个，文章页显示全部，搜索也匹配别名。
+- `aka`：`id` → 别名。卡片显示第一个，文章页显示全部，搜索也匹配别名。
 - `[tag_rows]`：数字键是筛选区里的第 N 排；`Ignored` 不是一排，里面的 tag 彻底不进站点
   （不上卡片、不进筛选、不参与搜索）。
 - 每项要么直接写 tag 名，要么写 `{ "主名" = ["别名", …] }`：卡片上写别名也算主名。别名只在
