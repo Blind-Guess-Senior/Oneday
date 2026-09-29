@@ -40,8 +40,8 @@ function asList(value: unknown): string[] {
 /**
  * 按 `[tag_rows]` 排出该分类的 tag 行。
  *
- * 只保留该分类下真实出现过的 tag；数据里出现但 tags.toml 没声明的，
- * 追加到最后一排末尾并记进构建日志（既不静默消失，又能暴露拼写错误）。
+ * 筛选区只列该分类在 tags.toml 里声明过、并且真有卡片在用的 tag。
+ * 数据里出现但没声明的 tag 不进筛选区，只在构建日志里报出来。
  */
 function buildTagRows(
   cards: Card[],
@@ -67,11 +67,9 @@ function buildTagRows(
 
     const undeclared = [...used].filter((tag) => !declared.has(tag)).sort((a, b) => a.localeCompare(b, "zh"));
     if (undeclared.length > 0) {
-      if (rows.length === 0) rows.push([]);
-      rows[rows.length - 1]?.push(...undeclared);
       note(
         `src/config/by_category_id/${id}/tags.toml`,
-        `分类「${name}」（${id}）有 ${undeclared.length} 个 tag 没声明，已排在最后一排：${undeclared.join("、")}`,
+        `分类「${name}」（${id}）有 ${undeclared.length} 个 tag 没声明，不进筛选区：${undeclared.join("、")}`,
       );
     }
 
