@@ -1,0 +1,4 @@
+akas = [
+  { id = "Ori and the Blind Forest", akas = ["奥日与黑暗森林"] },
+  { id = "Outer Wilds", akas = ["星际拓荒"] },
+]

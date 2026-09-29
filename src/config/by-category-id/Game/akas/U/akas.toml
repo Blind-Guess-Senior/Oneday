@@ -1,0 +1,4 @@
+akas = [
+  { id = "Ultimate Chicken Horse", akas = ["超级鸡马"] },
+  { id = "Ultraman Fighting Evolution 3", akas = ["奥特曼格斗进化3"] },
+]

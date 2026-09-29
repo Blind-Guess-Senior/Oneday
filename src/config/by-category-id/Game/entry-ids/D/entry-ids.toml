@@ -1,0 +1,4 @@
+entry-ids = [
+  { id = "DARK SOULS: REMASTERED", files = ["DARK SOULS™-REMASTERED"] },
+  { id = "DARK SOULSⅡ: Scholar of the First Sin", files = ["DARK SOULS™Ⅱ-Scholar of the First Sin"] },
+]

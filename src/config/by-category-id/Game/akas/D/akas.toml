@@ -1,0 +1,6 @@
+akas = [
+  { id = "DARK SOULS: REMASTERED", akas = ["黑暗之魂重制版"] },
+  { id = "DARK SOULSⅡ: Scholar of the First Sin", akas = ["黑暗之魂2：原罪学者"] },
+  { id = "Darkest Dungeon", akas = ["暗黑地牢"] },
+  { id = "Dead Cells", akas = ["死亡细胞"] },
+]

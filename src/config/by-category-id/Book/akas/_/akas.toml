@@ -1,0 +1,5 @@
+akas = [
+  { id = "末日邮差", akas = ["The Postman"] },
+  { id = "十四岁", akas = ["4TEEN"] },
+  { id = "十六岁", akas = ["6TEEN"] },
+]

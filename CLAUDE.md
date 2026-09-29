@@ -209,7 +209,7 @@ month: 3
 正文……
 ```
 
-- entry 的 id = 该分类 `entry_ids.toml` 里对应的 `id`；没写进去就是文件名本身
+- entry 的 id = 该分类 `entry-ids/<首字母>/entry-ids.toml` 里的 `id`；没写进去就是文件名本身
   （`Aspark` 作者目录下末尾的 `★` 先剥掉）。标题、URL 都取这个 id。
 - 正文开头的第一个 fenced code block 按约定是 `sub_scores`，抽出来渲染在元信息下方。
 - `updated: 2026-03-08` 可选：写了就用它当「更新于」，不写取该文件 `git log --follow`
@@ -250,8 +250,17 @@ month: 3
 
 ## 6. `src/config/` 规格
 
-`site.toml` 是空的；其余配置按分类放：`by-category-id/<分类 id>/{tags,entry_ids,aka}.toml`。
-目录名就是分类 id，所以文件里不再写分类；文件缺了当空。
+`site.toml` 是空的；其余配置按分类放，一个分类一个目录：
+
+```
+by-category-id/<分类 id>/
+├─ tags.toml
+├─ akas/<首字母>/akas.toml
+└─ entry-ids/<首字母>/entry-ids.toml
+```
+
+分桶只看 id 的第一个字符：字母归大写 `A`–`Z`，数字归 `0-9`，其余（CJK、假名……）归 `_`；
+桶名不参与校验，放错桶照样读得到。文件缺了当空。
 
 **分类之间完全隔离**：配置、tag、别名、entry id、aka 都只在本分类内成立，名字一样不代表有关系。
 
@@ -267,33 +276,33 @@ Ignored = ["剧透"]
 ```
 
 ```toml
-# by-category-id/Game/entry_ids.toml：id 同时就是显示名和 URL 的 slug
-entry_ids = [
+# by-category-id/Game/entry-ids/N/entry-ids.toml：id 同时就是显示名和 URL 的 slug
+entry-ids = [
   { id = "NieR: Automata", files = ["NieR-Automata™"] },
 ]
 ```
 
 ```toml
-# by-category-id/Game/aka.toml
-aka = [
-  { id = "NieR: Automata", names = ["尼尔：机械纪元"] },
+# by-category-id/Game/akas/N/akas.toml
+akas = [
+  { id = "NieR: Automata", akas = ["尼尔：机械纪元"] },
 ]
 ```
 
 作者可以在自己目录里放一份同结构的配置：
-`src/content/<作者>/config/by-category-id/<分类 id>/{tags,entry_ids,aka}.toml`。
+`src/content/<作者>/config/by-category-id/<分类 id>/{tags.toml, akas/…, entry-ids/…}`。
 规则是**全站配置打底、作者的叠加，而且只对这个作者生效**：
 
 - `tags.toml` 只能写 `[tag_rows] Ignored = [...]`，追加自己的忽略列表；写别的排不生效
   （构建日志里会提醒）。所以作者 A 忽略掉的 tag，作者 B 照样能用。
-- `entry_ids.toml` / `aka.toml` 是补充和覆盖：同一个文件名（entry_ids）或同一个 `id`（aka）
+- `entry-ids` / `akas` 是补充和覆盖：同一个文件名（entry-ids）或同一个 `id`（akas）
   以作者的为准，别的作者不受影响。
 
 - 目录名必须和 `reviewer_config.toml` 里的某个分类 `id` 一致；对不上的目录是死配置，
   构建日志里会提醒。
-- `entry_ids`：`id` 是 entry 的身份，同时也直接当显示名；没写进去的条目，id 就是文件名。
+- `entry-ids`：`id` 是 entry 的身份，同时也直接当显示名；没写进去的条目，id 就是文件名。
   `files` 列文件名里可能出现的写法（文件名不能带 `/ \ : * ? " < > |`）。
-- `aka`：`id` → 别名。卡片显示第一个，文章页显示全部，搜索也匹配别名。
+- `akas`：`id` → 别名。卡片显示第一个，文章页显示全部，搜索也匹配别名。
 - `[tag_rows]`：数字键是筛选区里的第 N 排；`Ignored` 不是一排，里面的 tag 彻底不进站点
   （不上卡片、不进筛选、不参与搜索）。
 - 每项要么直接写 tag 名，要么写 `{ "主名" = ["别名", …] }`：卡片上写别名也算主名。别名只在

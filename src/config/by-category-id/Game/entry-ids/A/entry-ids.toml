@@ -1,0 +1,4 @@
+entry-ids = [
+  { id = "ACE COMBAT 7: SKIES UNKNOWN", files = ["ACE COMBAT 7- SKIES UNKNOWN"] },
+  { id = "AI: The Somnium Files", files = ["AI- The Somnium Files"] },
+]

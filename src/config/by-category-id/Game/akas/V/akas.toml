@@ -1,0 +1,4 @@
+akas = [
+  { id = "VA-11 Hall-A Cyberpunk Bartender Action", akas = ["赛博朋克酒保行动"] },
+  { id = "Vampire Survivals", akas = ["吸血鬼幸存者"] },
+]

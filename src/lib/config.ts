@@ -210,13 +210,27 @@ export function listCategoryConfigIds(): string[] {
     .sort();
 }
 
-function readTomlFile(dir: string, name: string): Record<string, unknown> {
-  const file = path.join(dir, name);
+function readTomlPath(file: string): Record<string, unknown> {
   if (!existsSync(file)) return {};
   return asRecord(parseToml(readFileSync(file, "utf8"))) ?? {};
 }
 
-/** 一份 `tags.toml` / `entry_ids.toml` / `aka.toml` 的原始内容。 */
+function readTomlFile(dir: string, name: string): Record<string, unknown> {
+  return readTomlPath(path.join(dir, name));
+}
+
+/** `<dir>/<folder>/<桶>/<file>`：桶只是拆文件用，名字不参与校验，放错桶也照样读到。 */
+function bucketFiles(dir: string, folder: string, file: string): string[] {
+  const root = path.join(dir, folder);
+  if (!existsSync(root)) return [];
+  return readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(root, entry.name, file))
+    .filter((full) => existsSync(full))
+    .sort();
+}
+
+/** 一份 `tags.toml` / `entry-ids.toml` / `akas.toml` 的原始内容。 */
 interface RawCategoryFiles {
   aliases: Map<string, string>;
   rows: string[][];
@@ -266,26 +280,30 @@ function readCategoryFiles(dir: string, collectAliases: boolean): RawCategoryFil
   const ignored = tagItems(rawRows["Ignored"], collectAliases ? aliases : unusedAliases);
 
   const titleNames = new Map<string, string>();
-  const rawIds = readTomlFile(dir, "entry_ids.toml")["entry_ids"];
-  for (const item of Array.isArray(rawIds) ? rawIds : []) {
-    const record = asRecord(item);
-    if (!record) continue;
-    const id = asString(record["id"]);
-    if (!id) continue;
-    for (const variant of asStringArray(record["files"])) {
-      const name = variant.trim();
-      if (name) titleNames.set(name, id);
+  for (const file of bucketFiles(dir, "entry-ids", "entry-ids.toml")) {
+    const rawIds = readTomlPath(file)["entry-ids"];
+    for (const item of Array.isArray(rawIds) ? rawIds : []) {
+      const record = asRecord(item);
+      if (!record) continue;
+      const id = asString(record["id"]);
+      if (!id) continue;
+      for (const variant of asStringArray(record["files"])) {
+        const name = variant.trim();
+        if (name) titleNames.set(name, id);
+      }
     }
   }
 
   const aka = new Map<string, string[]>();
-  const rawAka = readTomlFile(dir, "aka.toml")["aka"];
-  for (const item of Array.isArray(rawAka) ? rawAka : []) {
-    const record = asRecord(item);
-    if (!record) continue;
-    const id = asString(record["id"]);
-    const names = asStringArray(record["names"]).map((name) => name.trim()).filter(Boolean);
-    if (id && names.length) aka.set(id, names);
+  for (const file of bucketFiles(dir, "akas", "akas.toml")) {
+    const rawAka = readTomlPath(file)["akas"];
+    for (const item of Array.isArray(rawAka) ? rawAka : []) {
+      const record = asRecord(item);
+      if (!record) continue;
+      const id = asString(record["id"]);
+      const names = asStringArray(record["akas"]).map((name) => name.trim()).filter(Boolean);
+      if (id && names.length) aka.set(id, names);
+    }
   }
 
   const files: RawCategoryFiles = { aliases, rows, ignored, titleNames, aka };
@@ -309,7 +327,7 @@ export function categoryFilesFor(reviewer: string, categoryId: string): Category
   const global = readCategoryFiles(path.join(CATEGORY_CONFIG_ROOT, categoryId), true);
   const authorDir = path.join(CONTENT_ROOT, reviewer, "config", "by-category-id", categoryId);
   const author = readCategoryFiles(authorDir, false);
-  if (author.rows.length > 0) {
+  if (author.rows.some((row) => row.length > 0)) {
     note(
       `src/content/${reviewer}/config/by-category-id/${categoryId}/tags.toml`,
       "作者的 tags.toml 只认 [tag_rows] Ignored，别的排不会生效",

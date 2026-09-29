@@ -1,0 +1,11 @@
+akas = [
+  { id = "Elden Ring", akas = ["艾尔登法环"] },
+  { id = "ELDEN RING", akas = ["艾尔登法环"] },
+  { id = "Elden Ring NightReign", akas = ["艾尔登法环：黑夜君临"] },
+  { id = "ELDEN RING NIGHTREIGN", akas = ["艾尔登法环：黑夜君临", "黑环"] },
+  { id = "ENDER LILIES: Quietus of the Knights", akas = ["终焉之莉莉：骑士寂夜"] },
+  { id = "ENDER MAGNOLIA: Bloom in the Mist", akas = ["终焉之玛格诺利亚：雾中盛放之花"] },
+  { id = "Escape the Backrooms", akas = ["逃离后室"] },
+  { id = "Eternum", akas = ["永恒世界"] },
+  { id = "Everlasting Summer", akas = ["永恒之夏"] },
+]

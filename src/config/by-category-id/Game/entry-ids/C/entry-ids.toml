@@ -1,0 +1,4 @@
+entry-ids = [
+  { id = "Cities: Skylines", files = ["Cities- Skylines"] },
+  { id = "Clair Obscur: Expedition 33", files = ["Clair Obscur- Expedition 33", "Clair Obscur-Expedition 33"] },
+]
