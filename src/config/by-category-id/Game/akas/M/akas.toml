@@ -1,9 +1,36 @@
 akas = [
-  { id = "Machinarium", akas = ["机械迷城"] },
-  { id = "Milk inside a bag of milk inside a bag of milk", akas = ["牛奶袋内袋装牛奶"] },
-  { id = "Minecraft", akas = ["我的世界"] },
-  { id = "Miside", akas = ["米塔"] },
-  { id = "Monster Hunter: World", akas = ["怪物猎人：世界"] },
-  { id = "Monument Valley", akas = ["纪念碑谷"] },
-  { id = "Monument Valley 2", akas = ["纪念碑谷2"] },
+  { id = "Machinarium", akas = [
+    "机械迷城",
+  ] },
+  { id = "Milk inside a bag of milk inside a bag of milk", akas = [
+    "牛奶袋内袋装牛奶",
+  ] },
+  { id = "Minecraft", akas = [
+    "我的世界",
+  ] },
+  { id = "Miside", akas = [
+    "米塔",
+  ] },
+  { id = "Monster Hunter: World", akas = [
+    "怪物猎人：世界",
+  ] },
+  { id = "Monument Valley", akas = [
+    "纪念碑谷",
+  ] },
+  { id = "Monument Valley 2", akas = [
+    "纪念碑谷2",
+  ] },
+  { id = "明末：渊虚之羽", akas = [
+    "WUCHANG: Fallen Feathers",
+  ] },
+  { id = "明日方舟", akas = [
+    "Arknight",
+  ] },
+  { id = "明日方舟：终末地", akas = [
+    "Endfield",
+  ] },
+  { id = "もんむす·くえすと！", akas = [
+    "勇者大战魔物娘",
+    "勇战",
+  ] },
 ]

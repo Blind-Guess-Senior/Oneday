@@ -1,3 +1,5 @@
 entry-ids = [
-  { id = "Lobotomy Corporation | Monster Management Simulation", files = ["Lobotomy Corporation - Monster Management Simulation"] },
+  { id = "Lobotomy Corporation | Monster Management Simulation", files = [
+    "Lobotomy Corporation - Monster Management Simulation",
+  ] },
 ]

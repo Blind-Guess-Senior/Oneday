@@ -1,3 +1,7 @@
 akas = [
-  { id = "ZORT", akas = [] },
+  { id = "ゼルダの伝説 ブレス オブ ザ ワイルド", akas = [
+    "塞尔达传说 旷野之息",
+    "The Legend of Zelda: Breath of the Wild",
+    "野炊",
+  ] },
 ]

@@ -1,8 +1,23 @@
 akas = [
-  { id = "The Binding of Isaac: Rebirth", akas = ["以撒的结合：重生"] },
-  { id = "The Expanse: Osiris Reborn", akas = ["苍穹浩瀚：奥里西斯重生"] },
-  { id = "The Forest", akas = ["森林"] },
-  { id = "The Many Pieces of Mr. Coo", akas = ["裂开了！裤先生"] },
-  { id = "Terraria", akas = ["泰拉瑞亚"] },
-  { id = "Touhou Luna Nights", akas = ["东方月神夜"] },
+  { id = "The Binding of Isaac: Rebirth", akas = [
+    "以撒的结合：重生",
+  ] },
+  { id = "The Expanse: Osiris Reborn", akas = [
+    "苍穹浩瀚：奥里西斯重生",
+  ] },
+  { id = "The Forest", akas = [
+    "森林",
+  ] },
+  { id = "The Many Pieces of Mr. Coo", akas = [
+    "裂开了！裤先生",
+  ] },
+  { id = "Terraria", akas = [
+    "泰拉瑞亚",
+  ] },
+  { id = "Touhou Luna Nights", akas = [
+    "东方月神夜",
+  ] },
+  { id = "ツヴァイ!!2", akas = [
+    "双星物语2",
+  ] },
 ]

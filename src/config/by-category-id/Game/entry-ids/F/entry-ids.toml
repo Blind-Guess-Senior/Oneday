@@ -1,4 +1,8 @@
 entry-ids = [
-  { id = "Fate/Samurai Remnant", files = ["Fate_Samurai Remnant"] },
-  { id = "Fate/stay night", files = ["Fate_stay night"] },
+  { id = "Fate/Samurai Remnant", files = [
+    "Fate_Samurai Remnant",
+  ] },
+  { id = "Fate/stay night", files = [
+    "Fate_stay night",
+  ] },
 ]

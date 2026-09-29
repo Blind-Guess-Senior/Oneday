@@ -1,0 +1,11 @@
+akas = [
+  { id = "文字规则怪谈", akas = [
+    "Myths of Rules",
+  ] },
+  { id = "文字游戏", akas = [
+    "Word Game",
+  ] },
+  { id = "无限机兵", akas = [
+    "AI LIMIT",
+  ] },
+]

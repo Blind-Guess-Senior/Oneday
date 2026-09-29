@@ -1,4 +1,8 @@
 akas = [
-  { id = "Fate/Samurai Remnant", akas = ["FSR"] },
-  { id = "Fate/stay night", akas = ["FSN"] },
+  { id = "Fate/Samurai Remnant", akas = [
+    "FSR",
+  ] },
+  { id = "Fate/stay night", akas = [
+    "FSN",
+  ] },
 ]

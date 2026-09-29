@@ -1,12 +1,37 @@
 akas = [
-  { id = "Balatro", akas = ["小丑牌"] },
-  { id = "Baldur's Gate 3", akas = ["博德之门3"] },
-  { id = "Besiege", akas = ["围攻"] },
-  { id = "BLACK SOULS", akas = [] },
-  { id = "BLACK SOULS -黒の童話と五魔姫-", akas = ["BLACK SOULS -黑童话与五魔姬-"] },
-  { id = "Blasphemous", akas = ["神之亵渎"] },
-  { id = "Blasphemous 2", akas = ["神之亵渎2"] },
-  { id = "Bleak Sword DX", akas = ["荒绝之剑DX"] },
-  { id = "Bloodstained: Ritual of the Night", akas = ["赤痕：夜之仪式"] },
-  { id = "Bloodstained: The Scarlet Engagement", akas = ["赤痕：绯红誓约"] },
+  { id = "Balatro", akas = [
+    "小丑牌",
+  ] },
+  { id = "Baldur's Gate 3", akas = [
+    "博德之门3",
+  ] },
+  { id = "Besiege", akas = [
+    "围攻",
+  ] },
+  { id = "BLACK SOULS", akas = [
+  ] },
+  { id = "BLACK SOULS -黒の童話と五魔姫-", akas = [
+    "BLACK SOULS -黑童话与五魔姬-",
+  ] },
+  { id = "Blasphemous", akas = [
+    "神之亵渎",
+  ] },
+  { id = "Blasphemous 2", akas = [
+    "神之亵渎2",
+  ] },
+  { id = "Bleak Sword DX", akas = [
+    "荒绝之剑DX",
+  ] },
+  { id = "Bloodstained: Ritual of the Night", akas = [
+    "赤痕：夜之仪式",
+  ] },
+  { id = "Bloodstained: The Scarlet Engagement", akas = [
+    "赤痕：绯红誓约",
+  ] },
+  { id = "被虐のノエル", akas = [
+    "被虐的诺艾尔",
+  ] },
+  { id = "媚肉の香り～ネトリネトラレヤリヤラレ～", akas = [
+    "媚肉之香",
+  ] },
 ]

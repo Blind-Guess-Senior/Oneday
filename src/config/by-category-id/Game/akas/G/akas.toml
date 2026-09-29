@@ -1,0 +1,12 @@
+akas = [
+    { id = "(the) Gnorp Apologue", akas = [
+        "糯米团子历代记",
+    ] },
+    { id = "光明记忆：无限", akas = [
+        "Bright Memory: Infinite",
+    ] },
+    { id = "逆転裁判123 成歩堂セレクション", akas = [
+        "逆转裁判123",
+        "Phoenix Wright: Ace Attorney Trilogy",
+    ] },
+]

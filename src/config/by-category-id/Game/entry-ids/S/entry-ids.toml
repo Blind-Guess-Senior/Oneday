@@ -1,3 +1,5 @@
 entry-ids = [
-  { id = "Sekiro: Shadows Die Twice", files = ["Sekiro™-Shadows Die Twice"] },
+  { id = "Sekiro: Shadows Die Twice", files = [
+    "Sekiro™-Shadows Die Twice",
+  ] },
 ]

@@ -1,11 +1,35 @@
 akas = [
-  { id = "Salt and Sanctuary", akas = ["盐与避难所"] },
-  { id = "Sekiro: Shadows Die Twice", akas = ["只狼：影逝二度"] },
-  { id = "SEQUEL blight", akas = ["凋零余波"] },
-  { id = "Slay the Spire", akas = ["杀戮尖塔"] },
-  { id = "Slay the Spire 2", akas = ["杀戮尖塔2"] },
-  { id = "Snakebird Complete", akas = ["蛇鸟：完全版"] },
-  { id = "Split Fiction", akas = ["双影奇境"] },
-  { id = "Starbound", akas = ["星界边境"] },
-  { id = "Stardew Valley", akas = ["星露谷物语"] },
+  { id = "Salt and Sanctuary", akas = [
+    "盐与避难所",
+  ] },
+  { id = "Sekiro: Shadows Die Twice", akas = [
+    "只狼：影逝二度",
+  ] },
+  { id = "SEQUEL blight", akas = [
+    "凋零余波",
+  ] },
+  { id = "Slay the Spire", akas = [
+    "杀戮尖塔",
+  ] },
+  { id = "Slay the Spire 2", akas = [
+    "杀戮尖塔2",
+  ] },
+  { id = "Snakebird Complete", akas = [
+    "蛇鸟：完全版",
+  ] },
+  { id = "Split Fiction", akas = [
+    "双影奇境",
+  ] },
+  { id = "Starbound", akas = [
+    "星界边境",
+  ] },
+  { id = "Stardew Valley", akas = [
+    "星露谷物语",
+  ] },
+  { id = "三色绘恋", akas = [
+    "Tricolor Lovestory",
+  ] },
+  { id = "死神模拟器", akas = [
+    "Trainee Death Simulator",
+  ] },
 ]

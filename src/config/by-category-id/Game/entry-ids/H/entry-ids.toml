@@ -1,3 +1,6 @@
 entry-ids = [
-  { id = "Hollow Knight: Silksong", files = ["Hollow Knight- Silksong", "Hollow Knight-Silksong"] },
+  { id = "Hollow Knight: Silksong", files = [
+    "Hollow Knight- Silksong",
+    "Hollow Knight-Silksong",
+  ] },
 ]

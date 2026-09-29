@@ -1,4 +1,11 @@
 entry-ids = [
-  { id = "ENDER LILIES: Quietus of the Knights", files = ["ENDER LILIES- Quietus of the Knights"] },
-  { id = "ENDER MAGNOLIA: Bloom in the Mist", files = ["ENDER MAGNOLIA- Bloom in the Mist"] },
+  { id = "ENDER LILIES: Quietus of the Knights", files = [
+    "ENDER LILIES- Quietus of the Knights",
+  ] },
+  { id = "ENDER MAGNOLIA: Bloom in the Mist", files = [
+    "ENDER MAGNOLIA- Bloom in the Mist",
+  ] },
+  { id = "The Expanse: Osiris Reborn", files = [
+    "The Expanse- Osiris Reborn",
+  ] },
 ]
