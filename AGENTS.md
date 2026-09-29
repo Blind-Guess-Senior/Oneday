@@ -44,7 +44,7 @@
 ├─ src/
 │  ├─ content/                ← 内容根，同时也是 Obsidian vault 根
 │  │  └─ <作者>/              ← 作者目录
-│  ├─ config/                 全站配置（site.toml、by_category_id/<分类 id>/*.toml）
+│  ├─ config/                 全站配置（site.toml、by-category-id/<分类 id>/*.toml）
 │  ├─ content.config.ts       两个集合：reviews / standards
 │  ├─ styles/global.css       全站样式
 │  ├─ lib/
@@ -118,7 +118,7 @@ include = ["Anime/**/*.md"]
 standard = ["Standard/动漫/**/*.md"]
 ```
 
-- `name` 显示用（中文），`id` 认身份用（ASCII）：URL 段、`by_category_id/<id>/` 目录、
+- `name` 显示用（中文），`id` 认身份用（ASCII）：URL 段、`by-category-id/<id>/` 目录、
   `[metadata_maps]` 的键都用它。`id` 省略时回落到 slug 化的 `name`，
   并在构建日志的 `[提示]` 里提醒。
 - 没有被任何 include 命中的文件一律不存在。
@@ -250,13 +250,13 @@ month: 3
 
 ## 6. `src/config/` 规格
 
-`site.toml` 是空的；其余配置按分类放：`by_category_id/<分类 id>/{tags,entry_ids,aka}.toml`。
+`site.toml` 是空的；其余配置按分类放：`by-category-id/<分类 id>/{tags,entry_ids,aka}.toml`。
 目录名就是分类 id，所以文件里不再写分类；文件缺了当空。
 
 **分类之间完全隔离**：配置、tag、别名、entry id、aka 都只在本分类内成立，名字一样不代表有关系。
 
 ```toml
-# by_category_id/Game/tags.toml
+# by-category-id/Game/tags.toml
 [tag_rows]
 Ignored = ["剧透"]
 1 = [
@@ -267,21 +267,21 @@ Ignored = ["剧透"]
 ```
 
 ```toml
-# by_category_id/Game/entry_ids.toml：id 同时就是显示名和 URL 的 slug
+# by-category-id/Game/entry_ids.toml：id 同时就是显示名和 URL 的 slug
 entry_ids = [
   { id = "NieR: Automata", files = ["NieR-Automata™"] },
 ]
 ```
 
 ```toml
-# by_category_id/Game/aka.toml
+# by-category-id/Game/aka.toml
 aka = [
   { id = "NieR: Automata", names = ["尼尔：机械纪元"] },
 ]
 ```
 
 作者可以在自己目录里放一份同结构的配置：
-`src/content/<作者>/config/by_category_id/<分类 id>/{tags,entry_ids,aka}.toml`。
+`src/content/<作者>/config/by-category-id/<分类 id>/{tags,entry_ids,aka}.toml`。
 规则是**全站配置打底、作者的叠加，而且只对这个作者生效**：
 
 - `tags.toml` 只能写 `[tag_rows] Ignored = [...]`，追加自己的忽略列表；写别的排不生效
@@ -316,7 +316,7 @@ astro build
 - 正文渲染走 Astro 7 的 markdown 管线（**satteri**，不是 remark/rehype），
   插件注册在 `astro.config.ts` 的 `markdown.processor`。
 - 构建期的提示（`note()`）只用于「配置本身有问题」：分类没写 `id`、
-  `by_category_id/` 下有对不上任何分类 `id` 的目录、作者的 `tags.toml` 写了 `Ignored` 以外的排。
+  `by-category-id/` 下有对不上任何分类 `id` 的目录、作者的 `tags.toml` 写了 `Ignored` 以外的排。
   它不检查内容怎么写。
 
 构建日志里你会看到：

@@ -27,8 +27,8 @@ export const PROJECT_ROOT = findProjectRoot();
 /** 内容根（Oneday/src/content/），同时也是 Obsidian vault 根。 */
 export const CONTENT_ROOT = path.join(PROJECT_ROOT, "src", "content");
 
-/** 分类配置根：`src/config/by_category_id/<分类 id>/{tags,title_names,aka}.toml`。 */
-const CATEGORY_CONFIG_ROOT = path.join(PROJECT_ROOT, "src", "config", "by_category_id");
+/** 分类配置根：`src/config/by-category-id/<分类 id>/{tags,title_names,aka}.toml`。 */
+const CATEGORY_CONFIG_ROOT = path.join(PROJECT_ROOT, "src", "config", "by-category-id");
 
 export interface CategoryConfig {
   /** 显示用的分类名，例如「游戏」。 */
@@ -184,7 +184,7 @@ export async function readReviewerConfigs(): Promise<ReviewerConfig[]> {
   // 分类配置目录按分类 id 命名，对不上任何 id 的目录是死配置
   const knownIds = new Set(configs.flatMap((config) => config.categories.map((category) => category.id)));
   for (const id of listCategoryConfigIds()) {
-    if (!knownIds.has(id)) note(`src/config/by_category_id/${id}`, "没有作者声明这个分类 id，目录里的配置不会生效");
+    if (!knownIds.has(id)) note(`src/config/by-category-id/${id}`, "没有作者声明这个分类 id，目录里的配置不会生效");
   }
 
   return configs.sort((a, b) => a.reviewer.localeCompare(b.reviewer));
@@ -201,7 +201,7 @@ export async function categoryNames(): Promise<Map<string, string>> {
   return names;
 }
 
-/** `src/config/by_category_id/` 下的目录名 = 已经配过的分类 id。 */
+/** `src/config/by-category-id/` 下的目录名 = 已经配过的分类 id。 */
 export function listCategoryConfigIds(): string[] {
   if (!existsSync(CATEGORY_CONFIG_ROOT)) return [];
   return readdirSync(CATEGORY_CONFIG_ROOT, { withFileTypes: true })
@@ -249,7 +249,7 @@ function tagItems(value: unknown, aliases: Map<string, string>): string[] {
 
 const rawFilesCache = new Map<string, RawCategoryFiles>();
 
-/** 读一个 `by_category_id/<分类 id>/` 目录；三个文件都可以缺。 */
+/** 读一个 `by-category-id/<分类 id>/` 目录；三个文件都可以缺。 */
 function readCategoryFiles(dir: string, collectAliases: boolean): RawCategoryFiles {
   const cached = rawFilesCache.get(dir);
   if (cached) return cached;
@@ -307,11 +307,11 @@ export function categoryFilesFor(reviewer: string, categoryId: string): Category
   if (cached) return cached;
 
   const global = readCategoryFiles(path.join(CATEGORY_CONFIG_ROOT, categoryId), true);
-  const authorDir = path.join(CONTENT_ROOT, reviewer, "config", "by_category_id", categoryId);
+  const authorDir = path.join(CONTENT_ROOT, reviewer, "config", "by-category-id", categoryId);
   const author = readCategoryFiles(authorDir, false);
   if (author.rows.length > 0) {
     note(
-      `src/content/${reviewer}/config/by_category_id/${categoryId}/tags.toml`,
+      `src/content/${reviewer}/config/by-category-id/${categoryId}/tags.toml`,
       "作者的 tags.toml 只认 [tag_rows] Ignored，别的排不会生效",
     );
   }

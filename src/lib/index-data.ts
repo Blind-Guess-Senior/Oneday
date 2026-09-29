@@ -20,7 +20,7 @@ export interface IndexPayload {
   reviewers: string[];
   /** 评测者 → 有序的分数选项（来自该作者的 [score].order，未列出的按字典序补在后面） */
   scoreOptions: Record<string, string[]>;
-  /** 分类 id → 分排的 tag（顺序来自 by_category_id/<id>/tags.toml） */
+  /** 分类 id → 分排的 tag（顺序来自 by-category-id/<id>/tags.toml） */
   tagRows: Record<string, string[][]>;
 }
 
