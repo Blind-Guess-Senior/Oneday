@@ -86,13 +86,13 @@
 
 ## 3. 作者目录
 
-**判据只有一个：这个目录里有没有 `reviewer_config.toml`。** 有就是作者目录，没有就当它不存在。
+**判据只有一个：这个目录里有没有 `reviewer_definition.toml`。** 有就是作者目录，没有就当它不存在。
 
 ```
 src/content/<作者>/
-├─ reviewer_config.toml   必须，见第 4 节
-├─ reviewer_style.css     可选，见第 4.4 节
-├─ Standard/<分类>/*.md   可选，见第 4.3 节
+├─ reviewer_definition.toml   必须，见第 4 节
+├─ reviewer_style.css         可选，见第 4.4 节
+├─ Standard/<分类>/*.md       可选，见第 4.3 节
 └─ …作者的任意目录结构…   评测正文，由 include 决定收哪些
 ```
 
@@ -100,7 +100,7 @@ src/content/<作者>/
 
 ---
 
-## 4. `reviewer_config.toml` 规格
+## 4. `reviewer_definition.toml` 规格
 
 ### 4.1 「什么算评测」是正面清单
 
@@ -323,7 +323,7 @@ akas = [
 ```
 astro build
  └─ Content Layer
-     ├─ reviewsLoader()    扫 src/content/*/reviewer_config.toml → 收录判定 → 渲染正文 → store
+     ├─ reviewsLoader()    扫 src/content/*/reviewer_definition.toml → 收录判定 → 渲染正文 → store
      └─ standardsLoader()  同上，收 standard glob 命中的文件
  └─ 页面渲染 → dist/
 ```
@@ -331,7 +331,7 @@ astro build
 - 正文渲染走 Astro 7 的 markdown 管线（**satteri**，不是 remark/rehype），
   插件注册在 `astro.config.ts` 的 `markdown.processor`。
 - 构建期的提示（`note()`）只用于「配置本身有问题」：`site.toml` 的分类缺 `id` 或 `name`、
-  `reviewer_config.toml` 引用了 `site.toml` 里没有的分类 `id`、`[metadata_maps]` 的
+  `reviewer_definition.toml` 引用了 `site.toml` 里没有的分类 `id`、`[metadata_maps]` 的
   `category_id` 不是 `site.toml` 里的分类、`by-category-id/` 下有对不上任何分类 `id` 的目录、
   作者的 `tags.toml` 写了 `Ignored` 以外的排。它不检查内容怎么写。
 

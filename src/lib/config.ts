@@ -71,7 +71,7 @@ export function siteCategories(): SiteCategory[] {
   return categories;
 }
 
-/** 作者在 `reviewer_config.toml` 里声明的一个分类，只写 id。 */
+/** 作者在 `reviewer_definition.toml` 里声明的一个分类，只写 id。 */
 export interface CategoryConfig {
   /** 分类 id，必须是 `site.toml` 声明过的。 */
   id: string;
@@ -152,12 +152,12 @@ function normalizeReviewerConfig(
     const include = asStringArray(record["include"]);
     if (!include.length) continue;
     if (!id) {
-      note(`src/content/${reviewer}/reviewer_config.toml`, "有一项分类没写 id，这一项不生效");
+      note(`src/content/${reviewer}/reviewer_definition.toml`, "有一项分类没写 id，这一项不生效");
       continue;
     }
     if (!knownIds.has(id)) {
       note(
-        `src/content/${reviewer}/reviewer_config.toml`,
+        `src/content/${reviewer}/reviewer_definition.toml`,
         `分类「${id}」没有在 src/config/site.toml 里声明，这个分类不生效`,
       );
       continue;
@@ -194,7 +194,7 @@ function normalizeReviewerConfig(
     if (!keys.length || !label) continue;
     if (!knownIds.has(categoryId)) {
       note(
-        `src/content/${reviewer}/reviewer_config.toml`,
+        `src/content/${reviewer}/reviewer_definition.toml`,
         `[[metadata_maps]] 的 category_id「${categoryId}」不是 src/config/site.toml 里的分类，这一项不生效`,
       );
       continue;
@@ -209,7 +209,7 @@ function normalizeReviewerConfig(
 /**
  * 扫描内容根，返回所有作者配置。
  *
- * 「这个目录是作者目录」的唯一判据就是它含有 `reviewer_config.toml`——
+ * 「这个目录是作者目录」的唯一判据就是它含有 `reviewer_definition.toml`——
  * 这条约定要保住：新增作者 = 新增一个带这个文件的文件夹，不用碰任何代码。
  */
 export async function readReviewerConfigs(): Promise<ReviewerConfig[]> {
@@ -219,7 +219,7 @@ export async function readReviewerConfigs(): Promise<ReviewerConfig[]> {
   for (const entry of entries) {
     if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
     const dir = path.join(CONTENT_ROOT, entry.name);
-    const configPath = path.join(dir, "reviewer_config.toml");
+    const configPath = path.join(dir, "reviewer_definition.toml");
     if (!existsSync(configPath)) continue;
     const raw = asRecord(parseToml(readFileSync(configPath, "utf8")));
     if (!raw) continue;
