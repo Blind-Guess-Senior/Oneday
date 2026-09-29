@@ -136,10 +136,8 @@ function toStringList(value: unknown): string[] {
   return single ? [single] : [];
 }
 
-/** 文件名侧的名字：frontmatter 的 title 优先，否则文件名 stem（Aspark 去掉末尾的 ★）。 */
-function nameFor(authorRel: string, reviewer: string, meta: Record<string, unknown>): string {
-  const explicit = typeof meta["title"] === "string" ? meta["title"].trim() : "";
-  if (explicit) return explicit;
+/** 文件名侧的名字：文件名 stem，`Aspark` 作者目录下末尾的 `★` 先剥掉。 */
+function nameFor(authorRel: string, reviewer: string): string {
   const stem = path.basename(authorRel).replace(/\.md$/i, "").trim();
   return reviewer.toLowerCase() === "aspark" ? stem.replace(/★+$/, "").trim() : stem;
 }
@@ -200,7 +198,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       if (!completed && !matchesScoreOnly(meta, config.scoreOnly)) continue;
 
       // 文件名侧的名字 → entry id：作者的映射覆盖全站的，两层都没写就是恒等
-      const name = nameFor(authorRel, config.reviewer, meta);
+      const name = nameFor(authorRel, config.reviewer);
       let entryId = name;
       for (const file of categoryFiles) {
         const mapped = file.titleNames.get(name);
