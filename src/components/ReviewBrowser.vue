@@ -4,22 +4,34 @@ import {
   buildFilterSearch,
   categoryBadgeClass,
   filterCards,
+  filterStandards,
   pageWindow,
   parseFilterSearch,
   sortCards,
+  sortStandards,
   type Filters,
   type SortKey,
+  type TagFilter,
 } from "../lib/filter";
 import type { IndexPayload } from "../lib/index-data";
 import { formatDate } from "../lib/site";
 
 const props = defineProps<{ payload: IndexPayload }>();
 
+/** 显示名只用来渲染：按 id 查表，筛选路径永远不碰它。 */
+const categoryNames = computed(
+  () => new Map(props.payload.categories.map((entry) => [entry.id, entry.name])),
+);
+
+function categoryName(id: string | undefined): string {
+  return (id ? categoryNames.value.get(id) : "") || "其他";
+}
+
 const PAGE_SIZE = 30;
 const TAG_LIMIT = 30;
 
 const query = ref("");
-const category = ref("");
+const categoryId = ref("");
 const reviewers = ref<string[]>([]);
 const scores = ref<Record<string, string[]>>({});
 const tags = ref<string[]>([]);
@@ -32,10 +44,11 @@ const page = ref(1);
 
 const filters = computed<Filters>(() => ({
   query: query.value,
-  categoryId: category.value,
+  categoryId: categoryId.value,
   reviewers: reviewers.value,
   scores: scores.value,
-  tags: tags.value,
+  // tag 只属于选中的那个分类，所以成对地带分类 id
+  tags: categoryId.value ? tags.value.map((tag): TagFilter => ({ categoryId: categoryId.value, tag })) : [],
   showScoreOnly: showScoreOnly.value,
 }));
 
@@ -46,13 +59,13 @@ function hasCategory(card: { categoryIds: string[] }, id: string): boolean {
 
 /** 选了分类之后，只列该分类下有评测的评测者 */
 const reviewersInCategory = computed(() => {
-  if (!category.value) return props.payload.reviewers;
+  if (!categoryId.value) return props.payload.reviewers;
   return props.payload.reviewers.filter((reviewer) =>
-    props.payload.reviews.some((card) => card.reviewer === reviewer && hasCategory(card, category.value)),
+    props.payload.reviews.some((card) => card.reviewer === reviewer && hasCategory(card, categoryId.value)),
   );
 });
 
-const categoryTagRows = computed(() => (category.value ? props.payload.tagRows[category.value] ?? [] : []));
+const categoryTagRows = computed(() => (categoryId.value ? props.payload.tagRows[categoryId.value] ?? [] : []));
 const allCategoryTags = computed(() => categoryTagRows.value.flat());
 const visibleTags = computed(() =>
   showAllTags.value ? allCategoryTags.value : allCategoryTags.value.slice(0, TAG_LIMIT),
@@ -65,16 +78,13 @@ const visibleTagRows = computed(() =>
 
 const list = computed(() => {
   if (showStandardsOnly.value) {
-    const needle = query.value.trim().toLowerCase();
-    const matched = props.payload.standards.filter((standard) => {
-      if (category.value && standard.categoryId !== category.value) return false;
-      if (reviewers.value.length > 0 && !reviewers.value.includes(standard.reviewer)) return false;
-      if (!needle) return true;
-      return (
-        standard.title.toLowerCase().includes(needle) || standard.reviewer.toLowerCase().includes(needle)
-      );
-    });
-    return [...matched].sort((a, b) => a.title.localeCompare(b.title, "zh"));
+    return sortStandards(
+      filterStandards(props.payload.standards, {
+        query: query.value,
+        categoryId: categoryId.value,
+        reviewers: reviewers.value,
+      }),
+    );
   }
   return sortCards(filterCards(props.payload.reviews, filters.value), sortBy.value);
 });
@@ -128,8 +138,8 @@ function toggleScore(reviewer: string, score: string): void {
  * 新分类下没有任何内容的评测者才取消勾选，其余的连同分数选择一起保留。
  */
 function selectCategory(id: string): void {
-  const next = category.value === id ? "" : id;
-  category.value = next;
+  const next = categoryId.value === id ? "" : id;
+  categoryId.value = next;
   tags.value = [];
   showAllTags.value = false;
   if (next) {
@@ -147,7 +157,7 @@ function toggleTag(tag: string): void {
 
 function resetFilters(): void {
   query.value = "";
-  category.value = "";
+  categoryId.value = "";
   reviewers.value = [];
   scores.value = {};
   tags.value = [];
@@ -167,13 +177,13 @@ function resetFilters(): void {
 function readUrlState(): void {
   const state = parseFilterSearch(window.location.search);
   query.value = state.query;
-  category.value = props.payload.categories.some((entry) => entry.id === state.categoryId)
+  categoryId.value = props.payload.categories.some((entry) => entry.id === state.categoryId)
     ? state.categoryId
     : "";
   reviewers.value = state.reviewers;
   scores.value = state.scores;
   // tag 只在本分类里成立，没有合法分类时地址栏里的 tag 不生效
-  tags.value = category.value ? state.tags : [];
+  tags.value = categoryId.value ? state.tags : [];
   showScoreOnly.value = state.showScoreOnly;
   showStandardsOnly.value = state.showStandardsOnly;
   sortBy.value = state.sort;
@@ -183,7 +193,7 @@ function readUrlState(): void {
 function writeUrlState(): void {
   const search = buildFilterSearch({
     query: query.value,
-    categoryId: category.value,
+    categoryId: categoryId.value,
     reviewers: reviewers.value,
     scores: scores.value,
     tags: tags.value,
@@ -195,7 +205,7 @@ function writeUrlState(): void {
   window.history.replaceState(null, "", `${window.location.pathname}${search ? `?${search}` : ""}`);
 }
 
-watch([query, category, reviewers, scores, tags, showScoreOnly, showStandardsOnly, sortBy, page], writeUrlState, {
+watch([query, categoryId, reviewers, scores, tags, showScoreOnly, showStandardsOnly, sortBy, page], writeUrlState, {
   deep: true,
 });
 
@@ -216,7 +226,7 @@ onMounted(readUrlState);
               :key="entry.id"
               type="button"
               class="filter-option"
-              :class="{ selected: category === entry.id }"
+              :class="{ selected: categoryId === entry.id }"
               @click="selectCategory(entry.id)"
             >
               {{ entry.name }}
@@ -257,7 +267,7 @@ onMounted(readUrlState);
       </div>
 
       <div class="filter-panel filter-right">
-        <div v-if="!showStandardsOnly && category && visibleTags.length" class="filter-section">
+        <div v-if="!showStandardsOnly && categoryId && visibleTags.length" class="filter-section">
           <div class="filter-title">标签</div>
           <div v-for="(row, index) in visibleTagRows" :key="index" class="tag-group">
             <div class="tag-cloud">
@@ -332,7 +342,7 @@ onMounted(readUrlState);
             <div class="card-meta">
               <span class="reviewer-name">{{ standard.reviewer }}</span>
               <span class="meta-dot">·</span>
-              <span class="score-display">{{ standard.category }}</span>
+              <span class="score-display">{{ categoryName(standard.categoryId) }}</span>
             </div>
           </a>
         </template>
@@ -341,7 +351,7 @@ onMounted(readUrlState);
           <a v-for="card in paged" :key="card.url" class="card" :href="card.url">
             <div class="card-top">
               <span class="badge" :class="categoryBadgeClass(card.categoryIds)">
-                {{ card.category[0] ?? "其他" }}
+                {{ categoryName(card.categoryIds[0]) }}
               </span>
             </div>
             <div class="card-title">{{ card.title }}</div>

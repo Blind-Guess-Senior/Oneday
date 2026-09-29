@@ -7,18 +7,14 @@
 
 import rss from "@astrojs/rss";
 import type { APIContext } from "astro";
+import { categoryNames } from "../lib/config";
 import { buildIndexPayload } from "../lib/index-data";
 import { withBase } from "../lib/site";
 
-function describe(card: {
-  score: string;
-  category: string[];
-  tags: string[];
-  aka: string[];
-}): string {
+function describe(card: { score: string; tags: string[]; aka: string[] }, categoryText: string): string {
   const parts: string[] = [];
   if (card.score) parts.push(`评分 ${card.score}`);
-  if (card.category.length) parts.push(card.category.join(" / "));
+  if (categoryText) parts.push(categoryText);
   if (card.aka.length) parts.push(`别名 ${card.aka.join("、")}`);
   if (card.tags.length) parts.push(card.tags.join("、"));
   return parts.join(" · ");
@@ -26,6 +22,7 @@ function describe(card: {
 
 export async function GET(context: APIContext) {
   const payload = await buildIndexPayload();
+  const names = await categoryNames();
 
   // 频道自身的地址要带 base，否则指到账号根而不是这个站
   const site = context.site ? new URL(withBase(""), context.site).href : "";
@@ -36,7 +33,7 @@ export async function GET(context: APIContext) {
       title: card.title,
       link: card.url,
       pubDate: card.modified ? new Date(card.modified) : undefined,
-      description: describe(card),
+      description: describe(card, card.categoryIds.map((id) => names.get(id) ?? id).join(" / ")),
       categories: card.tags,
       author: card.reviewer,
     }));

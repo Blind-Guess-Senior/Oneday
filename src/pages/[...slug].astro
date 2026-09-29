@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import Layout from "../layouts/Layout.astro";
+import { categoryNames } from "../lib/config";
 import { extraMeta } from "../lib/extra-meta";
 import { entryUrl, formatDate, BASE } from "../lib/site";
 import { getStandards } from "../lib/vault";
@@ -17,7 +18,6 @@ const list = (key: string): string[] =>
 
 const title = String(data["title"] ?? entry.id);
 const reviewer = String(data["reviewer"] ?? "");
-const category = list("category");
 const categoryIds = list("category_ids");
 
 /** tag 只在本分类里成立，所以链接必须带上分类。 */
@@ -36,6 +36,8 @@ const published = String(data["published"] ?? "");
 const modified = String(data["modified"] ?? "");
 
 const meta = await extraMeta(reviewer, categoryIds, data);
+const names = await categoryNames();
+const categoryText = categoryIds.map((id) => names.get(id) ?? id).join(" / ");
 
 const standards = (await getStandards()).filter(
   (standard) => standard.reviewer === reviewer && categoryIds.includes(standard.categoryId),
@@ -73,7 +75,7 @@ const Content = scoreOnly ? null : (await render(entry)).Content;
           </span>
           <span class="article-meta-sep">|</span>
           <span class="article-meta-item">
-            <span>分类</span>&nbsp;<strong>{category.join(" / ") || "—"}</strong>
+            <span>分类</span>&nbsp;<strong>{categoryText || "—"}</strong>
           </span>
           {
             scoreRaw && (

@@ -74,7 +74,6 @@ export function standardsLoader(): Loader {
         const data: Record<string, unknown> = {
           path: standard.contentRel,
           reviewer: standard.reviewer,
-          category: standard.category,
           category_id: standard.categoryId,
           title: standard.title,
           published: standard.published,

@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
+import { categoryNames } from "../../lib/config";
 import { formatDate, BASE } from "../../lib/site";
 
 export async function getStaticPaths() {
@@ -12,7 +13,8 @@ const { entry } = Astro.props;
 const data = entry.data as Record<string, unknown>;
 const title = String(data["title"] ?? entry.id);
 const reviewer = String(data["reviewer"] ?? "");
-const category = String(data["category"] ?? "");
+const categoryId = String(data["category_id"] ?? "");
+const category = (await categoryNames()).get(categoryId) ?? categoryId;
 const published = String(data["published"] ?? "");
 const modified = String(data["modified"] ?? "");
 

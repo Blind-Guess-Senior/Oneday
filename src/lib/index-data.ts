@@ -6,19 +6,9 @@
  */
 
 import { loadCategoryFiles, readReviewerConfigs } from "./config";
-import type { Card } from "./filter";
+import type { Card, StandardCard } from "./filter";
 import { entryUrl } from "./site";
 import { getReviews, getStandards } from "./vault";
-
-export interface StandardCard {
-  url: string;
-  title: string;
-  reviewer: string;
-  /** 显示名。 */
-  category: string;
-  /** 分类 id，筛选用。 */
-  categoryId: string;
-}
 
 export interface IndexPayload {
   reviews: Card[];
@@ -77,26 +67,24 @@ export function buildIndexPayload(): Promise<IndexPayload> {
       readReviewerConfigs(),
     ]);
 
-    // 分类顺序 = 作者配置里的书写顺序，去重；同时记下 name → id
+    // 分类顺序 = 作者配置里的书写顺序，按 id 去重
     const categories: Array<{ name: string; id: string }> = [];
-    const categoryIds = new Map<string, string>();
+    const seen = new Set<string>();
     for (const config of configs) {
       for (const category of config.categories) {
-        if (categoryIds.has(category.name)) continue;
-        categoryIds.set(category.name, category.id);
+        if (seen.has(category.id)) continue;
+        seen.add(category.id);
         categories.push({ name: category.name, id: category.id });
       }
     }
 
     const cards: Card[] = reviews.map((review) => {
-      const names = asList(review.data["category"]);
       return {
         url: entryUrl(review.id),
         title: review.title,
         aka: asList(review.data["aka"]),
         reviewer: review.reviewer,
-        category: names,
-        categoryIds: names.map((name) => categoryIds.get(name) ?? name),
+        categoryIds: asList(review.data["category_ids"]),
         tags: asList(review.data["tags"]),
         score: String(review.data["score_raw"] ?? ""),
         rank: typeof review.data["score_rank"] === "number" ? review.data["score_rank"] : null,
@@ -129,7 +117,6 @@ export function buildIndexPayload(): Promise<IndexPayload> {
         url: entryUrl(`standard/${standard.id}`),
         title: standard.title,
         reviewer: standard.reviewer,
-        category: standard.category,
         categoryId: standard.categoryId,
       })),
       categories,

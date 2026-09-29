@@ -33,7 +33,8 @@ export interface ReviewRecord {
   relPath: string;
   /** 内容根相对路径，例如 `Aspark/…/xxx.md`。 */
   contentRel: string;
-  category: string[];
+  /** 命中的分类 id。显示名只在渲染时按 id 查，不在这里。 */
+  categoryIds: string[];
   data: Record<string, unknown>;
   /** 已剥掉 frontmatter 与 sub_scores 代码块的正文。 */
   body: string;
@@ -45,8 +46,7 @@ export interface StandardRecord {
   reviewer: string;
   slug: string;
   title: string;
-  category: string;
-  /** 分类 id；`category` 只是显示名。 */
+  /** 分类 id。显示名只在渲染时按 id 查。 */
   categoryId: string;
   filePath: string;
   relPath: string;
@@ -186,7 +186,6 @@ async function buildReviews(): Promise<ReviewRecord[]> {
 
       const matched = categoriesFor(config, authorRel);
       if (matched.length === 0) continue;
-      const category = matched.map((entry) => entry.name);
       const categoryIds = matched.map((entry) => entry.id);
       const categoryFiles = matched.map((entry) => loadCategoryFiles(entry.id));
       const dropped = new Set<string>();
@@ -256,7 +255,6 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         ...meta,
         path: contentRel,
         reviewer: config.reviewer,
-        category,
         category_ids: categoryIds,
         title,
         score_raw: scoreRaw,
@@ -278,7 +276,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         filePath,
         relPath,
         contentRel,
-        category,
+        categoryIds,
         data,
         body: subScores.body,
         subScores: subScores.lines,
@@ -358,7 +356,6 @@ async function buildStandards(): Promise<StandardRecord[]> {
         reviewer: config.reviewer,
         slug,
         title,
-        category: category.name,
         categoryId: category.id,
         filePath: path.join(CONTENT_ROOT, contentRel),
         relPath,

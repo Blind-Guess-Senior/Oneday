@@ -190,6 +190,17 @@ export async function readReviewerConfigs(): Promise<ReviewerConfig[]> {
   return configs.sort((a, b) => a.reviewer.localeCompare(b.reviewer));
 }
 
+/** 分类 id → 显示名。id 是身份，名字只用来渲染。 */
+export async function categoryNames(): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  for (const config of await readReviewerConfigs()) {
+    for (const category of config.categories) {
+      if (!names.has(category.id)) names.set(category.id, category.name);
+    }
+  }
+  return names;
+}
+
 /** `src/config/by_category_id/` 下的目录名 = 已经配过的分类 id。 */
 export function listCategoryConfigIds(): string[] {
   if (!existsSync(CATEGORY_CONFIG_ROOT)) return [];
