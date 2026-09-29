@@ -5,7 +5,7 @@
  * 浏览器端不再需要额外请求。
  */
 
-import { categoryRows, readReviewerConfigs } from "./config";
+import { categoryRows, readReviewerConfigs, siteCategories } from "./config";
 import type { Card, StandardCard } from "./filter";
 import { entryUrl } from "./site";
 import { getReviews, getStandards } from "./vault";
@@ -13,7 +13,7 @@ import { getReviews, getStandards } from "./vault";
 export interface IndexPayload {
   reviews: Card[];
   standards: StandardCard[];
-  /** 有评测的分类 id，顺序按作者配置里的书写顺序 */
+  /** 全站分类 id，顺序按 site.toml 的书写顺序 */
   categories: string[];
   /** 分类 id → 显示名。只在渲染的时候查，任何判断都不用它 */
   categoryNames: Record<string, string>;
@@ -70,16 +70,12 @@ export function buildIndexPayload(): Promise<IndexPayload> {
       readReviewerConfigs(),
     ]);
 
-    // 分类顺序 = 作者配置里的书写顺序，按 id 去重；显示名单独记一张表
-    const categories: string[] = [];
-    const categoryNames: Record<string, string> = {};
-    for (const config of configs) {
-      for (const category of config.categories) {
-        if (category.id in categoryNames) continue;
-        categoryNames[category.id] = category.name;
-        categories.push(category.id);
-      }
-    }
+    // 分类的身份和顺序都来自 site.toml；显示名单独记一张表
+    const declared = siteCategories();
+    const categories = declared.map((category) => category.id);
+    const categoryNames: Record<string, string> = Object.fromEntries(
+      declared.map((category) => [category.id, category.name]),
+    );
 
     const cards: Card[] = reviews.map((review) => {
       return {

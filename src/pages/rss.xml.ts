@@ -22,7 +22,7 @@ function describe(card: { score: string; tags: string[]; aka: string[] }, catego
 
 export async function GET(context: APIContext) {
   const payload = await buildIndexPayload();
-  const names = await categoryNames();
+  const names = categoryNames();
 
   // 频道自身的地址要带 base，否则指到账号根而不是这个站
   const site = context.site ? new URL(withBase(""), context.site).href : "";

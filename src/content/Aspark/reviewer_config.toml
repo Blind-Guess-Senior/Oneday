@@ -1,5 +1,4 @@
 [[categories]]
-name = "游戏"
 id = "Game"
 include = [
   "小众变态测评/游戏/已完成/**/*.md",

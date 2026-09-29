@@ -36,7 +36,7 @@ const published = String(data["published"] ?? "");
 const modified = String(data["modified"] ?? "");
 
 const meta = await extraMeta(reviewer, categoryIds, data);
-const names = await categoryNames();
+const names = categoryNames();
 const categoryText = categoryIds.map((id) => names.get(id) ?? id).join(" / ");
 
 const standards = (await getStandards()).filter(

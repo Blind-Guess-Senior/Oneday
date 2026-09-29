@@ -7,7 +7,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseToml } from "smol-toml";
 import { note } from "./report";
-import { toSlug } from "./site";
 
 function findProjectRoot(): string {
   const candidates = [process.cwd()];
@@ -27,13 +26,54 @@ export const PROJECT_ROOT = findProjectRoot();
 /** 内容根（Oneday/src/content/），同时也是 Obsidian vault 根。 */
 export const CONTENT_ROOT = path.join(PROJECT_ROOT, "src", "content");
 
-/** 分类配置根：`src/config/by-category-id/<分类 id>/{tags,title_names,aka}.toml`。 */
+/** 全站配置：`src/config/site.toml`。分类的身份和显示名只有这里能定。 */
+const SITE_CONFIG_PATH = path.join(PROJECT_ROOT, "src", "config", "site.toml");
+
+/** 分类配置根：`src/config/by-category-id/<分类 id>/{tags,entry-ids,akas}.toml`。 */
 const CATEGORY_CONFIG_ROOT = path.join(PROJECT_ROOT, "src", "config", "by-category-id");
 
-export interface CategoryConfig {
-  /** 显示用的分类名，例如「游戏」。 */
+/** `site.toml` 里的一个分类。这是分类唯一的定义处，别处一律只写 `id`。 */
+export interface SiteCategory {
+  /** URL 里用的分类段，例如「Game」。分类的身份，别处引用分类只写它。 */
+  id: string;
+  /** 显示用的分类名，例如「游戏」。只有渲染的时候才查。 */
   name: string;
-  /** URL 里用的分类段，例如「Game」。和显示名分开，URL 才能保持 ASCII。 */
+}
+
+let siteCategoriesCache: SiteCategory[] | null = null;
+
+/** `site.toml` 声明的分类，顺序就是首页侧栏的顺序。 */
+export function siteCategories(): SiteCategory[] {
+  if (siteCategoriesCache) return siteCategoriesCache;
+
+  const categories: SiteCategory[] = [];
+  const seen = new Set<string>();
+  const raw = readTomlPath(SITE_CONFIG_PATH);
+  for (const item of Array.isArray(raw["categories"]) ? raw["categories"] : []) {
+    const record = asRecord(item);
+    if (!record) continue;
+    const id = asString(record["id"]);
+    const name = asString(record["name"]);
+    if (!id) {
+      note("src/config/site.toml", `分类「${name}」没写 id，这一项不生效`);
+      continue;
+    }
+    if (!name) {
+      note("src/config/site.toml", `分类「${id}」没写 name，这一项不生效`);
+      continue;
+    }
+    if (seen.has(id)) continue;
+    seen.add(id);
+    categories.push({ id, name });
+  }
+
+  siteCategoriesCache = categories;
+  return categories;
+}
+
+/** 作者在 `reviewer_config.toml` 里声明的一个分类，只写 id。 */
+export interface CategoryConfig {
+  /** 分类 id，必须是 `site.toml` 声明过的。 */
   id: string;
   /** 评测的 glob，相对作者目录。`**` 匹配零层或多层目录。 */
   include: string[];
@@ -98,27 +138,31 @@ function asString(value: unknown): string {
   return value === undefined || value === null ? "" : String(value).trim();
 }
 
-function normalizeReviewerConfig(reviewer: string, dir: string, raw: Record<string, unknown>): ReviewerConfig {
+function normalizeReviewerConfig(
+  reviewer: string,
+  dir: string,
+  raw: Record<string, unknown>,
+  knownIds: Set<string>,
+): ReviewerConfig {
   const categories: CategoryConfig[] = [];
   for (const item of Array.isArray(raw["categories"]) ? raw["categories"] : []) {
     const record = asRecord(item);
     if (!record) continue;
-    const name = asString(record["name"]);
+    const id = asString(record["id"]);
     const include = asStringArray(record["include"]);
-    if (!name || include.length === 0) continue;
-    const declaredId = asString(record["id"]);
-    if (!declaredId) {
+    if (!include.length) continue;
+    if (!id) {
+      note(`src/content/${reviewer}/reviewer_config.toml`, "有一项分类没写 id，这一项不生效");
+      continue;
+    }
+    if (!knownIds.has(id)) {
       note(
         `src/content/${reviewer}/reviewer_config.toml`,
-        `分类「${name}」没写 id，URL 段回落到「${toSlug(name)}」（建议显式写一个 ASCII 名）`,
+        `分类「${id}」没有在 src/config/site.toml 里声明，这个分类不生效`,
       );
+      continue;
     }
-    categories.push({
-      name,
-      id: declaredId || toSlug(name),
-      include,
-      standard: asStringArray(record["standard"]),
-    });
+    categories.push({ id, include, standard: asStringArray(record["standard"]) });
   }
 
   let scoreOnly: Array<[string, string]> | null = null;
@@ -141,22 +185,22 @@ function normalizeReviewerConfig(reviewer: string, dir: string, raw: Record<stri
   }
 
   const metadataMaps: Record<string, MetadataMapEntry[]> = {};
-  const rawMaps = asRecord(raw["metadata_maps"]);
-  if (rawMaps) {
-    for (const [category, entries] of Object.entries(rawMaps)) {
-      if (!Array.isArray(entries)) continue;
-      const list: MetadataMapEntry[] = [];
-      for (const entry of entries) {
-        const record = asRecord(entry);
-        if (!record) continue;
-        const keys = asStringArray(record["keys"]);
-        const label = asString(record["label"]);
-        if (!keys.length || !label) continue;
-        const separator = record["separator"] === undefined ? "." : String(record["separator"]);
-        list.push({ keys, label, separator });
-      }
-      if (list.length) metadataMaps[category] = list;
+  for (const item of Array.isArray(raw["metadata_maps"]) ? raw["metadata_maps"] : []) {
+    const record = asRecord(item);
+    if (!record) continue;
+    const categoryId = asString(record["category_id"]);
+    const keys = asStringArray(record["keys"]);
+    const label = asString(record["label"]);
+    if (!keys.length || !label) continue;
+    if (!knownIds.has(categoryId)) {
+      note(
+        `src/content/${reviewer}/reviewer_config.toml`,
+        `[[metadata_maps]] 的 category_id「${categoryId}」不是 src/config/site.toml 里的分类，这一项不生效`,
+      );
+      continue;
     }
+    const separator = record["separator"] === undefined ? "." : String(record["separator"]);
+    (metadataMaps[categoryId] ??= []).push({ keys, label, separator });
   }
 
   return { reviewer, dir, categories, scoreOnly, scoreOrder, scoreTiers, metadataMaps };
@@ -169,6 +213,7 @@ function normalizeReviewerConfig(reviewer: string, dir: string, raw: Record<stri
  * 这条约定要保住：新增作者 = 新增一个带这个文件的文件夹，不用碰任何代码。
  */
 export async function readReviewerConfigs(): Promise<ReviewerConfig[]> {
+  const knownIds = new Set(siteCategories().map((category) => category.id));
   const entries = await readdir(CONTENT_ROOT, { withFileTypes: true });
   const configs: ReviewerConfig[] = [];
   for (const entry of entries) {
@@ -178,27 +223,22 @@ export async function readReviewerConfigs(): Promise<ReviewerConfig[]> {
     if (!existsSync(configPath)) continue;
     const raw = asRecord(parseToml(readFileSync(configPath, "utf8")));
     if (!raw) continue;
-    configs.push(normalizeReviewerConfig(entry.name, dir, raw));
+    configs.push(normalizeReviewerConfig(entry.name, dir, raw, knownIds));
   }
 
-  // 分类配置目录按分类 id 命名，对不上任何 id 的目录是死配置
-  const knownIds = new Set(configs.flatMap((config) => config.categories.map((category) => category.id)));
+  // 分类配置目录按分类 id 命名，对不上 site.toml 的目录是死配置
   for (const id of listCategoryConfigIds()) {
-    if (!knownIds.has(id)) note(`src/config/by-category-id/${id}`, "没有作者声明这个分类 id，目录里的配置不会生效");
+    if (!knownIds.has(id)) {
+      note(`src/config/by-category-id/${id}`, "src/config/site.toml 里没有这个分类 id，目录里的配置不会生效");
+    }
   }
 
   return configs.sort((a, b) => a.reviewer.localeCompare(b.reviewer));
 }
 
 /** 分类 id → 显示名。id 是身份，名字只用来渲染。 */
-export async function categoryNames(): Promise<Map<string, string>> {
-  const names = new Map<string, string>();
-  for (const config of await readReviewerConfigs()) {
-    for (const category of config.categories) {
-      if (!names.has(category.id)) names.set(category.id, category.name);
-    }
-  }
-  return names;
+export function categoryNames(): Map<string, string> {
+  return new Map(siteCategories().map((category) => [category.id, category.name]));
 }
 
 /** `src/config/by-category-id/` 下的目录名 = 已经配过的分类 id。 */

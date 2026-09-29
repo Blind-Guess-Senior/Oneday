@@ -14,7 +14,7 @@ const data = entry.data as Record<string, unknown>;
 const title = String(data["title"] ?? entry.id);
 const reviewer = String(data["reviewer"] ?? "");
 const categoryId = String(data["category_id"] ?? "");
-const category = (await categoryNames()).get(categoryId) ?? categoryId;
+const category = categoryNames().get(categoryId) ?? categoryId;
 const published = String(data["published"] ?? "");
 const modified = String(data["modified"] ?? "");
 

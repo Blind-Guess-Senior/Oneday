@@ -104,25 +104,19 @@ src/content/<作者>/
 
 ### 4.1 「什么算评测」是正面清单
 
+分类定义在 `src/config/site.toml`（见第 6 节），作者配置只写分类 `id`：
+
 ```toml
 [[categories]]
-name = "游戏"                                  # 显示名，用在筛选区和卡片徽章上
-id = "Game"                                   # URL 里用的分类段，保持 ASCII
+id = "Game"                                    # 必须是 site.toml 声明过的分类
 include = ["Game/**/*.md"]                     # 评测候选。** 匹配零层或多层目录
-standard = ["Standard/游戏/**/*.md"]           # 可选。评分标准
-
-[[categories]]
-name = "动漫"
-id = "Anime"
-include = ["Anime/**/*.md"]
-standard = ["Standard/动漫/**/*.md"]
+standard = ["Standard/Game/**/*.md"]           # 可选。评分标准
 ```
 
-- `name` 显示用（中文），`id` 认身份用（ASCII）：URL 段、`by-category-id/<id>/` 目录、
-  `[metadata_maps]` 的键都用它。`id` 省略时回落到 slug 化的 `name`，
-  并在构建日志的 `[提示]` 里提醒。
+- `id` 是分类唯一的身份：URL 段、`by-category-id/<id>/` 目录、`[metadata_maps]` 的
+  `category_id` 都用它。显示名只在渲染时按 `id` 去 `site.toml` 查。
 - 没有被任何 include 命中的文件一律不存在。
-- `[[categories]]` 的书写顺序 = 首页侧栏的分类顺序。
+- `site.toml` 里 `[[categories]]` 的书写顺序 = 首页侧栏的分类顺序。
 - 一个文件可以同时命中多个分类（`category` 是数组，URL 用第一个）。
 
 ### 4.2 收录规则（候选 → 实际收录）
@@ -170,14 +164,19 @@ tiers = [
 
 ### 4.6 自定义元信息（`metadata_maps`）
 
-分类 id 作用域：一个分类一套规则，命中多个文件夹也用同一套。
+一条规则显式写明它作用于哪个分类；命中多个分类文件夹也用同一套。
 
 ```toml
-[metadata_maps]
-"Game" = [
-  { keys = ["developer"], label = "开发商" },
-  { keys = ["year", "month"], separator = ".", label = "游玩时间" },
-]
+[[metadata_maps]]
+category_id = "Game"
+keys = ["developer"]
+label = "开发商"
+
+[[metadata_maps]]
+category_id = "Game"
+keys = ["year", "month"]
+separator = "."
+label = "游玩时间"
 ```
 
 - 单 key 直接显示该值；多 key 按 `separator`（默认 `.`）拼接。
@@ -250,7 +249,15 @@ month: 3
 
 ## 6. `src/config/` 规格
 
-`site.toml` 是空的；其余配置按分类放，一个分类一个目录：
+`site.toml` 定义全站分类，顺序也是首页分类的顺序：
+
+```toml
+[[categories]]
+id = "Game"
+name = "游戏"
+```
+
+其余配置按分类放，一个分类一个目录：
 
 ```
 by-category-id/<分类 id>/
@@ -298,8 +305,7 @@ akas = [
 - `entry-ids` / `akas` 是补充和覆盖：同一个文件名（entry-ids）或同一个 `id`（akas）
   以作者的为准，别的作者不受影响。
 
-- 目录名必须和 `reviewer_config.toml` 里的某个分类 `id` 一致；对不上的目录是死配置，
-  构建日志里会提醒。
+- 目录名必须是 `site.toml` 里声明过的分类 id；对不上的目录是死配置，构建日志里会提醒。
 - `entry-ids`：`id` 是 entry 的身份，同时也直接当显示名；没写进去的条目，id 就是文件名。
   `files` 列文件名里可能出现的写法（文件名不能带 `/ \ : * ? " < > |`）。
 - `akas`：`id` → 别名。卡片显示第一个，文章页显示全部，搜索也匹配别名。
@@ -324,9 +330,10 @@ astro build
 
 - 正文渲染走 Astro 7 的 markdown 管线（**satteri**，不是 remark/rehype），
   插件注册在 `astro.config.ts` 的 `markdown.processor`。
-- 构建期的提示（`note()`）只用于「配置本身有问题」：分类没写 `id`、
-  `by-category-id/` 下有对不上任何分类 `id` 的目录、作者的 `tags.toml` 写了 `Ignored` 以外的排。
-  它不检查内容怎么写。
+- 构建期的提示（`note()`）只用于「配置本身有问题」：`site.toml` 的分类缺 `id` 或 `name`、
+  `reviewer_config.toml` 引用了 `site.toml` 里没有的分类 `id`、`[metadata_maps]` 的
+  `category_id` 不是 `site.toml` 里的分类、`by-category-id/` 下有对不上任何分类 `id` 的目录、
+  作者的 `tags.toml` 写了 `Ignored` 以外的排。它不检查内容怎么写。
 
 构建日志里你会看到：
 
