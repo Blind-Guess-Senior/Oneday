@@ -267,19 +267,6 @@ export function loadCategoryFiles(categoryId: string): CategoryFiles {
   return files;
 }
 
-let tagAliasesCache: Map<string, string> | null = null;
-
-/** 所有分类的别名并集：卡片上的 tag 归一化不分分类。 */
-export function loadTagAliases(): Map<string, string> {
-  if (tagAliasesCache) return tagAliasesCache;
-  const merged = new Map<string, string>();
-  for (const categoryId of listCategoryConfigIds()) {
-    for (const [alias, canonical] of loadCategoryFiles(categoryId).aliases) merged.set(alias, canonical);
-  }
-  tagAliasesCache = merged;
-  return merged;
-}
-
 export interface GitDates {
   /** 这篇内容最早一次提交 = 发布。 */
   published: string;

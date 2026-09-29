@@ -14,7 +14,6 @@ import {
   CONTENT_ROOT,
   gitDatesFor,
   loadCategoryFiles,
-  loadTagAliases,
   readReviewerConfigs,
   type CategoryConfig,
   type ReviewerConfig,
@@ -177,7 +176,6 @@ function matchesScoreOnly(meta: Record<string, unknown>, rules: Array<[string, s
 
 async function buildReviews(): Promise<ReviewRecord[]> {
   const [configs, files] = await Promise.all([readReviewerConfigs(), listFiles()]);
-  const tagAliases = loadTagAliases();
   const records: ReviewRecord[] = [];
 
   for (const config of configs) {
@@ -222,8 +220,16 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       const seenTags = new Set<string>();
       const tags: string[] = [];
       for (const tag of rawTags) {
+        // 别名只认这张卡自己命中的分类：别的分类把同名 tag 当别名，跟这里无关
+        let canonical = tag;
+        for (const file of categoryFiles) {
+          const mapped = file.aliases.get(canonical);
+          if (mapped) {
+            canonical = mapped;
+            break;
+          }
+        }
         // row0 的 tag 彻底不进站点：不上卡片、不进筛选、不参与搜索
-        const canonical = tagAliases.get(tag) ?? tag;
         if (dropped.has(canonical)) continue;
         if (seenTags.has(canonical)) continue;
         seenTags.add(canonical);
