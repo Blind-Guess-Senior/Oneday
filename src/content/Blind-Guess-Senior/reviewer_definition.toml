@@ -39,38 +39,20 @@ tiers = [
 
 [[metadata_maps]]
 category_id = "Game"
-keys = ["developer"]
-label = "开发商"
-
-[[metadata_maps]]
-category_id = "Game"
-keys = ["publisher"]
-label = "发行商"
-
-[[metadata_maps]]
-category_id = "Game"
-keys = ["year", "month"]
-separator = "."
-label = "游玩时间"
+rules = [
+  { keys = ["developer"], label = "开发商" },
+  { keys = ["publisher"], label = "发行商" },
+  { keys = ["year", "month"], separator = ".", label = "游玩时间" },
+]
 
 [[metadata_maps]]
 category_id = "Anime"
-keys = ["year", "month"]
-separator = "."
-label = "观看时间"
+rules = [{ keys = ["year", "month"], separator = ".", label = "观看时间" }]
 
 [[metadata_maps]]
 category_id = "Book"
-keys = ["country"]
-label = "国家"
-
-[[metadata_maps]]
-category_id = "Book"
-keys = ["author"]
-label = "作者"
-
-[[metadata_maps]]
-category_id = "Book"
-keys = ["year", "month"]
-separator = "."
-label = "阅读时间"
+rules = [
+  { keys = ["country"], label = "国家" },
+  { keys = ["author"], label = "作者" },
+  { keys = ["year", "month"], separator = ".", label = "阅读时间" },
+]

@@ -189,9 +189,6 @@ function normalizeReviewerConfig(
     const record = asRecord(item);
     if (!record) continue;
     const categoryId = asString(record["category_id"]);
-    const keys = asStringArray(record["keys"]);
-    const label = asString(record["label"]);
-    if (!keys.length || !label) continue;
     if (!knownIds.has(categoryId)) {
       note(
         `src/content/${reviewer}/reviewer_definition.toml`,
@@ -199,8 +196,17 @@ function normalizeReviewerConfig(
       );
       continue;
     }
-    const separator = record["separator"] === undefined ? "." : String(record["separator"]);
-    (metadataMaps[categoryId] ??= []).push({ keys, label, separator });
+    const list: MetadataMapEntry[] = [];
+    for (const rule of Array.isArray(record["rules"]) ? record["rules"] : []) {
+      const entry = asRecord(rule);
+      if (!entry) continue;
+      const keys = asStringArray(entry["keys"]);
+      const label = asString(entry["label"]);
+      if (!keys.length || !label) continue;
+      const separator = entry["separator"] === undefined ? "." : String(entry["separator"]);
+      list.push({ keys, label, separator });
+    }
+    if (list.length) metadataMaps[categoryId] = [...(metadataMaps[categoryId] ?? []), ...list];
   }
 
   return { reviewer, dir, categories, scoreOnly, scoreOrder, scoreTiers, metadataMaps };

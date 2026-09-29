@@ -113,7 +113,7 @@ include = ["Game/**/*.md"]                     # 评测候选。** 匹配零层�
 standard = ["Standard/Game/**/*.md"]           # 可选。评分标准
 ```
 
-- `id` 是分类唯一的身份：URL 段、`by-category-id/<id>/` 目录、`[metadata_maps]` 的
+- `id` 是分类唯一的身份：URL 段、`by-category-id/<id>/` 目录、`[[metadata_maps]]` 的
   `category_id` 都用它。显示名只在渲染时按 `id` 去 `site.toml` 查。
 - 没有被任何 include 命中的文件一律不存在。
 - `site.toml` 里 `[[categories]]` 的书写顺序 = 首页侧栏的分类顺序。
@@ -164,19 +164,15 @@ tiers = [
 
 ### 4.6 自定义元信息（`metadata_maps`）
 
-一条规则显式写明它作用于哪个分类；命中多个分类文件夹也用同一套。
+一个分类一块，块里显式写明 `category_id`；命中多个分类文件夹也用同一套。
 
 ```toml
 [[metadata_maps]]
 category_id = "Game"
-keys = ["developer"]
-label = "开发商"
-
-[[metadata_maps]]
-category_id = "Game"
-keys = ["year", "month"]
-separator = "."
-label = "游玩时间"
+rules = [
+  { keys = ["developer"], label = "开发商" },
+  { keys = ["year", "month"], separator = ".", label = "游玩时间" },
+]
 ```
 
 - 单 key 直接显示该值；多 key 按 `separator`（默认 `.`）拼接。
@@ -331,7 +327,7 @@ astro build
 - 正文渲染走 Astro 7 的 markdown 管线（**satteri**，不是 remark/rehype），
   插件注册在 `astro.config.ts` 的 `markdown.processor`。
 - 构建期的提示（`note()`）只用于「配置本身有问题」：`site.toml` 的分类缺 `id` 或 `name`、
-  `reviewer_definition.toml` 引用了 `site.toml` 里没有的分类 `id`、`[metadata_maps]` 的
+  `reviewer_definition.toml` 引用了 `site.toml` 里没有的分类 `id`、`[[metadata_maps]]` 的
   `category_id` 不是 `site.toml` 里的分类、`by-category-id/` 下有对不上任何分类 `id` 的目录、
   作者的 `tags.toml` 写了 `Ignored` 以外的排。它不检查内容怎么写。
 
