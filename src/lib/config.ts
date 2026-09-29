@@ -116,8 +116,10 @@ export interface CategoryFiles {
   ignored: Set<string>;
   /** 文件名里可能出现的写法 → entry id。作者自己的覆盖全站的。 */
   titleNames: Map<string, string>;
-  /** entry id → 别名。作者自己的覆盖全站的。 */
-  aka: Map<string, string[]>;
+  /** entry id → 别名。全站配置那一份，不和作者的合并。 */
+  siteAka: Map<string, string[]>;
+  /** entry id → 别名。只有这个作者、这个分类的那一份。 */
+  authorAka: Map<string, string[]>;
 }
 
 function asStringArray(value: unknown): string[] {
@@ -362,8 +364,8 @@ const mergedFilesCache = new Map<string, CategoryFiles>();
 /**
  * 一个作者在某个分类下实际生效的配置：全站配置打底，作者的 sub config 叠加。
  *
- * 作者能做的只有三件：`[tag_rows] Ignored` 追加自己的忽略列表、`[[entry_ids]]` 和 `[[aka]]`
- * 补充或覆盖（只对自己生效）。
+ * 作者能做的只有三件：`[tag_rows] Ignored` 追加自己的忽略列表、`entry-ids` 覆盖全站的
+ * 文件名 → entry id 映射、`akas` 独立成一层（别名是三层叠加，不是覆盖，所以两份分开给）。
  */
 export function categoryFilesFor(reviewer: string, categoryId: string): CategoryFiles {
   const key = `${reviewer}\u0000${categoryId}`;
@@ -383,15 +385,13 @@ export function categoryFilesFor(reviewer: string, categoryId: string): Category
   const titleNames = new Map(global.titleNames);
   for (const [variant, id] of author.titleNames) titleNames.set(variant, id);
 
-  const aka = new Map(global.aka);
-  for (const [id, names] of author.aka) aka.set(id, names);
-
   const files: CategoryFiles = {
     aliases: global.aliases,
     rows: global.rows,
     ignored: new Set([...global.ignored, ...author.ignored]),
     titleNames,
-    aka,
+    siteAka: global.aka,
+    authorAka: author.aka,
   };
   mergedFilesCache.set(key, files);
   return files;

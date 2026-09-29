@@ -144,7 +144,7 @@ function nameFor(authorRel: string, reviewer: string, meta: Record<string, unkno
   return reviewer.toLowerCase() === "aspark" ? stem.replace(/★+$/, "").trim() : stem;
 }
 
-/** slug 由 entry id 生成：没写进 title_names 的条目，id 就是文件名，URL 不变。 */
+/** slug 由 entry id 生成：entry id 改了，URL 就跟着变。 */
 function slugFor(entryId: string, authorRel: string, contentRel: string): string {
   const fromId = toSlug(entryId);
   if (fromId) return fromId;
@@ -199,17 +199,17 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       const completed = meta["completed"] === true;
       if (!completed && !matchesScoreOnly(meta, config.scoreOnly)) continue;
 
-      // entry id = 该分类 title_names 的左侧；没写就是文件名本身
+      // 文件名侧的名字 → entry id：作者的映射覆盖全站的，两层都没写就是恒等
       const name = nameFor(authorRel, config.reviewer, meta);
-      let title = name;
+      let entryId = name;
       for (const file of categoryFiles) {
         const mapped = file.titleNames.get(name);
         if (mapped) {
-          title = mapped;
+          entryId = mapped;
           break;
         }
       }
-      const slug = slugFor(title, authorRel, contentRel);
+      const slug = slugFor(entryId, authorRel, contentRel);
       const primaryCategory = matched[0];
       const id = `${config.reviewer}/${primaryCategory?.id ?? ""}/${slug}`;
 
@@ -236,13 +236,16 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         tags.push(canonical);
       }
 
-      // 别名来自各分类的 aka.toml，按 entry id 查；同名作品命中多个分类时取并集
+      // 别名：文章自己写的排最前，然后是站点层、作者层，都按 entry id 查；去重保序
       const aka: string[] = [];
-      for (const file of categoryFiles) {
-        for (const alias of file.aka.get(title) ?? []) {
+      const addAka = (names: string[]): void => {
+        for (const alias of names) {
           if (!aka.includes(alias)) aka.push(alias);
         }
-      }
+      };
+      addAka(toStringList(meta["aka"]));
+      for (const file of categoryFiles) addAka(file.siteAka.get(entryId) ?? []);
+      for (const file of categoryFiles) addAka(file.authorAka.get(entryId) ?? []);
 
       const subScores = extractSubScores(body);
 
@@ -257,7 +260,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         path: contentRel,
         reviewer: config.reviewer,
         category_ids: categoryIds,
-        title,
+        title: entryId,
         score_raw: scoreRaw,
         score_rank: rankIndex === -1 ? null : rankIndex + 1,
         score_tier: tierIndex === -1 ? null : tierIndex + 1,
@@ -273,7 +276,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         id,
         reviewer: config.reviewer,
         slug,
-        title,
+        title: entryId,
         filePath,
         relPath,
         contentRel,

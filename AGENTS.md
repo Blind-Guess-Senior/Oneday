@@ -204,11 +204,13 @@ month: 3
 正文……
 ```
 
-- entry 的 id = 该分类 `entry-ids/<首字母>/entry-ids.toml` 里的 `id`；没写进去就是文件名本身
-  （`Aspark` 作者目录下末尾的 `★` 先剥掉）。标题、URL 都取这个 id。
+- entry id = 文件名侧的名字（`Aspark` 作者目录下末尾的 `★` 先剥掉）经 `entry-ids` 映射的结果；
+  全站和作者两层都没写这个文件名就是恒等，字面值和文件名侧的名字相同。网站的标题、URL 的 slug、
+  `akas` 的键，用的都是这个 entry id。
 - 正文开头的第一个 fenced code block 按约定是 `sub_scores`，抽出来渲染在元信息下方。
 - `updated: 2026-03-08` 可选：写了就用它当「更新于」，不写取该文件 `git log --follow`
   的最近一次提交。只认 `YYYY-MM-DD`，写坏了当没写。
+- `aka` 可选：这一篇自己的别名，排在全站和作者那两层前面。
 
 ### 5.1 `[[wikilink]]`
 
@@ -279,7 +281,7 @@ Ignored = ["剧透"]
 ```
 
 ```toml
-# by-category-id/Game/entry-ids/N/entry-ids.toml：id 同时就是显示名和 URL 的 slug
+# by-category-id/Game/entry-ids/N/entry-ids.toml：files 是文件名侧的名字，id 是 entry id
 entry-ids = [
   { id = "NieR: Automata", files = ["NieR-Automata™"] },
 ]
@@ -298,13 +300,14 @@ akas = [
 
 - `tags.toml` 只能写 `[tag_rows] Ignored = [...]`，追加自己的忽略列表；写别的排不生效
   （构建日志里会提醒）。所以作者 A 忽略掉的 tag，作者 B 照样能用。
-- `entry-ids` / `akas` 是补充和覆盖：同一个文件名（entry-ids）或同一个 `id`（akas）
-  以作者的为准，别的作者不受影响。
+- `entry-ids` 以作者的为准：同一个文件名两层都写了，用作者那一条。别的作者不受影响。
+- `akas` 不是覆盖，是全站、作者、文章三层的叠加（顺序见下），全站和作者是两份独立的表。
 
 - 目录名必须是 `site.toml` 里声明过的分类 id；对不上的目录是死配置，构建日志里会提醒。
-- `entry-ids`：`id` 是 entry 的身份，同时也直接当显示名；没写进去的条目，id 就是文件名。
-  `files` 列文件名里可能出现的写法（文件名不能带 `/ \ : * ? " < > |`）。
-- `akas`：`id` → 别名。卡片显示第一个，文章页显示全部，搜索也匹配别名。
+- `entry-ids`：`files`（文件名侧的名字）→ entry id。entry id 是 entry 的身份，同时也是网站上的
+  标题。`files` 列文件名里可能出现的写法（文件名不能带 `/ \ : * ? " < > |`）。
+- `akas`：entry id → 别名。三层的叠加顺序是 `<文章 frontmatter 的 aka> ++ <全站 akas> ++ <作者 akas>`，
+  去重保序。卡片显示第一个，文章页显示全部，搜索也匹配别名。
 - `[tag_rows]`：数字键是筛选区里的第 N 排；`Ignored` 不是一排，里面的 tag 彻底不进站点
   （不上卡片、不进筛选、不参与搜索）。
 - 每项要么直接写 tag 名，要么写 `{ "主名" = ["别名", …] }`：卡片上写别名也算主名。别名只在
