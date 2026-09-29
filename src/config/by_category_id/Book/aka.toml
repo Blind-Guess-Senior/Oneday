@@ -1,10 +1,12 @@
-[aka]
-"末日邮差" = [
-  "The Postman",
-]
-"十四岁" = [
-  "4TEEN",
-]
-"十六岁" = [
-  "6TEEN",
-]
+[[aka]]
+id = "末日邮差"
+names = ["The Postman"]
+
+[[aka]]
+id = "十四岁"
+names = ["4TEEN"]
+
+[[aka]]
+id = "十六岁"
+names = ["6TEEN"]
+

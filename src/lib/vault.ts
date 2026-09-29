@@ -13,7 +13,7 @@ import { parse as parseYaml } from "yaml";
 import {
   CONTENT_ROOT,
   gitDatesFor,
-  loadCategoryFiles,
+  categoryFilesFor,
   readReviewerConfigs,
   type CategoryConfig,
   type ReviewerConfig,
@@ -187,9 +187,10 @@ async function buildReviews(): Promise<ReviewRecord[]> {
       const matched = categoriesFor(config, authorRel);
       if (matched.length === 0) continue;
       const categoryIds = matched.map((entry) => entry.id);
-      const categoryFiles = matched.map((entry) => loadCategoryFiles(entry.id));
+      // 全站配置打底，作者自己的 sub config 叠加
+      const categoryFiles = matched.map((entry) => categoryFilesFor(config.reviewer, entry.id));
       const dropped = new Set<string>();
-      for (const file of categoryFiles) file.row0.forEach((tag) => dropped.add(tag));
+      for (const file of categoryFiles) file.ignored.forEach((tag) => dropped.add(tag));
 
       const filePath = path.join(CONTENT_ROOT, contentRel);
       const raw = await readFile(filePath, "utf8");
@@ -228,7 +229,7 @@ async function buildReviews(): Promise<ReviewRecord[]> {
             break;
           }
         }
-        // row0 的 tag 彻底不进站点：不上卡片、不进筛选、不参与搜索
+        // Ignored 里的 tag 彻底不进站点：不上卡片、不进筛选、不参与搜索
         if (dropped.has(canonical)) continue;
         if (seenTags.has(canonical)) continue;
         seenTags.add(canonical);
@@ -344,7 +345,7 @@ async function buildStandards(): Promise<StandardRecord[]> {
       );
       if (!category) continue;
 
-      const titleNames = loadCategoryFiles(category.id).titleNames;
+      const titleNames = categoryFilesFor(config.reviewer, category.id).titleNames;
       const stem = path.basename(authorRel).replace(/\.md$/i, "").trim();
       const title = titleNames.get(stem) ?? stem;
       const slug = toSlug(title) || toSlug(authorRel.replace(/\.md$/i, "").replace(/\//g, "-"));

@@ -5,7 +5,7 @@
  * 浏览器端不再需要额外请求。
  */
 
-import { loadCategoryFiles, readReviewerConfigs } from "./config";
+import { categoryRows, readReviewerConfigs } from "./config";
 import type { Card, StandardCard } from "./filter";
 import { entryUrl } from "./site";
 import { getReviews, getStandards } from "./vault";
@@ -31,8 +31,7 @@ function asList(value: unknown): string[] {
 /**
  * 按 `[tag_rows]` 排出该分类的 tag 行。
  *
- * 只列该分类在 tags.toml 里声明过、并且真有卡片在用的 tag。
- * 内容里写的其它词只是字符串，和本分类的 tag 无关，也不是筛选项。
+ * 只列真有卡片在用的 tag；没在 tags.toml 里出现过的 tag 自动接成新的一排。
  */
 function buildTagRows(cards: Card[], categories: string[]): Record<string, string[][]> {
   const result: Record<string, string[][]> = {};
@@ -44,13 +43,18 @@ function buildTagRows(cards: Card[], categories: string[]): Record<string, strin
     }
 
     const declared = new Set<string>();
-    result[id] = loadCategoryFiles(id).rows.map((row) =>
+    const rows = categoryRows(id).map((row) =>
       row.filter((tag) => {
         if (!used.has(tag) || declared.has(tag)) return false;
         declared.add(tag);
         return true;
       }),
     );
+
+    const rest = [...used].filter((tag) => !declared.has(tag)).sort((a, b) => a.localeCompare(b, "zh"));
+    if (rest.length > 0) rows.push(rest);
+
+    result[id] = rows;
   }
 
   return result;

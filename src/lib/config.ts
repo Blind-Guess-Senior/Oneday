@@ -66,17 +66,17 @@ export interface ReviewerConfig {
   metadataMaps: Record<string, MetadataMapEntry[]>;
 }
 
-/** `src/config/by_category_id/<分类 id>/` 下三个文件的内容。 */
+/** 一个分类的配置：全站配置 + 该作者的 sub config 合并后的结果。 */
 export interface CategoryFiles {
-  /** 别名 → 主名。 */
+  /** 别名 → 主名。只有全站配置能定义别名。 */
   aliases: Map<string, string>;
-  /** rows[0] 就是第 1 排。 */
+  /** rows[0] 就是第 1 排。只有全站配置能定义排。 */
   rows: string[][];
-  /** `[tag_rows] 0`：只声明、不进筛选区和搜索的 tag。 */
-  row0: string[];
-  /** 文件名里可能出现的写法 → entry id。 */
+  /** `[tag_rows] Ignored`：彻底不进站点的 tag（全站 + 作者自己的）。 */
+  ignored: Set<string>;
+  /** 文件名里可能出现的写法 → entry id。作者自己的覆盖全站的。 */
   titleNames: Map<string, string>;
-  /** entry id → 别名。 */
+  /** entry id → 别名。作者自己的覆盖全站的。 */
   aka: Map<string, string[]>;
 }
 
@@ -210,72 +210,132 @@ export function listCategoryConfigIds(): string[] {
     .sort();
 }
 
-function readCategoryFile(categoryId: string, name: string): Record<string, unknown> {
-  const file = path.join(CATEGORY_CONFIG_ROOT, categoryId, name);
+function readTomlFile(dir: string, name: string): Record<string, unknown> {
+  const file = path.join(dir, name);
   if (!existsSync(file)) return {};
   return asRecord(parseToml(readFileSync(file, "utf8"))) ?? {};
 }
 
-const categoryFilesCache = new Map<string, CategoryFiles>();
+/** 一份 `tags.toml` / `entry_ids.toml` / `aka.toml` 的原始内容。 */
+interface RawCategoryFiles {
+  aliases: Map<string, string>;
+  rows: string[][];
+  ignored: string[];
+  titleNames: Map<string, string>;
+  aka: Map<string, string[]>;
+}
 
-/**
- * 一个分类的全站配置。三个文件都可以缺，缺了当空。
- *
- * `tags.toml` 的 `[tag_rows]` 用数字键：`0` 是彻底不进站点的第 0 排，`1..N` 是筛选区里的排。
- * 每一项要么直接写 tag 名，要么写 `{ "主名" = ["别名", …] }`（别名列表里再写一遍主名也无妨）。
- * `title_names.toml` 左边是 entry id，右边是文件名里可能出现的写法，一多对。
- */
-export function loadCategoryFiles(categoryId: string): CategoryFiles {
-  const cached = categoryFilesCache.get(categoryId);
+/** 排里的一项：tag 名，或者 `{ "主名" = ["别名", …] }`。 */
+function tagItems(value: unknown, aliases: Map<string, string>): string[] {
+  const tags: string[] = [];
+  for (const item of Array.isArray(value) ? value : []) {
+    if (typeof item === "string") {
+      const name = item.trim();
+      if (name) tags.push(name);
+      continue;
+    }
+    for (const [key, spellings] of Object.entries(asRecord(item) ?? {})) {
+      const name = key.trim();
+      if (!name) continue;
+      tags.push(name);
+      for (const spelling of asStringArray(spellings)) {
+        const alias = spelling.trim();
+        if (alias && alias !== name) aliases.set(alias, name);
+      }
+    }
+  }
+  return tags;
+}
+
+const rawFilesCache = new Map<string, RawCategoryFiles>();
+
+/** 读一个 `by_category_id/<分类 id>/` 目录；三个文件都可以缺。 */
+function readCategoryFiles(dir: string, collectAliases: boolean): RawCategoryFiles {
+  const cached = rawFilesCache.get(dir);
   if (cached) return cached;
 
   const aliases = new Map<string, string>();
+  const unusedAliases = new Map<string, string>();
   const rows: string[][] = [];
-  let row0: string[] = [];
 
-  const rawRows = asRecord(readCategoryFile(categoryId, "tags.toml")["tag_rows"]) ?? {};
-  const rowKeys = Object.keys(rawRows).sort((a, b) => Number(a) - Number(b));
-  for (const rowKey of rowKeys) {
-    const tags: string[] = [];
-    for (const entry of Array.isArray(rawRows[rowKey]) ? rawRows[rowKey] : []) {
-      if (typeof entry === "string") {
-        const name = entry.trim();
-        if (name) tags.push(name);
-        continue;
-      }
-      for (const [key, spellings] of Object.entries(asRecord(entry) ?? {})) {
-        const name = key.trim();
-        if (!name) continue;
-        tags.push(name);
-        for (const spelling of asStringArray(spellings)) {
-          const alias = spelling.trim();
-          if (alias && alias !== name) aliases.set(alias, name);
-        }
-      }
-    }
-    if (rowKey === "0") row0 = tags;
-    else rows.push(tags);
-  }
+  const rawRows = asRecord(readTomlFile(dir, "tags.toml")["tag_rows"]) ?? {};
+  const rowKeys = Object.keys(rawRows)
+    .filter((key) => /^\d+$/.test(key))
+    .sort((a, b) => Number(a) - Number(b));
+  for (const rowKey of rowKeys) rows.push(tagItems(rawRows[rowKey], collectAliases ? aliases : unusedAliases));
+  const ignored = tagItems(rawRows["Ignored"], collectAliases ? aliases : unusedAliases);
 
   const titleNames = new Map<string, string>();
-  const rawTitles = asRecord(readCategoryFile(categoryId, "title_names.toml")["title_names"]) ?? {};
-  for (const [id, variants] of Object.entries(rawTitles)) {
-    const entryId = asString(id);
-    if (!entryId) continue;
-    for (const variant of asStringArray(variants)) titleNames.set(variant, entryId);
+  const rawIds = readTomlFile(dir, "entry_ids.toml")["entry_ids"];
+  for (const item of Array.isArray(rawIds) ? rawIds : []) {
+    const record = asRecord(item);
+    if (!record) continue;
+    const id = asString(record["id"]);
+    if (!id) continue;
+    for (const variant of asStringArray(record["files"])) {
+      const name = variant.trim();
+      if (name) titleNames.set(name, id);
+    }
   }
 
   const aka = new Map<string, string[]>();
-  const rawAka = asRecord(readCategoryFile(categoryId, "aka.toml")["aka"]) ?? {};
-  for (const [id, names] of Object.entries(rawAka)) {
-    const entryId = asString(id);
-    const list = asStringArray(names);
-    if (entryId && list.length) aka.set(entryId, list);
+  const rawAka = readTomlFile(dir, "aka.toml")["aka"];
+  for (const item of Array.isArray(rawAka) ? rawAka : []) {
+    const record = asRecord(item);
+    if (!record) continue;
+    const id = asString(record["id"]);
+    const names = asStringArray(record["names"]).map((name) => name.trim()).filter(Boolean);
+    if (id && names.length) aka.set(id, names);
   }
 
-  const files: CategoryFiles = { aliases, rows, row0, titleNames, aka };
-  categoryFilesCache.set(categoryId, files);
+  const files: RawCategoryFiles = { aliases, rows, ignored, titleNames, aka };
+  rawFilesCache.set(dir, files);
   return files;
+}
+
+const mergedFilesCache = new Map<string, CategoryFiles>();
+
+/**
+ * 一个作者在某个分类下实际生效的配置：全站配置打底，作者的 sub config 叠加。
+ *
+ * 作者能做的只有三件：`[tag_rows] Ignored` 追加自己的忽略列表、`[[entry_ids]]` 和 `[[aka]]`
+ * 补充或覆盖（只对自己生效）。
+ */
+export function categoryFilesFor(reviewer: string, categoryId: string): CategoryFiles {
+  const key = `${reviewer}\u0000${categoryId}`;
+  const cached = mergedFilesCache.get(key);
+  if (cached) return cached;
+
+  const global = readCategoryFiles(path.join(CATEGORY_CONFIG_ROOT, categoryId), true);
+  const authorDir = path.join(CONTENT_ROOT, reviewer, "config", "by_category_id", categoryId);
+  const author = readCategoryFiles(authorDir, false);
+  if (author.rows.length > 0) {
+    note(
+      `src/content/${reviewer}/config/by_category_id/${categoryId}/tags.toml`,
+      "作者的 tags.toml 只认 [tag_rows] Ignored，别的排不会生效",
+    );
+  }
+
+  const titleNames = new Map(global.titleNames);
+  for (const [variant, id] of author.titleNames) titleNames.set(variant, id);
+
+  const aka = new Map(global.aka);
+  for (const [id, names] of author.aka) aka.set(id, names);
+
+  const files: CategoryFiles = {
+    aliases: global.aliases,
+    rows: global.rows,
+    ignored: new Set([...global.ignored, ...author.ignored]),
+    titleNames,
+    aka,
+  };
+  mergedFilesCache.set(key, files);
+  return files;
+}
+
+/** 全站配置里的排（筛选区用；作者不能定义排）。 */
+export function categoryRows(categoryId: string): string[][] {
+  return readCategoryFiles(path.join(CATEGORY_CONFIG_ROOT, categoryId), true).rows;
 }
 
 export interface GitDates {
