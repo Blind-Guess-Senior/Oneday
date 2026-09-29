@@ -18,13 +18,9 @@ import { formatDate } from "../lib/site";
 
 const props = defineProps<{ payload: IndexPayload }>();
 
-/** 显示名只用来渲染：按 id 查表，筛选路径永远不碰它。 */
-const categoryNames = computed(
-  () => new Map(props.payload.categories.map((entry) => [entry.id, entry.name])),
-);
-
+/** 显示名只用来渲染：按 id 查表，逻辑路径一律只认 id。 */
 function categoryName(id: string | undefined): string {
-  return (id ? categoryNames.value.get(id) : "") || "其他";
+  return (id ? props.payload.categoryNames[id] : "") || "其他";
 }
 
 const PAGE_SIZE = 30;
@@ -177,9 +173,7 @@ function resetFilters(): void {
 function readUrlState(): void {
   const state = parseFilterSearch(window.location.search);
   query.value = state.query;
-  categoryId.value = props.payload.categories.some((entry) => entry.id === state.categoryId)
-    ? state.categoryId
-    : "";
+  categoryId.value = props.payload.categories.includes(state.categoryId) ? state.categoryId : "";
   reviewers.value = state.reviewers;
   scores.value = state.scores;
   // tag 只在本分类里成立，没有合法分类时地址栏里的 tag 不生效
@@ -222,14 +216,14 @@ onMounted(readUrlState);
           <div class="filter-title">分类</div>
           <div class="filter-options">
             <button
-              v-for="entry in payload.categories"
-              :key="entry.id"
+              v-for="id in payload.categories"
+              :key="id"
               type="button"
               class="filter-option"
-              :class="{ selected: categoryId === entry.id }"
-              @click="selectCategory(entry.id)"
+              :class="{ selected: categoryId === id }"
+              @click="selectCategory(id)"
             >
-              {{ entry.name }}
+              {{ categoryName(id) }}
             </button>
           </div>
         </div>

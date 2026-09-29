@@ -13,8 +13,10 @@ import { getReviews, getStandards } from "./vault";
 export interface IndexPayload {
   reviews: Card[];
   standards: StandardCard[];
-  /** 有评测的分类，顺序按作者配置里的书写顺序。id 是 URL/徽章用的 ASCII 名 */
-  categories: Array<{ name: string; id: string }>;
+  /** 有评测的分类 id，顺序按作者配置里的书写顺序 */
+  categories: string[];
+  /** 分类 id → 显示名。只在渲染的时候查，任何判断都不用它 */
+  categoryNames: Record<string, string>;
   reviewers: string[];
   /** 评测者 → 有序的分数选项（来自该作者的 [score].order，未列出的按字典序补在后面） */
   scoreOptions: Record<string, string[]>;
@@ -32,13 +34,10 @@ function asList(value: unknown): string[] {
  * 只列该分类在 tags.toml 里声明过、并且真有卡片在用的 tag。
  * 内容里写的其它词只是字符串，和本分类的 tag 无关，也不是筛选项。
  */
-function buildTagRows(
-  cards: Card[],
-  categories: Array<{ name: string; id: string }>,
-): Record<string, string[][]> {
+function buildTagRows(cards: Card[], categories: string[]): Record<string, string[][]> {
   const result: Record<string, string[][]> = {};
 
-  for (const { id } of categories) {
+  for (const id of categories) {
     const used = new Set<string>();
     for (const card of cards) {
       if (card.categoryIds.includes(id)) card.tags.forEach((tag) => used.add(tag));
@@ -67,14 +66,14 @@ export function buildIndexPayload(): Promise<IndexPayload> {
       readReviewerConfigs(),
     ]);
 
-    // 分类顺序 = 作者配置里的书写顺序，按 id 去重
-    const categories: Array<{ name: string; id: string }> = [];
-    const seen = new Set<string>();
+    // 分类顺序 = 作者配置里的书写顺序，按 id 去重；显示名单独记一张表
+    const categories: string[] = [];
+    const categoryNames: Record<string, string> = {};
     for (const config of configs) {
       for (const category of config.categories) {
-        if (seen.has(category.id)) continue;
-        seen.add(category.id);
-        categories.push({ name: category.name, id: category.id });
+        if (category.id in categoryNames) continue;
+        categoryNames[category.id] = category.name;
+        categories.push(category.id);
       }
     }
 
@@ -120,6 +119,7 @@ export function buildIndexPayload(): Promise<IndexPayload> {
         categoryId: standard.categoryId,
       })),
       categories,
+      categoryNames,
       reviewers,
       scoreOptions,
       tagRows: buildTagRows(cards, categories),
