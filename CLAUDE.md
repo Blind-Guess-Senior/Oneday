@@ -77,7 +77,7 @@
   浏览器端不需要额外请求。
 - 筛选/排序/分页的语义在 `src/lib/filter.ts` 的纯函数里，边界由 `src/lib/filter.test.ts`
   固定（`npm test`）。**改筛选逻辑请同时改测试。**
-- 文章页的标签链接指向 `/?tag=xxx`，岛屿启动后读取并预选。
+- 文章页的标签链接指向 `/?c=<分类 id>&t=<tag>`，岛屿启动后读取并预选。
 - 样式在 `src/styles/global.css`。
 
 `src/content/` 以外的目录（`Utils/`、`node_modules/`、`dist/` 等）不参与内容扫描。
@@ -253,6 +253,8 @@ month: 3
 `site.toml` 是空的；其余配置按分类放：`by_category_id/<分类 id>/{tags,title_names,aka}.toml`。
 目录名就是分类 id，所以文件里不再写分类；文件缺了当空。
 
+**分类之间完全隔离**：配置、tag、别名、标题、aka 都只在本分类内成立，名字一样不代表有关系。
+
 ```toml
 # by_category_id/Game/tags.toml
 [tag_rows]
@@ -287,8 +289,6 @@ month: 3
   别名列表里再写一遍主名也没关系。别名只在这张卡命中的分类里生效，和别的分类无关。
 - tag 完全按分类隔离：筛选区只列本分类声明过、并且真有卡片在用的 tag。
 - 数组顺序 = 该分类下 tag 的显示顺序。
-- 数据里出现、但这里没声明的 tag 不进筛选区（卡片上照常显示），并在构建日志里用
-  `[提示]` 列出来。
 
 ---
 
@@ -304,8 +304,8 @@ astro build
 
 - 正文渲染走 Astro 7 的 markdown 管线（**satteri**，不是 remark/rehype），
   插件注册在 `astro.config.ts` 的 `markdown.processor`。
-- 构建期的提示（`note()`）只用于「配置和数据对不上」：分类没写 `id`、
-  数据里出现了 `tags.toml` 没声明的 tag。它不检查内容怎么写。
+- 构建期的提示（`note()`）只用于「配置本身有问题」：分类没写 `id`、
+  `by_category_id/` 下有对不上任何分类 `id` 的目录。它不检查内容怎么写。
 
 构建日志里你会看到：
 

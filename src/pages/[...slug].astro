@@ -19,6 +19,13 @@ const title = String(data["title"] ?? entry.id);
 const reviewer = String(data["reviewer"] ?? "");
 const category = list("category");
 const categoryIds = list("category_ids");
+
+/** tag 只在本分类里成立，所以链接必须带上分类。 */
+const tagHref = (tag: string): string => {
+  const params = new URLSearchParams({ t: tag });
+  if (categoryIds[0]) params.set("c", categoryIds[0]);
+  return `${BASE}/?${params.toString()}`;
+};
 const scoreRaw = String(data["score_raw"] ?? "");
 const tier = typeof data["score_tier"] === "number" ? (data["score_tier"] as number) : null;
 const aka = list("aka");
@@ -102,7 +109,7 @@ const Content = scoreOnly ? null : (await render(entry)).Content;
                 <span class="article-meta-sep">|</span>
                 <span class="article-meta-item article-meta-tags">
                   {tags.map((tag) => (
-                    <a class="card-tag" href={`${BASE}/?t=${encodeURIComponent(tag)}`}>
+                    <a class="card-tag" href={tagHref(tag)}>
                       {tag}
                     </a>
                   ))}

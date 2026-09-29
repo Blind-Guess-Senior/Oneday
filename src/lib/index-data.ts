@@ -7,7 +7,6 @@
 
 import { loadCategoryFiles, readReviewerConfigs } from "./config";
 import type { Card } from "./filter";
-import { note } from "./report";
 import { entryUrl } from "./site";
 import { getReviews, getStandards } from "./vault";
 
@@ -29,7 +28,7 @@ export interface IndexPayload {
   reviewers: string[];
   /** 评测者 → 有序的分数选项（来自该作者的 [score].order，未列出的按字典序补在后面） */
   scoreOptions: Record<string, string[]>;
-  /** 分类 id → 分排的 tag（顺序来自 by_category_id/<id>/tags.toml，未声明的追加到最后一排） */
+  /** 分类 id → 分排的 tag（顺序来自 by_category_id/<id>/tags.toml） */
   tagRows: Record<string, string[][]>;
 }
 
@@ -40,8 +39,8 @@ function asList(value: unknown): string[] {
 /**
  * 按 `[tag_rows]` 排出该分类的 tag 行。
  *
- * 筛选区只列该分类在 tags.toml 里声明过、并且真有卡片在用的 tag。
- * 数据里出现但没声明的 tag 不进筛选区，只在构建日志里报出来。
+ * 只列该分类在 tags.toml 里声明过、并且真有卡片在用的 tag。
+ * 内容里写的其它词只是字符串，和本分类的 tag 无关，也不是筛选项。
  */
 function buildTagRows(
   cards: Card[],
@@ -49,31 +48,20 @@ function buildTagRows(
 ): Record<string, string[][]> {
   const result: Record<string, string[][]> = {};
 
-  for (const { name, id } of categories) {
-    const config = loadCategoryFiles(id);
+  for (const { id } of categories) {
     const used = new Set<string>();
     for (const card of cards) {
       if (card.categoryIds.includes(id)) card.tags.forEach((tag) => used.add(tag));
     }
 
     const declared = new Set<string>();
-    const rows: string[][] = config.rows.map((row) =>
+    result[id] = loadCategoryFiles(id).rows.map((row) =>
       row.filter((tag) => {
         if (!used.has(tag) || declared.has(tag)) return false;
         declared.add(tag);
         return true;
       }),
     );
-
-    const undeclared = [...used].filter((tag) => !declared.has(tag)).sort((a, b) => a.localeCompare(b, "zh"));
-    if (undeclared.length > 0) {
-      note(
-        `src/config/by_category_id/${id}/tags.toml`,
-        `分类「${name}」（${id}）有 ${undeclared.length} 个 tag 没声明，不进筛选区：${undeclared.join("、")}`,
-      );
-    }
-
-    result[id] = rows;
   }
 
   return result;

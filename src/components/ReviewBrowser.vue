@@ -172,7 +172,8 @@ function readUrlState(): void {
     : "";
   reviewers.value = state.reviewers;
   scores.value = state.scores;
-  tags.value = state.tags;
+  // tag 只在本分类里成立，没有合法分类时地址栏里的 tag 不生效
+  tags.value = category.value ? state.tags : [];
   showScoreOnly.value = state.showScoreOnly;
   showStandardsOnly.value = state.showStandardsOnly;
   sortBy.value = state.sort;
