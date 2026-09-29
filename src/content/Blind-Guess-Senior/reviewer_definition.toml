@@ -1,0 +1,58 @@
+[[categories]]
+id = "Anime"
+include = ["Anime/**/*.md"]
+standard = ["Standard/Anime/**/*.md"]
+
+[[categories]]
+id = "Book"
+include = ["Book/**/*.md"]
+standard = ["Standard/Book/**/*.md"]
+
+[[categories]]
+id = "Game"
+include = ["Game/**/*.md"]
+standard = ["Standard/Game/**/*.md"]
+
+[score_only]
+status = ["已完成", "全成就"]
+
+[score]
+order = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+tiers = [
+  { values = [
+    10,
+    9,
+    8,
+    7,
+  ] },
+  { values = [
+    6,
+    5,
+  ] },
+  { values = [
+    4,
+    3,
+    2,
+    1,
+  ] },
+]
+
+[[metadata_maps]]
+category_id = "Game"
+rules = [
+  { keys = ["developer"], label = "开发商" },
+  { keys = ["publisher"], label = "发行商" },
+  { keys = ["year", "month"], separator = ".", label = "游玩时间" },
+]
+
+[[metadata_maps]]
+category_id = "Anime"
+rules = [{ keys = ["year", "month"], separator = ".", label = "观看时间" }]
+
+[[metadata_maps]]
+category_id = "Book"
+rules = [
+  { keys = ["country"], label = "国家" },
+  { keys = ["author"], label = "作者" },
+  { keys = ["year", "month"], separator = ".", label = "阅读时间" },
+]

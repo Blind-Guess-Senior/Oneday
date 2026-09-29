@@ -1,0 +1,15 @@
+[[categories]]
+id = "Game"
+name = "游戏"
+
+[[categories]]
+id = "Book"
+name = "书籍"
+
+[[categories]]
+id = "Anime"
+name = "动漫"
+
+[[categories]]
+id = "Music"
+name = "音乐"

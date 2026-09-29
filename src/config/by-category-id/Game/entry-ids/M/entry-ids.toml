@@ -1,0 +1,6 @@
+entry-ids = [
+  { id = "Monster Hunter: World", files = [
+    "Monster Hunter-World",
+    "Monster Hunter- World",
+  ] },
+]

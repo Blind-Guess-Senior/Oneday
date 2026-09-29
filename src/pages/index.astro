@@ -1,0 +1,11 @@
+---
+import ReviewBrowser from "../components/ReviewBrowser.vue";
+import Layout from "../layouts/Layout.astro";
+import { buildIndexPayload } from "../lib/index-data";
+
+const payload = await buildIndexPayload();
+---
+
+<Layout title="Oneday">
+  <ReviewBrowser client:load payload={payload} />
+</Layout>

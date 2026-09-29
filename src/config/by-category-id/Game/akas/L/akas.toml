@@ -1,0 +1,20 @@
+akas = [
+  { id = "Leap Year", akas = [
+    "闰跃之年",
+  ] },
+  { id = "Lethal Company", akas = [
+    "致命公司",
+  ] },
+  { id = "Liar's Bar", akas = [
+    "骗子酒吧",
+  ] },
+  { id = "LIMBO", akas = [
+    "地狱边境",
+  ] },
+  { id = "Limbus Company", akas = [
+    "边狱巴士",
+  ] },
+  { id = "Lobotomy Corporation | Monster Management Simulation", akas = [
+    "脑叶公司",
+  ] },
+]

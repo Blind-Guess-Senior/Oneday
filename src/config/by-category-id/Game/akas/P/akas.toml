@@ -1,0 +1,12 @@
+akas = [
+  { id = "Persona 5 Royal", akas = [
+    "女神异闻录5皇家版",
+  ] },
+  { id = "Plants vs. Zombies: GOTY Edition", akas = [
+    "植物大战僵尸：年度版",
+  ] },
+  { id = "PUBG: BATTLEGROUNDS", akas = [
+    "绝地求生",
+    "吃鸡",
+  ] },
+]

@@ -1,0 +1,61 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import { categoryNames } from "../../lib/config";
+import { formatDate, BASE } from "../../lib/site";
+
+export async function getStaticPaths() {
+  const standards = await getCollection("standards");
+  return standards.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const data = entry.data as Record<string, unknown>;
+const title = String(data["title"] ?? entry.id);
+const reviewer = String(data["reviewer"] ?? "");
+const categoryId = String(data["category_id"] ?? "");
+const category = categoryNames().get(categoryId) ?? categoryId;
+const published = String(data["published"] ?? "");
+const modified = String(data["modified"] ?? "");
+
+const { Content } = await render(entry);
+---
+
+<Layout title={title}>
+  <div class="layout">
+    <div class="main">
+      <div class="article-wrap">
+        <a class="article-back" href={`${BASE}/`}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          返回列表
+        </a>
+
+        <h1 class="article-title">{title}</h1>
+
+        <div class="article-meta-bar">
+          <span class="article-meta-item">
+            <span>评测者</span>&nbsp;<strong>{reviewer}</strong>
+          </span>
+          <span class="article-meta-sep">|</span>
+          <span class="article-meta-item">
+            <span>分类</span>&nbsp;<strong>{category}</strong>
+          </span>
+        </div>
+
+        <div class="md-body"><Content /></div>
+
+        <div class="article-dates">
+          {
+            published && (
+              <time datetime={published}>发布于 {formatDate(published)}</time>
+            )
+          }
+          {published && modified && <span class="meta-dot">·</span>}
+          {modified && <time datetime={modified}>更新于 {formatDate(modified)}</time>}
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

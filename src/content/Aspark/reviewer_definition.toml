@@ -1,0 +1,16 @@
+[[categories]]
+id = "Game"
+include = [
+  "小众变态测评/游戏/已完成/**/*.md",
+  "小众变态测评/游戏/未完成/**/*.md",
+]
+standard = ["Standard/游戏/**/*.md"]
+
+[score]
+order = ["★", "★★", "★★★", "★★★★", "★★★★★"]
+
+tiers = [
+  { values = ["★★★★★", "★★★★"] },
+  { values = ["★★★"] },
+  { values = ["★★", "★"] },
+]

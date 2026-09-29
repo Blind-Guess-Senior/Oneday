@@ -1,0 +1,41 @@
+akas = [
+  { id = "ACE COMBAT 7: SKIES UNKNOWN", akas = [
+    "皇牌空战7：未知空域",
+  ] },
+  { id = "AI: The Somnium Files", akas = [
+    "AI：梦境档案",
+  ] },
+  { id = "Alabaster Dawn", akas = [
+    "皓白初晓",
+  ] },
+  { id = "ANIMAL WELL", akas = [
+    "动物井",
+  ] },
+  { id = "Another Crab's Treasure", akas = [
+    "蟹蟹寻宝奇遇",
+  ] },
+  { id = "ARK: Survival Evolved", akas = [
+    "方舟：生存进化",
+  ] },
+  { id = "ARMORED CORE VI FIRES OF RUBICON", akas = [
+    "装甲核心 VI 境界天火",
+  ] },
+  { id = "Artis Impact", akas = [
+    "爱氏物语",
+  ] },
+  { id = "ASTLIBRA ～生きた証～ Revision", akas = [
+    "神之天平",
+  ] },
+  { id = "Axiom Verge", akas = [
+    "公理边缘",
+  ] },
+  { id = "爱与机器人维修技术", akas = [
+    "All Our Broken Parts",
+  ] },
+  { id = "穢翼のユースティア", akas = [
+    "秽翼的尤斯蒂娅",
+  ] },
+  { id = "アルミオシオンの医術師", akas = [
+    "阿尔米奥西翁的医术师",
+  ] },
+]

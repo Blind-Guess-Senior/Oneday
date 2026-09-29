@@ -1,0 +1,187 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import { categoryNames } from "../lib/config";
+import { extraMeta } from "../lib/extra-meta";
+import { entryUrl, formatDate, BASE } from "../lib/site";
+import { getStandards } from "../lib/vault";
+
+export async function getStaticPaths() {
+  const reviews = await getCollection("reviews");
+  return reviews.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const data = entry.data as Record<string, unknown>;
+const list = (key: string): string[] =>
+  Array.isArray(data[key]) ? (data[key] as unknown[]).map(String) : [];
+
+const title = String(data["title"] ?? entry.id);
+const reviewer = String(data["reviewer"] ?? "");
+const categoryIds = list("category_ids");
+
+/** tag 只在本分类里成立，所以链接必须带上分类。 */
+const tagHref = (tag: string): string => {
+  const params = new URLSearchParams({ t: tag });
+  if (categoryIds[0]) params.set("c", categoryIds[0]);
+  return `${BASE}/?${params.toString()}`;
+};
+const scoreRaw = String(data["score_raw"] ?? "");
+const tier = typeof data["score_tier"] === "number" ? (data["score_tier"] as number) : null;
+const aka = list("aka");
+const tags = list("tags");
+const subScores = list("sub_scores");
+const scoreOnly = data["score_only"] === true;
+const published = String(data["published"] ?? "");
+const modified = String(data["modified"] ?? "");
+
+const meta = await extraMeta(reviewer, categoryIds, data);
+const names = categoryNames();
+const categoryText = categoryIds.map((id) => names.get(id) ?? id).join(" / ");
+
+const standards = (await getStandards()).filter(
+  (standard) => standard.reviewer === reviewer && categoryIds.includes(standard.categoryId),
+);
+
+// 仅评分评测没有渲染正文，旧站也只显示元信息
+const Content = scoreOnly ? null : (await render(entry)).Content;
+---
+
+<Layout title={title}>
+  <div class="layout">
+    <div class="main">
+      <div class="article-wrap">
+        <a class="article-back" href={`${BASE}/`}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          返回列表
+        </a>
+
+        <h1 class="article-title">{title}</h1>
+        {
+          aka.length > 0 && (
+            <div class="article-aka">
+              {aka.map((name) => (
+                <span class="article-aka-item">{name}</span>
+              ))}
+            </div>
+          )
+        }
+
+        <div class="article-meta-bar">
+          <span class="article-meta-item">
+            <span>评测者</span>&nbsp;<strong>{reviewer}</strong>
+          </span>
+          <span class="article-meta-sep">|</span>
+          <span class="article-meta-item">
+            <span>分类</span>&nbsp;<strong>{categoryText || "—"}</strong>
+          </span>
+          {
+            scoreRaw && (
+              <>
+                <span class="article-meta-sep">|</span>
+                <span class="article-meta-item">
+                  <span>评分</span>&nbsp;
+                  {standards.length > 0 ? (
+                    <button type="button" class="score-link-btn" id="standards-toggle">
+                      <strong
+                        class:list={["score-display", tier ? `score-tier-${tier}` : ""]}
+                        data-reviewer={reviewer}
+                      >
+                        {scoreRaw}
+                      </strong>
+                      <span class="score-link-hint">查看标准</span>
+                    </button>
+                  ) : (
+                    <strong
+                      class:list={["score-display", tier ? `score-tier-${tier}` : ""]}
+                      data-reviewer={reviewer}
+                    >
+                      {scoreRaw}
+                    </strong>
+                  )}
+                </span>
+              </>
+            )
+          }
+          {
+            tags.length > 0 && (
+              <>
+                <span class="article-meta-sep">|</span>
+                <span class="article-meta-item article-meta-tags">
+                  {tags.map((tag) => (
+                    <a class="card-tag" href={tagHref(tag)}>
+                      {tag}
+                    </a>
+                  ))}
+                </span>
+              </>
+            )
+          }
+        </div>
+
+        {
+          meta.length > 0 && (
+            <div class="article-meta-bar">
+              {meta.map((item, index) => (
+                <>
+                  <span class="article-meta-item">
+                    <span>{item.label}</span>&nbsp;<strong>{item.value}</strong>
+                  </span>
+                  {index < meta.length - 1 && <span class="article-meta-sep">|</span>}
+                </>
+              ))}
+            </div>
+          )
+        }
+
+        {
+          standards.length > 0 && (
+            <div class="standards-panel" id="standards-panel" hidden>
+              <div class="standards-panel-title">评分标准</div>
+              <div class="standards-list">
+                {standards.map((standard) => (
+                  <a class="standard-link" href={entryUrl(`standard/${standard.id}`)}>
+                    <span>{standard.title}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
+        <div class="md-body">
+          {
+            subScores.length > 0 && (
+              <div class="sub-scores">
+                {subScores.map((line) => (
+                  <span class="sub-score-item">{line}</span>
+                ))}
+              </div>
+            )
+          }
+          {Content && <Content />}
+        </div>
+
+        <div class="article-dates">
+          {
+            published && (
+              <time datetime={published}>发布于 {formatDate(published)}</time>
+            )
+          }
+          {published && modified && <span class="meta-dot">·</span>}
+          {modified && <time datetime={modified}>更新于 {formatDate(modified)}</time>}
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const toggle = document.getElementById("standards-toggle");
+  const panel = document.getElementById("standards-panel");
+  toggle?.addEventListener("click", () => {
+    if (panel) panel.hidden = !panel.hidden;
+  });
+</script>

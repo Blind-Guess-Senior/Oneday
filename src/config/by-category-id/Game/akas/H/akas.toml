@@ -1,0 +1,17 @@
+akas = [
+  { id = "Hollow Knight", akas = [
+    "空洞骑士",
+  ] },
+  { id = "Hollow Knight: Silksong", akas = [
+    "空洞骑士：丝之歌",
+  ] },
+  { id = "How to Fish", akas = [
+    "渔力全开",
+  ] },
+  { id = "Human Fall Flat", akas = [
+    "人类一败涂地",
+  ] },
+  { id = "黑神话：悟空", akas = [
+    "Black Myth: Wukong",
+  ] },
+]

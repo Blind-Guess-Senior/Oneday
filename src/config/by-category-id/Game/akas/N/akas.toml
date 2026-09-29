@@ -1,0 +1,9 @@
+akas = [
+  { id = "NieR: Automata", akas = [
+    "尼尔：机械纪元",
+    "尼尔：自动人形",
+  ] },
+  { id = "NUKITASHI", akas = [
+    "拔作岛",
+  ] },
+]

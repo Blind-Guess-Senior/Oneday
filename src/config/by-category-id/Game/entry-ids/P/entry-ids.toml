@@ -1,0 +1,8 @@
+entry-ids = [
+  { id = "Plants vs. Zombies: GOTY Edition", files = [
+    "Plants vs. Zombies- GOTY Edition",
+  ] },
+  { id = "PUBG: BATTLEGROUNDS", files = [
+    "PUBG-BATTLEGROUNDS",
+  ] },
+]

@@ -1,0 +1,48 @@
+akas = [
+  { id = "CATO: Buttered Cat", akas = [
+    "CATO 黄油猫",
+  ] },
+  { id = "Celeste", akas = [
+    "蔚蓝",
+  ] },
+  { id = "Chants of Sennaar", akas = [
+    "巴别塔圣歌",
+  ] },
+  { id = "Cities: Skylines", akas = [
+    "城市：天际线",
+  ] },
+  { id = "Clair Obscur: Expedition 33", akas = [
+    "光与影：33号远征队",
+  ] },
+  { id = "COCOON", akas = [
+    "茧",
+  ] },
+  { id = "CODE VEIN", akas = [
+    "噬血代码",
+  ] },
+  { id = "Counter-Strike 2", akas = [
+    "反恐精英2",
+  ] },
+  { id = "Craft the World", akas = [
+    "打造世界",
+  ] },
+  { id = "Cris Tales", akas = [
+    "水晶传说",
+  ] },
+  { id = "CrossCode", akas = [
+    "远星物语",
+  ] },
+  { id = "Cultist Simulator", akas = [
+    "密教模拟器",
+  ] },
+  { id = "Cuphead", akas = [
+    "茶杯头",
+  ] },
+  { id = "Cyberpunk 2077", akas = [
+    "赛博朋克 2077",
+    "赛博朋克2077",
+  ] },
+  { id = "苍翼：混沌效应", akas = [
+    "BlazBlue Entropy Effect",
+  ] },
+]
