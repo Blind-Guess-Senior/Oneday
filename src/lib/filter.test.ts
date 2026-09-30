@@ -29,7 +29,6 @@ function card(overrides: Partial<Card>): Card {
     rank: null,
     tier: null,
     scoreOnly: false,
-    published: "",
     modified: "",
     ...overrides,
   };

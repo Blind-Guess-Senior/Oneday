@@ -51,7 +51,6 @@ export interface StandardRecord {
   filePath: string;
   relPath: string;
   contentRel: string;
-  published: string;
   modified: string;
 }
 
@@ -121,7 +120,7 @@ function extractSubScores(body: string): { lines: string[]; body: string } {
 
 /**
  * frontmatter 里显式写的更新日期（`updated: 2026-03-08`），没写或写坏了返回空串。
- * 理由：重构批量改写过内容文件，提交时间不再能反映更新日期。发布日期不受影响。
+ * 理由：重构批量改写过内容文件，提交时间不再能反映更新日期。
  */
 function explicitUpdated(value: unknown): string {
   const text = value instanceof Date ? value.toISOString().slice(0, 10) : String(value ?? "").trim();
@@ -266,7 +265,6 @@ async function buildReviews(): Promise<ReviewRecord[]> {
         aka,
         sub_scores: subScores.lines,
         score_only: !completed,
-        published: dates.published,
         modified: explicitUpdated(meta["updated"]) || dates.updated,
       };
 
@@ -362,7 +360,6 @@ async function buildStandards(): Promise<StandardRecord[]> {
         filePath: path.join(CONTENT_ROOT, contentRel),
         relPath,
         contentRel,
-        published: dates.published,
         modified: dates.updated,
       });
     }

@@ -32,7 +32,6 @@ const aka = list("aka");
 const tags = list("tags");
 const subScores = list("sub_scores");
 const scoreOnly = data["score_only"] === true;
-const published = String(data["published"] ?? "");
 const modified = String(data["modified"] ?? "");
 
 const meta = await extraMeta(reviewer, categoryIds, data);
@@ -165,12 +164,6 @@ const Content = scoreOnly ? null : (await render(entry)).Content;
         </div>
 
         <div class="article-dates">
-          {
-            published && (
-              <time datetime={published}>发布于 {formatDate(published)}</time>
-            )
-          }
-          {published && modified && <span class="meta-dot">·</span>}
           {modified && <time datetime={modified}>更新于 {formatDate(modified)}</time>}
         </div>
       </div>

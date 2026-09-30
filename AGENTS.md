@@ -209,7 +209,8 @@ month: 3
   `akas` 的键，用的都是这个 entry id。
 - 正文开头的第一个 fenced code block 按约定是 `sub_scores`，抽出来渲染在元信息下方。
 - `updated: 2026-03-08` 可选：写了就用它当「更新于」，不写取该文件 `git log --follow`
-  的最近一次提交。只认 `YYYY-MM-DD`，写坏了当没写。
+  里最近一次非工程提交（`feat` `fix` `refactor` `chore` `config` `docs` `test` `build`
+  `style` `perf` `ci` 前缀的提交跳过）。只认 `YYYY-MM-DD`，写坏了当没写。
 - `aka` 可选：这一篇自己的别名，排在全站和作者那两层前面。
 
 ### 5.1 `[[wikilink]]`

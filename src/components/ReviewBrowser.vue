@@ -360,8 +360,8 @@ onMounted(readUrlState);
               >
                 {{ card.score || "未评分" }}
               </span>
-              <span v-if="card.published" class="card-date">
-                <time :datetime="card.published">{{ formatDate(card.published) }}</time>
+              <span v-if="card.modified" class="card-date">
+                <time :datetime="card.modified">{{ formatDate(card.modified) }}</time>
               </span>
             </div>
             <div v-if="card.tags.length" class="card-tags">

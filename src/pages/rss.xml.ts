@@ -1,13 +1,14 @@
 /**
  * RSS 2.0 feed（`/Oneday/rss.xml`）。
  *
- * 条目按最近修改时间倒序；`modified` 来自 git（见 config.ts 的 loadGitDates），
- * 也就是「这篇评测最后一次被改动」的时间，不是 frontmatter 里手写的。
+ * 条目走首页默认视图那一套 filterCards + sortCards：按更新倒序，不含「仅评分」。
+ * `modified` 优先取 frontmatter 的 `updated`，没写才回落 git（见 vault.ts 的 explicitUpdated）。
  */
 
 import rss from "@astrojs/rss";
 import type { APIContext } from "astro";
 import { categoryNames } from "../lib/config";
+import { emptyFilters, filterCards, sortCards } from "../lib/filter";
 import { buildIndexPayload } from "../lib/index-data";
 import { withBase } from "../lib/site";
 
@@ -27,16 +28,14 @@ export async function GET(context: APIContext) {
   // 频道自身的地址要带 base，否则指到账号根而不是这个站
   const site = context.site ? new URL(withBase(""), context.site).href : "";
 
-  const items = [...payload.reviews]
-    .sort((a, b) => b.modified.localeCompare(a.modified))
-    .map((card) => ({
-      title: card.title,
-      link: card.url,
-      pubDate: card.modified ? new Date(card.modified) : undefined,
-      description: describe(card, card.categoryIds.map((id) => names.get(id) ?? id).join(" / ")),
-      categories: card.tags,
-      author: card.reviewer,
-    }));
+  const items = sortCards(filterCards(payload.reviews, emptyFilters()), "modified").map((card) => ({
+    title: card.title,
+    link: card.url,
+    pubDate: card.modified ? new Date(card.modified) : undefined,
+    description: describe(card, card.categoryIds.map((id) => names.get(id) ?? id).join(" / ")),
+    categories: card.tags,
+    author: card.reviewer,
+  }));
 
   return rss({
     title: "Oneday",

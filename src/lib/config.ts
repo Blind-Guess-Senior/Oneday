@@ -403,13 +403,11 @@ export function categoryRows(categoryId: string): string[][] {
 }
 
 export interface GitDates {
-  /** 这篇内容最早一次提交 = 发布。 */
-  published: string;
   /** 最近一次提交 = 更新。 */
   updated: string;
 }
 
-const EMPTY_DATES: GitDates = { published: "", updated: "" };
+const EMPTY_DATES: GitDates = { updated: "" };
 const memoryDates = new Map<string, GitDates>();
 
 /**
@@ -463,29 +461,32 @@ function scheduleSave(): void {
   if (pendingSaves >= 32) saveDiskDates();
 }
 
+/** 工程提交：主题带这些前缀的提交只是顺带碰了内容文件，不算内容更新。 */
+const ENGINEERING_COMMIT = /^(feat|fix|refactor|chore|config|docs|test|build|style|perf|ci)(\([^)]*\))?!?:/;
+
 /**
- * 某个文件的发布/更新日期。
+ * 某个文件的更新日期。
  *
  * 命令跟参考站 blind-guess-senior.github.io 一致：`git log --follow`。
  * 必须带 `--follow` —— vault 备份提交会把文件在目录之间反复搬（历史上有近两千条
- * 重命名/复制），不带的话只能看到搬过来之后的提交，发布日期会变成搬动那天。
- * `git log` 是新到旧，所以第一行是更新、最后一行是发布。
+ * 重命名/复制），不带的话只能看到搬过来之后的提交，更新日期会变成搬动那天。
+ * `git log` 是新到旧，取第一条不是工程提交的。
  */
 function computeGitDates(relPath: string): GitDates {
   try {
-    const output = execFileSync("git", ["log", "--follow", "--pretty=format:%ct", "--", relPath], {
-      cwd: PROJECT_ROOT,
-      encoding: "utf8",
-      maxBuffer: 8 * 1024 * 1024,
-    });
-    const stamps = output.split("\n").map((line) => line.trim()).filter(Boolean);
-    const newest = stamps[0];
-    const oldest = stamps[stamps.length - 1];
-    if (!newest || !oldest) return EMPTY_DATES;
-    const iso = (stamp: string) => new Date(Number(stamp) * 1000).toISOString();
-    return { published: iso(oldest), updated: iso(newest) };
+    const output = execFileSync(
+      "git",
+      ["log", "--follow", "--pretty=format:%ct%x09%s", "--", relPath],
+      { cwd: PROJECT_ROOT, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 },
+    );
+    const newest = output
+      .split("\n")
+      .map((line) => line.split("\t"))
+      .find(([, subject]) => subject && !ENGINEERING_COMMIT.test(subject));
+    if (!newest) return EMPTY_DATES;
+    return { updated: new Date(Number(newest[0]) * 1000).toISOString() };
   } catch {
-    // 没有 git 或没有历史：两个日期都留空，页面照样能构建
+    // 没有 git 或没有历史：日期留空，页面照样能构建
     return EMPTY_DATES;
   }
 }

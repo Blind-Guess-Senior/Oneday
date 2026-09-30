@@ -76,7 +76,6 @@ export function standardsLoader(): Loader {
           reviewer: standard.reviewer,
           category_id: standard.categoryId,
           title: standard.title,
-          published: standard.published,
           modified: standard.modified,
         };
         store.set({
