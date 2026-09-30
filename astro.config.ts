@@ -7,7 +7,6 @@ import { BASE, SITE } from "./src/lib/site";
 import { highlightPlugin } from "./src/plugins/highlight";
 import { obsidianPlugin } from "./src/plugins/obsidian";
 
-// https://astro.build/config
 export default defineConfig({
   site: SITE,
   // 项目站点：整站挂在 https://blind-guess-senior.github.io/Oneday/ 下
