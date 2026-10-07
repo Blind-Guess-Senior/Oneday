@@ -33,10 +33,10 @@ updated: 2026-09-09
 ## 尾巴
 唉，心里五味杂陈，最后却发现也难以写出什么，回头想想，怎么会在这么一个单调又各种重复素材的肉鸽里发疯似的沉迷呢？  
 可能就是因为它真的好玩吧  
-![[Aspark/小众变态测评/游戏/已完成/attachments/ELDEN RING NIGHTREIGN图1.jpeg]]  
-![[Aspark/小众变态测评/游戏/已完成/attachments/ELDEN RING NIGHTREIGN图2.jpg]]  
-![[Aspark/小众变态测评/游戏/已完成/attachments/ELDEN RING NIGHTREIGN图3.jpg]]  
-![[Aspark/小众变态测评/游戏/已完成/attachments/ELDEN RING NIGHTREIGN图4.jpg]]
+![[Aspark/小众变态测评/游戏/attachments/ELDEN RING NIGHTREIGN图1.jpeg]]  
+![[Aspark/小众变态测评/游戏/attachments/ELDEN RING NIGHTREIGN图2.jpg]]  
+![[Aspark/小众变态测评/游戏/attachments/ELDEN RING NIGHTREIGN图3.jpg]]  
+![[Aspark/小众变态测评/游戏/attachments/ELDEN RING NIGHTREIGN图4.jpg]]
 
 -----------------------------------------------------------
 
