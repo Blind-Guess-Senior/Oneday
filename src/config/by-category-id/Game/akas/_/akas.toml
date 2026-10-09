@@ -1,5 +1,4 @@
 akas = [
-  { id = "100% Orange Juice", akas = ["100%鲜橙汁"] },
   { id = "14种扫雷变体", akas = ["14 Minesweeper Variants"] },
   { id = "14种扫雷变体 2", akas = ["14 Minesweeper Variants 2"] },
 ]
