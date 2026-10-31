@@ -61,7 +61,7 @@
  《罗马帽子之谜》 | [[src/content/Blind-Guess-Senior/Book/by-author/埃勒里·奎因/罗马帽子之谜|罗马帽子之谜]] 
  
 ### ==最佳科幻==
- 《与罗摩相会》 | [[src/content/Blind-Guess-Senior/Book/by-name/Y/与罗摩相会|与罗摩相会]] 
+ 《与罗摩相会》 | [[src/content/Blind-Guess-Senior/Book/by-name/Y/YL/与罗摩相会|与罗摩相会]] 
  
 ### ==最佳奇幻==
  虚位以待
@@ -83,7 +83,7 @@
 
 ### ==年度作品==
  《迷宫饭》 | [[src/content/Blind-Guess-Senior/Book/by-name/M/迷宫饭|迷宫饭]] 
- 《与罗摩相会》 | [[src/content/Blind-Guess-Senior/Book/by-name/Y/与罗摩相会|与罗摩相会]] 
+ 《与罗摩相会》 | [[src/content/Blind-Guess-Senior/Book/by-name/Y/YL/与罗摩相会|与罗摩相会]] 
  《败犬女主太多了！》 | [[src/content/Blind-Guess-Senior/Book/by-name/B/败犬女主太多了！|败犬女主太多了！]] 
  《真幌站前多田便利屋》 | [[src/content/Blind-Guess-Senior/Book/by-series/真幌站前/真幌站前多田便利屋|真幌站前多田便利屋]] 
  
@@ -104,9 +104,9 @@
  《高尔夫球场命案》 | [[src/content/Blind-Guess-Senior/Book/by-author/阿加莎·克里斯蒂/高尔夫球场命案|高尔夫球场命案]] 
  
 ### ==最佳科幻==
- 《双星》 | [[src/content/Blind-Guess-Senior/Book/by-name/S/双星|双星]] 
- 《与罗摩相会》 | [[src/content/Blind-Guess-Senior/Book/by-name/Y/与罗摩相会|与罗摩相会]] 
- 《裂隙之外》 | [[src/content/Blind-Guess-Senior/Book/by-name/L/裂隙之外|裂隙之外]] 
+ 《双星》 | [[src/content/Blind-Guess-Senior/Book/by-name/S/SX/双星|双星]] 
+ 《与罗摩相会》 | [[src/content/Blind-Guess-Senior/Book/by-name/Y/YL/与罗摩相会|与罗摩相会]] 
+ 《裂隙之外》 | [[src/content/Blind-Guess-Senior/Book/by-name/L/LX/裂隙之外|裂隙之外]] 
  
 ### ==最佳奇幻==
 	
@@ -118,7 +118,7 @@
  
 ### ==最佳短篇==
  《勾股2.013》
- 《老人与火星海》 | [[src/content/Blind-Guess-Senior/Book/by-name/L/裂隙之外|裂隙之外]] 
+ 《老人与火星海》 | [[src/content/Blind-Guess-Senior/Book/by-name/L/LX/裂隙之外|裂隙之外]] 
  
 ### 年度粪作
  

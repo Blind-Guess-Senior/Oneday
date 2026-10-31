@@ -123,7 +123,9 @@
 ### ==最佳文学==
  无
 ### ==最佳网文&轻小说==
- 无
+ 成为濒临破产学院的财务部长 | [[src/content/Blind-Guess-Senior/Book/by-name/C/成为濒临破产学院的财务部长|成为濒临破产学院的财务部长]] 
+ 雨披法师 | [[src/content/Blind-Guess-Senior/Book/by-name/Y/YP/雨披法师|雨披法师]] 
+ 
 ### ==最佳推理&悬疑==
  无
 ### ==最佳科幻&奇幻==

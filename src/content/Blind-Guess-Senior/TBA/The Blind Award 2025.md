@@ -88,10 +88,10 @@
  虚位以待
  
 ### ==最佳文学==
- 《献给阿尔吉侬的花束》 | [[src/content/Blind-Guess-Senior/Book/by-name/X/献给阿尔吉侬的花束|献给阿尔吉侬的花束]] 
+ 《献给阿尔吉侬的花束》 | [[src/content/Blind-Guess-Senior/Book/by-name/X/XG/献给阿尔吉侬的花束|献给阿尔吉侬的花束]] 
  
 ### ==最佳网文&轻小说==
- 《无限回归者讲述故事》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/无限回归者讲述故事|无限回归者讲述故事]] 
+ 《无限回归者讲述故事》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/WX/无限回归者讲述故事|无限回归者讲述故事]] 
  
 ### ==最佳推理悬疑==
  虚位以待
@@ -111,13 +111,13 @@
 ## 副奖项
  
 ### ==年度角色==
- 加藤惠 | [[src/content/Blind-Guess-Senior/Book/by-name/L/路人女主的养成方法|路人女主的养成方法]] 
+ 加藤惠 | [[src/content/Blind-Guess-Senior/Book/by-name/L/LR/路人女主的养成方法|路人女主的养成方法]] 
  
 ### ==沸腾==
  《放学后的异世界咖啡馆》 | [[src/content/Blind-Guess-Senior/Book/by-name/F/放学后的异世界咖啡馆|放学后的异世界咖啡馆]] 
  
 ### ==心之蛀==
- 《无限回归者讲述故事》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/无限回归者讲述故事|无限回归者讲述故事]] 
+ 《无限回归者讲述故事》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/WX/无限回归者讲述故事|无限回归者讲述故事]] 
  
 ### ==美好的存在证明==
  《放学后的异世界咖啡馆》 | [[src/content/Blind-Guess-Senior/Book/by-name/F/放学后的异世界咖啡馆|放学后的异世界咖啡馆]] 
@@ -126,8 +126,8 @@
 
 ### ==年度作品==
  《接触》 | [[src/content/Blind-Guess-Senior/Book/by-name/J/接触|接触]] 
- 《献给阿尔吉侬的花束》 | [[src/content/Blind-Guess-Senior/Book/by-name/X/献给阿尔吉侬的花束|献给阿尔吉侬的花束]] 
- 《无限回归者讲述故事》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/无限回归者讲述故事|无限回归者讲述故事]] 
+ 《献给阿尔吉侬的花束》 | [[src/content/Blind-Guess-Senior/Book/by-name/X/XG/献给阿尔吉侬的花束|献给阿尔吉侬的花束]] 
+ 《无限回归者讲述故事》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/WX/无限回归者讲述故事|无限回归者讲述故事]] 
  《放学后的异世界咖啡馆》 | [[src/content/Blind-Guess-Senior/Book/by-name/F/放学后的异世界咖啡馆|放学后的异世界咖啡馆]] 
  
 ### ==年度科学作品==
@@ -136,20 +136,20 @@
  无
 ### ==最佳文学==
  《接触》 | [[src/content/Blind-Guess-Senior/Book/by-name/J/接触|接触]] 
- 《献给阿尔吉侬的花束》 | [[src/content/Blind-Guess-Senior/Book/by-name/X/献给阿尔吉侬的花束|献给阿尔吉侬的花束]] 
+ 《献给阿尔吉侬的花束》 | [[src/content/Blind-Guess-Senior/Book/by-name/X/XG/献给阿尔吉侬的花束|献给阿尔吉侬的花束]] 
  
 ### ==最佳网文&轻小说==
- 《无限回归者讲述故事》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/无限回归者讲述故事|无限回归者讲述故事]] 
- 《我成为了背叛女主角们的幕后黑手》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/我成为了背叛女主角们的幕后黑手|我成为了背叛女主角们的幕后黑手]] 
+ 《无限回归者讲述故事》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/WX/无限回归者讲述故事|无限回归者讲述故事]] 
+ 《我成为了背叛女主角们的幕后黑手》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/WC/我成为了背叛女主角们的幕后黑手|我成为了背叛女主角们的幕后黑手]] 
  《放学后的异世界咖啡馆》 | [[src/content/Blind-Guess-Senior/Book/by-name/F/放学后的异世界咖啡馆|放学后的异世界咖啡馆]] 
- 《路人女主的养成方法》 | [[src/content/Blind-Guess-Senior/Book/by-name/L/路人女主的养成方法|路人女主的养成方法]] 
- 《浪漫小说里的主角只喜欢我》 | [[src/content/Blind-Guess-Senior/Book/by-name/L/浪漫小说里的主角只喜欢我|浪漫小说里的主角只喜欢我]] 
+ 《路人女主的养成方法》 | [[src/content/Blind-Guess-Senior/Book/by-name/L/LR/路人女主的养成方法|路人女主的养成方法]] 
+ 《浪漫小说里的主角只喜欢我》 | [[src/content/Blind-Guess-Senior/Book/by-name/L/LM/浪漫小说里的主角只喜欢我|浪漫小说里的主角只喜欢我]] 
  
 ### ==最佳推理悬疑==
  无
 ### ==最佳科幻奇幻==
  《接触》 | [[src/content/Blind-Guess-Senior/Book/by-name/J/接触|接触]] 
- 《献给阿尔吉侬的花束》 | [[src/content/Blind-Guess-Senior/Book/by-name/X/献给阿尔吉侬的花束|献给阿尔吉侬的花束]] 
+ 《献给阿尔吉侬的花束》 | [[src/content/Blind-Guess-Senior/Book/by-name/X/XG/献给阿尔吉侬的花束|献给阿尔吉侬的花束]] 
  
 ### ==最佳短篇==
  《榜样》 | [[src/content/Blind-Guess-Senior/Book/by-name/D/地球上最后的敲门声|地球上最后的敲门声]] 
@@ -160,8 +160,8 @@
 ### ==最受期待（未完结）==
  《国王的求婚》 | [[src/content/Blind-Guess-Senior/Book/by-name/G/国王的求婚|国王的求婚]] 
  《败犬女主太多了！》 | [[src/content/Blind-Guess-Senior/Book/by-name/B/败犬女主太多了！|败犬女主太多了！]] 
- 《雨森润奈湿度很高》 | [[src/content/Blind-Guess-Senior/Book/by-name/Y/雨森润奈湿度很高|雨森润奈湿度很高]] 
- 《无限系统树》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/无限系统树|无限系统树]] 
+ 《雨森润奈湿度很高》 | [[src/content/Blind-Guess-Senior/Book/by-name/Y/YS/雨森润奈湿度很高|雨森润奈湿度很高]] 
+ 《无限系统树》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/WX/无限系统树|无限系统树]] 
  《成为濒临破产学院的财务部长》 | [[src/content/Blind-Guess-Senior/Book/by-name/C/成为濒临破产学院的财务部长|成为濒临破产学院的财务部长]] 
  
 ### 年度粪作
@@ -169,7 +169,7 @@
 ## 副奖项
  
 ### ==年度角色==
- 加藤惠 | [[src/content/Blind-Guess-Senior/Book/by-name/L/路人女主的养成方法|路人女主的养成方法]] 
+ 加藤惠 | [[src/content/Blind-Guess-Senior/Book/by-name/L/LR/路人女主的养成方法|路人女主的养成方法]] 
  乌丸黑衣 | [[src/content/Blind-Guess-Senior/Book/by-name/G/国王的求婚|国王的求婚]] 
  悠 | [[src/content/Blind-Guess-Senior/Book/by-name/F/放学后的异世界咖啡馆|放学后的异世界咖啡馆]] 
  
@@ -177,7 +177,7 @@
  《放学后的异世界咖啡馆》 | [[src/content/Blind-Guess-Senior/Book/by-name/F/放学后的异世界咖啡馆|放学后的异世界咖啡馆]] 
  
 ### ==心之蛀==
- 《无限回归者讲述故事》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/无限回归者讲述故事|无限回归者讲述故事]] 
+ 《无限回归者讲述故事》 | [[src/content/Blind-Guess-Senior/Book/by-name/W/WX/无限回归者讲述故事|无限回归者讲述故事]] 
  《波态生物》 | [[src/content/Blind-Guess-Senior/Book/by-name/Z/最后的火星人|最后的火星人]] 
  
 ### ==美好的存在证明==
