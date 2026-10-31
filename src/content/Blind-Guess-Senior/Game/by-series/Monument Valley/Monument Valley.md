@@ -15,9 +15,9 @@ tags:
 completed: true
 updated: 2026-07-01
 ---
-TBA 2025 *提名* **==最佳创意==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]]  
-TBA 2025 *提名* **==最佳美术==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]]  
-TBA 2025 *提名* **==最佳演出==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]] 
+TBA 2025 *提名* **==最佳创意==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名|The Blind Award 2025]] 
+TBA 2025 *提名* **==最佳美术==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名|The Blind Award 2025]] 
+TBA 2025 *提名* **==最佳演出==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名|The Blind Award 2025]] 
 
 	首评于 2025.8.10
 	小项评分更新 2025.9.8

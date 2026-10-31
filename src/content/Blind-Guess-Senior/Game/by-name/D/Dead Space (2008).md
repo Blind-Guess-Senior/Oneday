@@ -9,5 +9,5 @@ tags:
 completed: false
 ---
 重制版：  
-[[Blind-Guess-Senior/Game/by-name/D/Dead Space]] 
+[[src/content/Blind-Guess-Senior/Game/by-name/D/Dead Space|Dead Space]] 
 

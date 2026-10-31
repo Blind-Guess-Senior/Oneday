@@ -18,8 +18,11 @@ aliases:
   - 杀戮尖塔
 updated: 2026-07-01
 ---
-TBA 2024 **==年度独立==** [[Blind-Guess-Senior/TBA/The Blind Award 2024#游戏]]  
-TBA 2024 *提名* **==年度游戏==** [[Blind-Guess-Senior/TBA/The Blind Award 2024#游戏提名]] 
+续：
+[[src/content/Blind-Guess-Senior/Game/by-name/S/Slay the Spire 2|Slay the Spire 2]] 
+
+TBA 2024 **==年度独立==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2024#游戏|The Blind Award 2024]] 
+TBA 2024 *提名* **==年度游戏==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2024#游戏提名|The Blind Award 2024]] 
 
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

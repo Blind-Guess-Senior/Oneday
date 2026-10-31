@@ -11,7 +11,7 @@ tags:
 completed: false
 ---
 原版：  
-[[Blind-Guess-Senior/Game/by-name/T/The Talos Principle]] 
+[[src/content/Blind-Guess-Senior/Game/by-name/T/The Talos Principle|The Talos Principle]] 
 
 ```
 美术 /4

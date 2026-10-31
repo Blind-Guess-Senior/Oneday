@@ -16,7 +16,7 @@ tags:
 completed: false
 ---
 衍生作：  
-[[Blind-Guess-Senior/Game/by-name/E/Elden Ring NightReign]] 
+[[src/content/Blind-Guess-Senior/Game/by-name/E/Elden Ring NightReign|Elden Ring NightReign]] 
 
 
 

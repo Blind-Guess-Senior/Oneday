@@ -15,7 +15,7 @@ tags:
 completed: false
 updated: 2026-06-29
 ---
-TBA 2025 *提名* **==最佳叙事==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]] 
+TBA 2025 *提名* **==最佳叙事==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名|The Blind Award 2025]] 
 
 	完成 2025.11.7
 	首评 2025.11.7

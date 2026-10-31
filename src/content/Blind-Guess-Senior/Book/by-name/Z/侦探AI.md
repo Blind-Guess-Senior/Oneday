@@ -14,6 +14,6 @@ completed: false
 updated: 2026-06-29
 ---
 同：  
-[[Blind-Guess-Senior/Book/by-name/F/犯人IA]] 
+[[src/content/Blind-Guess-Senior/Book/by-name/F/犯人IA|犯人IA]] 
 
 4/10 实在一般

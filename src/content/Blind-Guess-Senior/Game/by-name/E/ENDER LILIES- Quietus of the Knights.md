@@ -16,7 +16,7 @@ completed: false
 updated: 2026-07-01
 ---
 续：  
-[[Blind-Guess-Senior/Game/by-name/E/ENDER MAGNOLIA- Bloom in the Mist]] 
+[[src/content/Blind-Guess-Senior/Game/by-name/E/ENDER MAGNOLIA- Bloom in the Mist|ENDER MAGNOLIA- Bloom in the Mist]] 
 
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

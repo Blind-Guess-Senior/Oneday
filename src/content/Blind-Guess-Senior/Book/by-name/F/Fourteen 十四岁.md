@@ -14,6 +14,6 @@ completed: false
 updated: 2026-06-29
 ---
 续：  
-[[Blind-Guess-Senior/Book/by-name/S/Sixteen 十六岁]] 
+[[src/content/Blind-Guess-Senior/Book/by-name/S/Sixteen 十六岁|Sixteen 十六岁]] 
 
 9/10 此生难忘

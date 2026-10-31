@@ -15,7 +15,7 @@ tags:
 completed: false
 updated: 2026-07-01
 ---
-Ver1.4.5 TBA 2025 **==最受期待==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏]] 
+Ver1.4.5 TBA 2025 **==最受期待==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2025#游戏|The Blind Award 2025]] 
 
 	首评于 2025.8.6
 	小项评分更新 2025.9.8

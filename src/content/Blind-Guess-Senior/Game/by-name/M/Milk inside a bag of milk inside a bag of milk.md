@@ -16,7 +16,7 @@ completed: true
 updated: 2026-07-01
 ---
 续：  
-[[Blind-Guess-Senior/Game/by-name/M/Milk outside a bag of milk outside a bag of milk]] 
+[[src/content/Blind-Guess-Senior/Game/by-name/M/Milk outside a bag of milk outside a bag of milk|Milk outside a bag of milk outside a bag of milk]] 
 
 	完成 2026.1.13
 	编辑 2026.1.13

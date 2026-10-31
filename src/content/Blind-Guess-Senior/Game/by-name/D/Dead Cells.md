@@ -14,10 +14,10 @@ tags:
   - ACT
 completed: false
 ---
-TBA 2026 *提名* **==年度游戏==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]]  
-TBA 2026 *提名* **==年度独立==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]]  
-TBA 2026 *提名* **==最佳美术==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]]  
-TBA 2026 *提名* **==最佳音乐==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==年度游戏==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名|The Blind Award 2026]] 
+TBA 2026 *提名* **==年度独立==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名|The Blind Award 2026]] 
+TBA 2026 *提名* **==最佳美术==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名|The Blind Award 2026]] 
+TBA 2026 *提名* **==最佳音乐==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名|The Blind Award 2026]] 
 
 ```
 美术 /4

@@ -17,7 +17,7 @@ tags:
 completed: false
 ---
 前：  
-[[Blind-Guess-Senior/Game/by-name/S/Salt and Sanctuary]] 
+[[src/content/Blind-Guess-Senior/Game/by-name/S/Salt and Sanctuary|Salt and Sanctuary]] 
 
 
 ```

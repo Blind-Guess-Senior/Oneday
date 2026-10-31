@@ -14,6 +14,6 @@ completed: false
 updated: 2026-06-29
 ---
 前：  
-[[Blind-Guess-Senior/Book/by-name/F/Fourteen 十四岁]] 
+[[src/content/Blind-Guess-Senior/Book/by-name/F/Fourteen 十四岁|Fourteen 十四岁]] 
 
 9/10 此生难忘

@@ -15,7 +15,7 @@ tags:
 completed: false
 ---
 前：  
-[[Blind-Guess-Senior/Game/by-name/E/ENDER LILIES- Quietus of the Knights]] 
+[[src/content/Blind-Guess-Senior/Game/by-name/E/ENDER LILIES- Quietus of the Knights|ENDER LILIES- Quietus of the Knights]] 
 
 
 

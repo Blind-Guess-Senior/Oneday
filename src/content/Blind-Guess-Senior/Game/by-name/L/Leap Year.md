@@ -17,7 +17,7 @@ tags:
   - AVG
 completed: false
 ---
-TBA 2026 *提名* **==最佳创意==** [[Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名]] 
+TBA 2026 *提名* **==最佳创意==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2026#游戏提名|The Blind Award 2026]] 
 
 	本体通关 2026.6.29
 

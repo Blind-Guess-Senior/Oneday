@@ -13,9 +13,9 @@ tags:
 completed: false
 ---
 前：  
-[[Blind-Guess-Senior/Game/by-name/B/Bloodstained- Ritual of the Night]] 
+[[src/content/Blind-Guess-Senior/Game/by-name/B/Bloodstained- Ritual of the Night|Bloodstained- Ritual of the Night]] 
 
-TBA 2025 *提名* **==最受期待==** [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名]] 
+TBA 2025 *提名* **==最受期待==** [[src/content/Blind-Guess-Senior/TBA/The Blind Award 2025#游戏提名|The Blind Award 2025]] 
 
 ```
 美术 /4

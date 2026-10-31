@@ -14,6 +14,6 @@ completed: false
 updated: 2026-06-29
 ---
 同：  
-[[Blind-Guess-Senior/Book/by-name/Z/侦探AI]] 
+[[src/content/Blind-Guess-Senior/Book/by-name/Z/侦探AI|侦探AI]] 
 
 4/10 实在一般

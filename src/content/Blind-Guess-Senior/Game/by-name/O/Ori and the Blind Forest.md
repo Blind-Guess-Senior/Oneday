@@ -15,7 +15,7 @@ completed: false
 updated: 2026-07-01
 ---
 续：  
-[[Blind-Guess-Senior/Game/by-name/O/Ori and the Will of the Wisps]] 
+[[src/content/Blind-Guess-Senior/Game/by-name/O/Ori and the Will of the Wisps|Ori and the Will of the Wisps]] 
 
 	首评于 2025.8.6
 	小项评分更新 2025.9.8
