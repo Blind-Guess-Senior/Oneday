@@ -215,11 +215,12 @@ month: 3
 
 ### 5.1 `[[wikilink]]`
 
-路径必须**相对内容根、写全、不带 `.md`**，且精确匹配仓库里的文件；
+路径必须**写全、不带 `.md`**，支持相对内容根或仓库根（带 `src/content/` 前缀），且精确匹配仓库里的文件；
 解析不到就渲染成灰掉的 span 并在构建日志里列出。
 
 ```markdown
 [[Blind-Guess-Senior/Book/by-series/冰菓/冰菓]]
+[[src/content/Blind-Guess-Senior/Book/by-series/冰菓/冰菓]]
 [[Blind-Guess-Senior/Book/by-series/冰菓/冰菓|冰菓]]
 [[Blind-Guess-Senior/TBA/The Blind Award 2025#游戏]]
 ```
@@ -228,10 +229,11 @@ month: 3
 
 ### 5.2 `![[图片]]`
 
-路径相对内容根、写全、带扩展名。
+路径写全、带扩展名，支持相对内容根或仓库根（带 `src/content/` 前缀）。
 
 ```markdown
 ![[Blind-Guess-Senior/Game/by-name/C/attachments/Cris Tales - 图1.png]]
+![[src/content/Blind-Guess-Senior/Game/by-name/C/attachments/Cris Tales - 图1.png]]
 ```
 
 图片走 Astro 图片管线；找不到文件时不渲染，并在构建日志里列为报告。

@@ -375,13 +375,14 @@ export function getStandards(): Promise<StandardRecord[]> {
   return standardsPromise;
 }
 
-/** 去掉 `.md`、前导 `/`、`./`，反斜杠转正斜杠。 */
+/** 统一为内容根相对路径，去掉 `.md`、前导 `/`、`./`，反斜杠转正斜杠。 */
 export function normalizeWikiPath(value: string): string {
   return value
     .trim()
     .replace(/\\/g, "/")
     .replace(/^\/+/, "")
     .replace(/^\.\//, "")
+    .replace(/^src\/content\//, "")
     .replace(/\.md$/i, "");
 }
 
