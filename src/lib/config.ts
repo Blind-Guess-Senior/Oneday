@@ -82,11 +82,10 @@ export interface CategoryConfig {
 }
 
 export interface MetadataMapEntry {
-  /** 取自 frontmatter 的哪些键。多个键按 separator 拼接。 */
-  keys: string[];
-  /** 显示用的标签名。 */
+  /** 标签模板，使用 `{字段名}` 引用 frontmatter。 */
   label: string;
-  separator: string;
+  /** 值模板，使用 `{字段名}` 引用 frontmatter。 */
+  value: string;
 }
 
 export interface ReviewerConfig {
@@ -202,11 +201,10 @@ function normalizeReviewerConfig(
     for (const rule of Array.isArray(record["rules"]) ? record["rules"] : []) {
       const entry = asRecord(rule);
       if (!entry) continue;
-      const keys = asStringArray(entry["keys"]);
       const label = asString(entry["label"]);
-      if (!keys.length || !label) continue;
-      const separator = entry["separator"] === undefined ? "." : String(entry["separator"]);
-      list.push({ keys, label, separator });
+      const value = asString(entry["value"]);
+      if (!label || !value) continue;
+      list.push({ label, value });
     }
     if (list.length) metadataMaps[categoryId] = [...(metadataMaps[categoryId] ?? []), ...list];
   }

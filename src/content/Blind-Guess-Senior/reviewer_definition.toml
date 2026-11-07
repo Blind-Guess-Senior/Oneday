@@ -40,19 +40,18 @@ tiers = [
 [[metadata_maps]]
 category_id = "Game"
 rules = [
-  { keys = ["developer"], label = "开发商" },
-  { keys = ["publisher"], label = "发行商" },
-  { keys = ["year", "month"], separator = ".", label = "游玩时间" },
+  { label = "开发商", value = "{developer}" },
+  { label = "发行商", value = "{publisher}" },
+  { label = "完成于", value = "{year}.{month}" },
 ]
 
 [[metadata_maps]]
 category_id = "Anime"
-rules = [{ keys = ["year", "month"], separator = ".", label = "观看时间" }]
+rules = [{ label = "完成于", value = "{year}.{month}" }]
 
 [[metadata_maps]]
 category_id = "Book"
 rules = [
-  { keys = ["country"], label = "国家" },
-  { keys = ["author"], label = "作者" },
-  { keys = ["year", "month"], separator = ".", label = "阅读时间" },
+  { label = "作者", value = "[{country}] {author}" },
+  { label = "完成于", value = "{year}.{month}" },
 ]

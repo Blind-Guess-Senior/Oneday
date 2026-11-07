@@ -170,13 +170,14 @@ tiers = [
 [[metadata_maps]]
 category_id = "Game"
 rules = [
-  { keys = ["developer"], label = "开发商" },
-  { keys = ["year", "month"], separator = ".", label = "游玩时间" },
+  { label = "开发商", value = "{developer}" },
+  { label = "游玩时间", value = "{year}.{month}" },
 ]
 ```
 
-- 单 key 直接显示该值；多 key 按 `separator`（默认 `.`）拼接。
-- 没被预定义、也没在这里声明的 metadata 不显示（仍存在 entry 的 data 里）。
+- `label` 和 `value` 都是模板，用 `{字段名}` 引用 frontmatter；例如 `label = "[{country}] 作者"`。
+- 字段值中的数组按 ` / ` 拼接，模板中的其他文本原样保留。
+- 没被预定义、也没被模板引用的 metadata 不显示（仍存在 entry 的 data 里）。
 
 ---
 

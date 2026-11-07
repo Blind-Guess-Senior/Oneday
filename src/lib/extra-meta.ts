@@ -1,7 +1,7 @@
 /**
  * 评测页额外元信息（`metadata_maps`）。
  *
- * 规则来自作者配置：分类 id 作用域，单 key 直接取值，多 key 按 separator 拼接。
+ * 规则来自作者配置：分类 id 作用域，label 和 value 模板通过 `{字段名}` 引用 frontmatter。
  * 没被这里声明、也不是预定义字段的 metadata 不显示。
  */
 
@@ -12,11 +12,14 @@ export interface MetaItem {
   value: string;
 }
 
-/** 取一个 frontmatter 值并拉平成显示文本；数组按 ` / ` 拼。取不到就是空串。 */
+/** 取一个 frontmatter 值并拉平成显示文本；数组按 ` / ` 拼。 */
 function flatten(value: unknown): string {
   if (Array.isArray(value)) return value.map(String).join(" / ");
-  if (value === undefined || value === null) return "";
   return String(value);
+}
+
+function renderTemplate(template: string, data: Record<string, unknown>): string {
+  return template.replace(/\{([^{}]+)\}/g, (_, key: string) => flatten(data[key]));
 }
 
 export async function extraMeta(
@@ -34,11 +37,8 @@ export async function extraMeta(
   }
   if (!entries) return [];
 
-  const items: MetaItem[] = [];
-  for (const entry of entries) {
-    const parts = entry.keys.map((key) => flatten(data[key])).filter((text) => text !== "");
-    if (parts.length === 0) continue;
-    items.push({ label: entry.label, value: parts.join(entry.separator) });
-  }
-  return items;
+  return entries.map((entry) => ({
+    label: renderTemplate(entry.label, data),
+    value: renderTemplate(entry.value, data),
+  }));
 }
